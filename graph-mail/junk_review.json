@@ -1,0 +1,402 @@
+[
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbNz1YgAAAA=",
+    "received": "2026-02-19T15:54:57Z",
+    "from": "promociones@email.santaisabel.cl",
+    "subject": "El festival se vive en casa 🎤",
+    "score": -1,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbNz1YcAAAA=",
+    "received": "2026-02-19T14:38:33Z",
+    "from": "scotiarewards@hola.scotiabank.cl",
+    "subject": "🎒¡Hasta 50% Dcto. para tu último destino! Arma tu maleta🧳 con Scotia Marketplace",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbNz1YYAAAA=",
+    "received": "2026-02-19T11:30:38Z",
+    "from": "claudia.aguilera@mueveseguro.cl",
+    "subject": "BUENAS NOTICIAS! ESTÁS PAGANDO UN CRÉDITO, RECUPERA LO QUE ESTÁS PAGANDO DEMÁS",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-gAAAA=",
+    "received": "2026-02-18T15:03:10Z",
+    "from": "fabiana@rankia.com",
+    "subject": "🎉Ahorra este 2026 con descuentos y beneficios que te encantan",
+    "score": -2,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-cAAAA=",
+    "received": "2026-02-18T12:46:22Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "⏰Última llamada: 72H de dctos imperdibles",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-YAAAA=",
+    "received": "2026-02-18T01:42:28Z",
+    "from": "invoice+statements_at_mail_anthropic_com_tb2hpbqgr7_a016608f@privaterelay.appleid.com",
+    "subject": "Your receipt from Anthropic, PBC #2745-9527-0027",
+    "score": 1,
+    "decision": "REVISAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-UAAAA=",
+    "received": "2026-02-18T01:26:01Z",
+    "from": "info@buscalibre.com",
+    "subject": "🌎 ¡Los Días Planeta llegaron! Hasta 70% dcto + envío a LUKA 🚀",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-QAAAA=",
+    "received": "2026-02-17T19:42:28Z",
+    "from": "ventas@pataguatienda.cl",
+    "subject": "ya comenzó el remate de temporada!!",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-MAAAA=",
+    "received": "2026-02-17T18:03:50Z",
+    "from": "invoice+statements_at_mail_anthropic_com_tb2hpbqgr7_a016608f@privaterelay.appleid.com",
+    "subject": "Your receipt from Anthropic, PBC #2314-7479-2979",
+    "score": 1,
+    "decision": "REVISAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-IAAAA=",
+    "received": "2026-02-17T15:25:51Z",
+    "from": "pvidalr@banmedica.cl",
+    "subject": "Oportunidad para mejorar y revisar tu plan de salud",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-EAAAA=",
+    "received": "2026-02-17T14:53:25Z",
+    "from": "noreply@publimailer.com=?UTF-8?Q?=F0=9F=94=92?=",
+    "subject": "Fwd:Tiees el 40% dscto en la tasa de tu Crédito de Consumo Aprobado,Sólo por 2 días💸💰💳.",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbJs0-AAAAA=",
+    "received": "2026-02-17T12:46:45Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "☀️ Verano + hogar = match perfecto",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9oAAAA=",
+    "received": "2026-02-17T00:26:00Z",
+    "from": "info@buscalibre.com",
+    "subject": "📖 Solo por esta noche encuentra libros de Penguin con hasta 80% dcto 🌙",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9kAAAA=",
+    "received": "2026-02-16T18:38:29Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "⚡Se activan las 72H en Mademsa",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9gAAAA=",
+    "received": "2026-02-16T18:29:07Z",
+    "from": "abogado@servilogic.cl",
+    "subject": "INFORMACION IMPORTANTE TENPO PAYMENTS S.A. - ESTUDIO JURIDICO SERVILOGIC",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9cAAAA=",
+    "received": "2026-02-16T17:12:25Z",
+    "from": "hello_at_kayaclimb_com_v4qqzs8dkd_e81678ad@privaterelay.appleid.com",
+    "subject": "Pre-register for March's Evolv V6 Challenge",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9YAAAA=",
+    "received": "2026-02-16T16:01:47Z",
+    "from": "no-reply_at_email_claude_com_tb2hpbqgr7_dee6d0d4@privaterelay.appleid.com",
+    "subject": "Tips to get the most out of Claude Code",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9UAAAA=",
+    "received": "2026-02-16T12:30:12Z",
+    "from": "mailing.clinicaantofagasta@bupa.cl",
+    "subject": "⏲️ Resonancia con IA en 10 minutos: más rápida y cómoda",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9QAAAA=",
+    "received": "2026-02-16T11:12:24Z",
+    "from": "invoice+statements_at_mail_anthropic_com_tb2hpbqgr7_a016608f@privaterelay.appleid.com",
+    "subject": "Your receipt from Anthropic, PBC #2823-4780-6058",
+    "score": 1,
+    "decision": "REVISAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbE-m9IAAAA=",
+    "received": "2026-02-16T02:35:42Z",
+    "from": "no-reply-i4ylVR2aKTYfTEz3IkQ4zA_at_mail_anthropic_com_tb2hpbqgr7_68ce5bb7@privaterelay.appleid.com",
+    "subject": "Secure link to log in to the Claude Console | 2026-02-15 23:35:38",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbEi9UQAAAA=",
+    "received": "2026-02-15T08:49:21Z",
+    "from": "media_at_mail_saily_com_dgy2kqsrjm_b140e222@privaterelay.appleid.com",
+    "subject": "Save 5% on eSIM data",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbCrrVYAAAA=",
+    "received": "2026-02-15T00:06:40Z",
+    "from": "contacto@fit4life.cl",
+    "subject": "¡PROMO 14 de febrero! Marquemos un nuevo comienzo",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbCrrVUAAAA=",
+    "received": "2026-02-14T16:01:28Z",
+    "from": "no-reply_at_email_claude_com_tb2hpbqgr7_dee6d0d4@privaterelay.appleid.com",
+    "subject": "Ship your first major feature with Claude Code",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbAuZskAAAA=",
+    "received": "2026-02-14T12:31:27Z",
+    "from": "clientes@hipodromochile.cl",
+    "subject": "Jose 20 Millones Superfecta Primera Carrera 12:30 hrs 💰 🐴",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbAuZsgAAAA=",
+    "received": "2026-02-14T10:24:58Z",
+    "from": "recommends_at_ted_com_wdp6xgrhh2_98ed3093@privaterelay.appleid.com",
+    "subject": "5 ways to listen better",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbAuZscAAAA=",
+    "received": "2026-02-13T23:48:23Z",
+    "from": "no-reply_at_email_claude_com_tb2hpbqgr7_dee6d0d4@privaterelay.appleid.com",
+    "subject": "Welcome to Claude Code",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACbAuZsYAAAA=",
+    "received": "2026-02-13T23:17:36Z",
+    "from": "no-reply_at_email_claude_com_tb2hpbqgr7_dee6d0d4@privaterelay.appleid.com",
+    "subject": "The secret to your first \"aha moment\" with Claude (1/5)",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa_JX-EAAAA=",
+    "received": "2026-02-13T18:49:06Z",
+    "from": "no-reply-sQmP_uxeefax8OmJ0PNo4Q_at_mail_anthropic_com_tb2hpbqgr7_90095188@privaterelay.appleid.com",
+    "subject": "Enlace seguro para iniciar sesión en Claude.ai | 2026-02-13 15:49:02",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa_JX-AAAAA=",
+    "received": "2026-02-13T14:03:45Z",
+    "from": "flujo@assetsltda.cl",
+    "subject": "Aprovecha la oportunidad",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa_JX_4AAAA=",
+    "received": "2026-02-13T12:13:53Z",
+    "from": "info@buscalibre.com",
+    "subject": "📚 ¡Tu próxima historia te espera! Hasta 80% dcto + envío a LUKA 💕",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa_JX_0AAAA=",
+    "received": "2026-02-13T08:46:44Z",
+    "from": "media_at_mail_saily_com_dgy2kqsrjm_b140e222@privaterelay.appleid.com",
+    "subject": "Save 5% on eSIM data",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa_JX_wAAAA=",
+    "received": "2026-02-12T23:17:38Z",
+    "from": "no-reply_at_email_claude_com_tb2hpbqgr7_dee6d0d4@privaterelay.appleid.com",
+    "subject": "Welcome to Claude — let’s get started",
+    "score": -0.5,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWYAAAA=",
+    "received": "2026-02-12T19:19:54Z",
+    "from": "promociones@email.santaisabel.cl",
+    "subject": "❤️ Santa Isabel te acerca a Viña 🎤",
+    "score": -1,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWUAAAA=",
+    "received": "2026-02-12T16:06:36Z",
+    "from": "mailing.clinicaantofagasta@bupa.cl",
+    "subject": "🎟️ Aún puedes ganar entradas a Lollapalooza 2026",
+    "score": -1,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWQAAAA=",
+    "received": "2026-02-12T15:34:49Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "Últimas horas de Flash Sale ⚡",
+    "score": -1,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWMAAAA=",
+    "received": "2026-02-12T15:22:44Z",
+    "from": "turbus@turbus.muvify.cl",
+    "subject": "👉 JUAN ALBERTO, cada viaje cuenta en Muvify",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWIAAAA=",
+    "received": "2026-02-12T12:42:58Z",
+    "from": "unired@infounired.pagototal.cl",
+    "subject": "Alerta: evita estafas SMS",
+    "score": 1,
+    "decision": "REVISAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa72DWEAAAA=",
+    "received": "2026-02-12T10:23:06Z",
+    "from": "recommends_at_ted_com_wdp6xgrhh2_98ed3093@privaterelay.appleid.com",
+    "subject": "The happy secret to better work",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa67xxMAAAA=",
+    "received": "2026-02-11T21:02:21Z",
+    "from": "mailing.clinicaantofagasta@bupa.cl",
+    "subject": "🎒Chequeo preventivo escolar máximo a pagar 10.000.- Adelanta su salud hoy",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa67xxIAAAA=",
+    "received": "2026-02-11T17:19:39Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "⚡¡Aprovecha! Flash Sale con hasta 40%OFF",
+    "score": -1,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa2Gp4wAAAA=",
+    "received": "2026-02-10T18:46:56Z",
+    "from": "directv@contactcentermulticob.cl",
+    "subject": "Aviso Directv",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa2Gp4sAAAA=",
+    "received": "2026-02-10T16:10:13Z",
+    "from": "mailing.clinicaantofagasta@bupa.cl",
+    "subject": "Cuidamos tu bienestar con cirugía segura y especializada 👨🏻‍⚕️👩🏻‍⚕️",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACa2Gp4oAAAA=",
+    "received": "2026-02-10T12:56:39Z",
+    "from": "McDonalds@news.mcdonalds.cl",
+    "subject": "FE DE ERRATAS - Tu McCombo con 50% OFF",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaxKx2cAAAA=",
+    "received": "2026-02-09T17:48:42Z",
+    "from": "pokemongo_at_email_nianticlabs_com_8gwqsqcw54_fa3de28e@privaterelay.appleid.com",
+    "subject": "¿Nueva foto de perfil? 📸",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaxKx2YAAAA=",
+    "received": "2026-02-09T16:56:59Z",
+    "from": "McDonalds@news.mcdonalds.cl",
+    "subject": "Tu McCombo con 50% OFF",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaxKx2UAAAA=",
+    "received": "2026-02-09T15:20:56Z",
+    "from": "mailing.clinicaantofagasta@bupa.cl",
+    "subject": "¿Pensando en cirugía bariátrica? Te acompañamos en cada etapa",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaxKx2QAAAA=",
+    "received": "2026-02-08T22:02:22Z",
+    "from": "ventas@pataguatienda.cl",
+    "subject": "Yoga al aire libre",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaux0nsAAAA=",
+    "received": "2026-02-07T12:46:36Z",
+    "from": "no-responder@news-mademsa.com",
+    "subject": "Tu hogar merece este flechazo 💘",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaux0noAAAA=",
+    "received": "2026-02-07T12:31:24Z",
+    "from": "clientes@hipodromochile.cl",
+    "subject": "Jose Edgardo Jorquera Calderon 10 Millones Superfeta Primera Carrera 12:30 hrs. 🐴 💰",
+    "score": 0,
+    "decision": "ELIMINAR"
+  },
+  {
+    "id": "AQMkADAwATMwMAItYjljZC0zOTdlLTAwAi0wMAoARgAAAwtbdgOn9V5MnQrhlp3nlyQHAAVQ2DgHxcFDqymytlaOJxwAAAIBIQAAAAVQ2DgHxcFDqymytlaOJxwACaux0nkAAAA=",
+    "received": "2026-02-07T12:26:53Z",
+    "from": "contacto@fit4life.cl",
+    "subject": "Compra de plan",
+    "score": 1,
+    "decision": "REVISAR"
+  }
+]
