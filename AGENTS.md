@@ -92,18 +92,19 @@ Output: automatización activa + documentación
 
 ### 🧾 Cierre de Sesión (guardado útil, sin ruido)
 ```
+Objetivo: guardar solo “señal” (decisiones, pendientes reales, cambios), no resumen completo de cada chat.
+
 Trigger explícito: "cerramos", "hasta luego", "chao", "nos vemos" o despedida equivalente.
-Trigger implícito: aplicar solo si hay decisiones/pedientes relevantes y riesgo real de perder contexto.
+Trigger implícito: aplicar solo si detecto riesgo real de pérdida de contexto.
 
 Antes de cerrar:
-1) Guardar resumen mínimo (append, no reemplazar) en `memory/YYYY-MM-DD.md` con este formato:
+1) Guardar resumen mínimo (append, no reemplazar) en `memory/YYYY-MM-DD.md` con este formato corto:
 
 ## Sesión [fecha y hora UTC-3]
 - Proyecto(s): [lista corta]
 - Decisiones: [bullets concretos]
 - Próximos pasos: [bullets accionables]
 - Bloqueos/Riesgos: [si aplica]
-- Cambios de configuración: [si aplica]
 
 2) Si hubo decisiones permanentes (preferencias, criterios de trabajo, convenciones), reflejarlas también en:
    - `MEMORY.md` (alto nivel)
@@ -114,9 +115,10 @@ Antes de cerrar:
 
 Reglas:
 - No guardar cierres vacíos o de rutina sin señal útil.
-- Priorizar precisión sobre longitud (máx. 8-12 bullets totales).
-- No interrumpir por timeout fijo; preguntar para guardar solo si realmente hay riesgo de pérdida de contexto.
+- Priorizar precisión sobre longitud (ideal: 4 líneas + 4-8 bullets útiles).
+- No auto-preguntar por tiempo fijo (sin regla de "30 minutos"); intervenir solo si hay riesgo real.
 ```
+
 
 ---
 
