@@ -27,7 +27,12 @@ Cuando el usuario pida correos de una OT/PO/proyecto, usar categorías de OWA (c
 - Recibidos: `category:"OT 1844 Recibidos"`
 - Enviados: `category:"OT 1844 Enviados"`
 
-Navegación directa (URL encoded):
+Navegación recomendada (estable, muestra barra superior de búsqueda con “Todas las carpetas”):
+
+- `https://outlook.office.com/mail/?q=category%3A%22OT%201844%20Recibidos%22`
+- `https://outlook.office.com/mail/?q=category%3A%22OT%201844%20Enviados%22`
+
+Alternativa (si la anterior no carga resultados):
 
 - `https://outlook.office.com/mail/search?q=category%3A%22OT%201844%20Recibidos%22`
 - `https://outlook.office.com/mail/search?q=category%3A%22OT%201844%20Enviados%22`
