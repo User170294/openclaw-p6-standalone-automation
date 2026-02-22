@@ -37,15 +37,19 @@ Para Recibidos OT 1844 usar exactamente:
 
 - `category:"OT 1844 Recibidos"`
 
-### Querys en prueba (no fijar como canónicas aún)
+### Querys canónicas confirmadas (OT 1844)
 
+- `category:"OT 1844 Recibidos"`
 - `category:"OT 1844 Enviados"`
+
+### Variantes no recomendadas (histórico de pruebas)
+
 - `category:"OT1844 Enviados"`
 - `category:"OT 1844 Enviado"`
 - `category:"OT 1844 Enviados" folderid:sentitems`
 - `category:"OT 1844" folderid:sentitems`
 
-Nota: para **Enviados** aún no hay variante confirmada; seguir validando con el usuario antes de consolidar.
+Nota: usar siempre las querys canónicas escribiéndolas en el buscador superior y ejecutando con Enter.
 
 ## Workflow estándar
 
