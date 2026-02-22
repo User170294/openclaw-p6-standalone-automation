@@ -1,0 +1,12 @@
+# Informe tecnico - Esbeltez de viga revB
+
+- Archivo: Informe tecnico - Esbeltez de viga revB.pdf
+- Ruta origen: C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\004_ID 1425_Fabricación para Proyecto Agua Lavado Celdas\001_OT 1844\SDI\002\Informe tecnico - Esbeltez de viga revB.pdf
+- Páginas: 12
+- Estado extracción: ok
+
+## Resumen preliminar (auto)
+
+“DOCUMENTO PARA USO EXCLUSIVO SIMTEXX SPA” INFORME TÉCNICO ESBELTEZ DE VIGA SISTEMA ESTRUCTURAL PRINCIPAL PLATAFORMAS CELDAS DE LAVADO SIMTEXX SPA MINERA SPENCE S.A. FABRICACIÓN PARA PROYECTO AGUA LAVADO CELDAS OC N° 4519143302 EMISIÓN VERSIÓN ÁREA 06-02-2026 Rev.B OT-1844 REVISIÓN CLIENTE Marcar donde corresponde y devolver Aprobado Aprobado con comentarios X Emisión para revisión y comentarios Corregir y remitir en nueva revisión Rechazado Solo información CONTROL NOMBRE ROL FECHA FIRMA PREPARADO POR Dennis Callejas C. Ing. de Proyectos 06/02/2026 REVISADO POR Ricardo Ávila G. Jefe de ingeniería 06/01/2026 APROBADO POR Ricardo Ávila G. Jefe de ingeniería 06/01/2026 REVISADO POR CLIENTE APROBADO POR CLIENTE
+INFORME TÉCNICO ESBELTEZ DE VIGA SISTEMA ESTRUCTURAL PRINCIPAL PLATAFORMAS CELDAS DE LAVADO SISPA-1801-MCA-003 Rev. B 06-02-2026 Página 2 de 12 HISTORIAL DE APROBACIONES VERSIÓN FECHA ELABORADO REVISADO APROBADO A 06-02-2026 D. Callejas R. Ávila R. Ávila B 06-02-2026 D. Callejas R. Ávila R. Ávila CAMBIOS A LA VERSIÓN ANTERIOR ÍTEM FECHA NOMBRE GLOSA
+INFORME TÉCNICO ESBELTEZ DE VIGA SISTEMA ESTRUCTURAL PRINCIPAL PLATAFORMAS CELDAS DE LAVADO SISPA-1801-MCA-003 Rev. B 06-02-2026 P

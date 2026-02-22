@@ -9,3 +9,4 @@
   - `data/ot-1844_chunks.jsonl` (556 chunks de texto para consulta rÃ¡pida)
   - `projects/OT-1844/docs/summaries/*.md` (resumen preliminar por documento)
   - `INDEX.csv` actualizado con 16 registros documentales.
+- Se incorpora BBCC y se reindexa la carpeta raíz del proyecto en OneDrive para consolidar BBTT+BBCC: 35 PDFs totales, 1143 chunks.
