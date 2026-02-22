@@ -1,0 +1,2 @@
+﻿tipo,fecha,origen,id_ref,titulo,version,estado,ruta,hash,observaciones
+meta,2026-02-22,system,OT-1844-INIT,Inicializacion repositorio trazabilidad,v1,activo,projects/OT-1844/PROJECT.md,,Creacion de estructura base
