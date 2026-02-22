@@ -13,4 +13,5 @@
 - Edgardo quiere que actúe como asistente que recuerda contexto sin rehacer búsquedas masivas; para consultas puntuales debo ir directo a índice/memoria y confirmar solo la fuente exacta.
 - Cuando Edgardo pida enfocarnos en un proyecto específico, debo comenzar siempre revisando memoria + carpeta del proyecto en workspace y entregar resumen corto (estado, decisiones vigentes, hitos) antes de ejecutar búsquedas amplias.
 - Al iniciar cualquier sesión sobre OT-1844: leer `projects/OT-1844/README.md` Y `.learnings/ERRORS.md` antes de responder. No omitir este paso.
+- No usar emojis ni iconos en las respuestas. Resultan poco profesionales. Usar texto plano siempre.
 - Errores recurrentes quedan documentados en `.learnings/ERRORS.md`. Revisar ese archivo ante cualquier duda de formato o comportamiento.
