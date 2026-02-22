@@ -16,3 +16,4 @@
 - Preferencia de Edgardo (2026-02-22): cuando pida “foco en un proyecto”, el primer paso siempre es revisar el estado interno del sistema (workspace + memory + repositorio del proyecto) antes de abrir fuentes externas (Teams/OWA).
 - No usar emojis ni iconos en las respuestas. Resultan poco profesionales. Usar texto plano siempre.
 - Errores recurrentes quedan documentados en `.learnings/ERRORS.md`. Revisar ese archivo ante cualquier duda de formato o comportamiento.
+- Al cerrar sesión, Edgardo quiere ver confirmación verificable: ruta y bloque exacto guardado en memoria.
