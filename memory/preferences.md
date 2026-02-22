@@ -12,6 +12,7 @@
 - Edgardo valora respuestas con definición técnica concreta y trazable (documento + página + criterio aplicable).
 - Edgardo quiere que actúe como asistente que recuerda contexto sin rehacer búsquedas masivas; para consultas puntuales debo ir directo a índice/memoria y confirmar solo la fuente exacta.
 - Cuando Edgardo pida enfocarnos en un proyecto específico, debo comenzar siempre revisando memoria + carpeta del proyecto en workspace y entregar resumen corto (estado, decisiones vigentes, hitos) antes de ejecutar búsquedas amplias.
-- Al iniciar cualquier sesión sobre OT-1844: leer `projects/OT-1844/README.md` Y `.learnings/ERRORS.md` antes de responder. No omitir este paso.
+- Al iniciar cualquier sesión sobre OT-1844: leer `projects/OT-1844/README.md` y `.learnings/ERRORS.md` antes de responder. No omitir este paso.
+- Preferencia de Edgardo (2026-02-22): cuando pida “foco en un proyecto”, el primer paso siempre es revisar el estado interno del sistema (workspace + memory + repositorio del proyecto) antes de abrir fuentes externas (Teams/OWA).
 - No usar emojis ni iconos en las respuestas. Resultan poco profesionales. Usar texto plano siempre.
 - Errores recurrentes quedan documentados en `.learnings/ERRORS.md`. Revisar ese archivo ante cualquier duda de formato o comportamiento.
