@@ -24,15 +24,21 @@ Cuando el usuario pida correos de una OT/PO/proyecto, usar categorías de OWA (c
 
 ### Query validada (OT 1844)
 
-- Recibidos (confirmada visualmente por Edgardo): `category:"OT1844 Recibidos"`
+- Recibidos (confirmada visualmente por Edgardo): `category:"OT 1844 Recibidos"`
 
-URL validada (mantiene modo de búsqueda en barra superior, “Todas las carpetas”):
+### Método canónico validado (OBLIGATORIO)
 
-- `https://outlook.office.com/mail/?q=category%3A%22OT1844%20Recibidos%22`
+1. Abrir `https://outlook.office.com/mail/`
+2. Click en el buscador superior (placeholder: "Busque correo electrónico, reuniones, archivos y mucho más.")
+3. Escribir la query exacta de categoría
+4. Ejecutar con Enter (`submit:true`)
+
+Para Recibidos OT 1844 usar exactamente:
+
+- `category:"OT 1844 Recibidos"`
 
 ### Querys en prueba (no fijar como canónicas aún)
 
-- `category:"OT 1844 Recibidos"`
 - `category:"OT 1844 Enviados"`
 - `category:"OT1844 Enviados"`
 - `category:"OT 1844 Enviado"`
