@@ -22,20 +22,24 @@ Leer y resumir correos desde OWA con browser profile `openclaw`.
 
 Cuando el usuario pida correos de una OT/PO/proyecto, usar categorías de OWA (chips), no texto libre.
 
-### Query canónica (OT 1844)
+### Query validada (OT 1844)
 
-- Recibidos: `category:"OT 1844 Recibidos"`
-- Enviados: `category:"OT 1844 Enviados"`
+- Recibidos (confirmada visualmente por Edgardo): `category:"OT1844 Recibidos"`
 
-Navegación recomendada (estable, muestra barra superior de búsqueda con “Todas las carpetas”):
+URL validada (mantiene modo de búsqueda en barra superior, “Todas las carpetas”):
 
-- `https://outlook.office.com/mail/?q=category%3A%22OT%201844%20Recibidos%22`
-- `https://outlook.office.com/mail/?q=category%3A%22OT%201844%20Enviados%22`
+- `https://outlook.office.com/mail/?q=category%3A%22OT1844%20Recibidos%22`
 
-Alternativa (si la anterior no carga resultados):
+### Querys en prueba (no fijar como canónicas aún)
 
-- `https://outlook.office.com/mail/search?q=category%3A%22OT%201844%20Recibidos%22`
-- `https://outlook.office.com/mail/search?q=category%3A%22OT%201844%20Enviados%22`
+- `category:"OT 1844 Recibidos"`
+- `category:"OT 1844 Enviados"`
+- `category:"OT1844 Enviados"`
+- `category:"OT 1844 Enviado"`
+- `category:"OT 1844 Enviados" folderid:sentitems`
+- `category:"OT 1844" folderid:sentitems`
+
+Nota: para **Enviados** aún no hay variante confirmada; seguir validando con el usuario antes de consolidar.
 
 ## Workflow estándar
 
