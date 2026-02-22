@@ -90,6 +90,34 @@ Input: instalar skill / crear automatización / configurar cron
 Output: automatización activa + documentación
 ```
 
+### 🧾 Cierre de Sesión (guardado útil, sin ruido)
+```
+Trigger explícito: "cerramos", "hasta luego", "chao", "nos vemos" o despedida equivalente.
+Trigger implícito: aplicar solo si hay decisiones/pedientes relevantes y riesgo real de perder contexto.
+
+Antes de cerrar:
+1) Guardar resumen mínimo (append, no reemplazar) en `memory/YYYY-MM-DD.md` con este formato:
+
+## Sesión [fecha y hora UTC-3]
+- Proyecto(s): [lista corta]
+- Decisiones: [bullets concretos]
+- Próximos pasos: [bullets accionables]
+- Bloqueos/Riesgos: [si aplica]
+- Cambios de configuración: [si aplica]
+
+2) Si hubo decisiones permanentes (preferencias, criterios de trabajo, convenciones), reflejarlas también en:
+   - `MEMORY.md` (alto nivel)
+   - `memory/preferences.md` (si son preferencias del usuario)
+
+3) Confirmar al usuario en una línea:
+   "✅ Sesión guardada. Quedaron [N] pendientes para la próxima."
+
+Reglas:
+- No guardar cierres vacíos o de rutina sin señal útil.
+- Priorizar precisión sobre longitud (máx. 8-12 bullets totales).
+- No interrumpir por timeout fijo; preguntar para guardar solo si realmente hay riesgo de pérdida de contexto.
+```
+
 ---
 
 ## Política de Subagentes
