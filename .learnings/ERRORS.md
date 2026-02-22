@@ -18,6 +18,19 @@
 
 ---
 
+## Error #002 — Interpretación incorrecta de “correo personal” al inicio de sesión
+
+| Campo | Detalle |
+|-------|---------|
+| **Fecha** | 2026-02-22 |
+| **Proyecto** | General |
+| **Descripción** | Ante la solicitud “revisa mi correo personal”, se inició flujo por OWA (empresa) en lugar de usar Microsoft Graph para la cuenta personal. |
+| **Causa raíz** | Se ejecutó el flujo equivocado pese a existir la regla en memoria (`correo personal` = Graph). |
+| **Regla correctiva** | Al detectar “correo personal”, usar por defecto Graph sobre `jose.jorquera@outlook.es`; OWA solo para correo empresa o si Graph no está disponible. |
+| **Reincidencias** | 1 en sesión 2026-02-22 |
+
+---
+
 ## Plantilla para nuevo error
 
 ```
