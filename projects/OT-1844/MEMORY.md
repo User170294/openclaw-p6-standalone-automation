@@ -41,6 +41,7 @@ Centralizar trazabilidad de correos, documentos, planos y decisiones del proyect
 ### Decisiones clave
 - 2026-02-22: Se establece memoria por proyecto para consulta persistente entre sesiones.
 - 2026-02-22: Se define asociación de correos por OT/PO/ID y nombre del proyecto.
+- 2026-02-22: Método oficial de búsqueda de correos en OWA para este proyecto: categorías `OT 1844 Recibidos` y `OT 1844 Enviados` (query recomendada: `category:"OT 1844 Recibidos"` / `category:"OT 1844 Enviados"`).
 
 ### Próximos hitos
 - [ ] Cargar primer bloque de correos (recibidos/enviados) asociados al proyecto.
