@@ -11,3 +11,4 @@
   - `INDEX.csv` actualizado con 16 registros documentales.
 - Se incorpora BBCC y se reindexa la carpeta raíz del proyecto en OneDrive para consolidar BBTT+BBCC: 35 PDFs totales, 1143 chunks.
 - Se agrega carta Gantt XER (Rev.B) al repositorio y se indexa en INDEX.csv.
+- Se parsea XER Rev.B: 157 actividades, 5 hitos, 28 actividades con float 0h; resumen en docs/schedule/xer_summary.md.
