@@ -27,6 +27,16 @@
 - Política de cierre de sesión: guardar solo señal útil (decisiones, pendientes reales, cambios) en `memory/YYYY-MM-DD.md`, sin disparadores por tiempo fijo.
 - Al cerrar sesión, mostrar confirmación verificable del guardado (ruta + bloque guardado).
 
+### RAG Semántico de Proyectos (activo desde 2026-02-23)
+- Stack: sentence-transformers (`paraphrase-multilingual-MiniLM-L12-v2`) + ChromaDB persistente.
+- Vector store: `data/chroma/` — colecciones por proyecto (ej. `ot_1844`).
+- Scripts: `scripts/embed_chunks.py`, `scripts/search_project.py`, `scripts/foco_proyecto.py`.
+- OT-1844 indexada: 2262 chunks desde `data/ot-1844_chunks.jsonl`.
+- Regla de activación: al hacer "foco en proyecto", verificar colección ChromaDB y usar RAG automáticamente para consultas técnicas. Citar fuente [DOC_ID pág. N].
+- Para nuevos proyectos: correr `embed_chunks.py` con los chunks del proyecto nuevo.
+- Siempre pasar `PYTHONUTF8=1` al ejecutar los scripts en Windows.
+- Convención oficial de semana calendario para OT-1844: W08 = 2026-02-16 a 2026-02-22; luego consecutivo (W09, W10, ...). Usar formato `W##` en todos los reportes.
+
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
 - Lecciones aprendidas y soluciones efectivas
