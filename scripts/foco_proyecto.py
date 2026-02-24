@@ -39,9 +39,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # ── Configuración ─────────────────────────────────────────────────────────────
 CHROMA_DIR        = Path("data/chroma")
-MODEL_NAME        = "paraphrase-multilingual-MiniLM-L12-v2"
+MODEL_NAME        = "paraphrase-multilingual-mpnet-base-v2"
 DEFAULT_TOP       = 6
 MAX_CONTEXT_CHARS = 6000
+RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
 GATEWAY_WS    = os.getenv("OPENCLAW_WS_URL",            "ws://127.0.0.1:18789/ws")
@@ -209,11 +210,28 @@ def semantic_search(collection, model, query: str, top: int) -> list:
     return out
 
 
+def rerank_chunks(query: str, chunks: List[Dict[str, Any]], reranker) -> List[Dict[str, Any]]:
+    if not chunks:
+        return chunks
+    pairs = [(query, ch.get("text", "")) for ch in chunks]
+    scores = reranker.predict(pairs)
+    rescored = []
+    for ch, s in zip(chunks, scores):
+        c = dict(ch)
+        c["rerank_score"] = float(s)
+        rescored.append(c)
+    rescored.sort(key=lambda x: x.get("rerank_score", -1e9), reverse=True)
+    return rescored
+
+
 def build_context(chunks: list, max_chars: int) -> str:
     parts = []
     total = 0
     for ch in chunks:
-        header = f"[{ch['doc_id']} pág. {ch['page']} | score {ch['score']}]\n"
+        if "rerank_score" in ch:
+            header = f"[{ch['doc_id']} pág. {ch['page']} | sim {ch['score']} | rerank {ch['rerank_score']:.4f}]\n"
+        else:
+            header = f"[{ch['doc_id']} pág. {ch['page']} | score {ch['score']}]\n"
         block  = header + ch["text"] + "\n"
         if total + len(block) > max_chars:
             remaining = max_chars - total
@@ -400,7 +418,7 @@ def synthesize_local(query: str, context: str) -> str:
 
 # ── Flujo principal ───────────────────────────────────────────────────────────
 
-def answer(query: str, collection, emb_model, top: int, no_synth: bool, use_local: bool):
+def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool):
     print(f"\n🔍 Buscando: \"{query}\"\n")
     chunks = semantic_search(collection, emb_model, query, top)
 
@@ -408,9 +426,17 @@ def answer(query: str, collection, emb_model, top: int, no_synth: bool, use_loca
         print("⚠️  Sin resultados.")
         return
 
-    print(f"📄 Fuentes relevantes ({len(chunks)}):")
+    chunks = rerank_chunks(query, chunks, reranker)
+
+    if not chunks:
+        print("⚠️  Sin resultados.")
+        return
+
+    print(f"📄 Fuentes relevantes (rerankeadas) ({len(chunks)}):")
     for i, ch in enumerate(chunks, 1):
-        print(f"   [{i}] {ch['doc_id']}  pág.{ch['page']}  score={ch['score']}  tags={','.join(ch['tags'][:3])}")
+        rr = ch.get("rerank_score")
+        rr_txt = f"  rerank={rr:.4f}" if isinstance(rr, (int, float)) else ""
+        print(f"   [{i}] {ch['doc_id']}  pág.{ch['page']}  score={ch['score']}{rr_txt}  tags={','.join(ch['tags'][:3])}")
 
     if no_synth:
         print("\n── Chunks (modo debug) ──")
@@ -446,7 +472,7 @@ def main():
     args = ap.parse_args()
 
     try:
-        from sentence_transformers import SentenceTransformer
+        from sentence_transformers import SentenceTransformer, CrossEncoder
     except ImportError:
         print("❌ Ejecuta: pip install sentence-transformers chromadb")
         sys.exit(1)
@@ -454,15 +480,17 @@ def main():
     print(f"→ Proyecto:   {args.project}")
     print(f"→ OpenClaw:   {GATEWAY_HTTP}  |  WS: {GATEWAY_WS}")
     print(f"→ Sesión:     {SESSION_KEY}")
-    print(f"→ Cargando modelo de embeddings...")
+    print(f"→ Cargando modelo de embeddings ({args.model})...")
     emb_model = SentenceTransformer(args.model)
+    print(f"→ Cargando reranker ({RERANK_MODEL_NAME})...")
+    reranker = CrossEncoder(RERANK_MODEL_NAME)
 
     collection = load_chroma(args.chroma_dir, args.project)
     total = collection.count()
     print(f"→ Colección lista: {total} chunks indexados\n")
 
     if args.ask:
-        answer(args.ask, collection, emb_model, args.top, args.no_synth, args.local)
+        answer(args.ask, collection, emb_model, reranker, args.top, args.no_synth, args.local)
     else:
         print(f"✅ Foco activo: {args.project} ({total} chunks)")
         print("   Escribe tu consulta o 'salir' para terminar.\n")
@@ -477,7 +505,7 @@ def main():
             if query.lower() in ("salir", "exit", "quit", "q"):
                 print("👋 Saliendo.")
                 break
-            answer(query, collection, emb_model, args.top, args.no_synth, args.local)
+            answer(query, collection, emb_model, reranker, args.top, args.no_synth, args.local)
 
 
 if __name__ == "__main__":
