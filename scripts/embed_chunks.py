@@ -9,6 +9,7 @@ Uso:
 """
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -29,12 +30,18 @@ def load_chunks(path: str):
 
 
 def make_doc_id(chunk: dict, idx: int) -> str:
-    """ID único por chunk: proyecto-docid-pag-chunk."""
+    """ID único por chunk: proyecto-docid-pag-chunk-sourcehash.
+
+    Incluye hash corto de source_path para evitar colisiones cuando distintos
+    PDFs comparten doc_id (p. ej. revisiones/duplicados con mismo nombre base).
+    """
     proj = chunk.get("project", "UNK")
     doc  = chunk.get("doc_id", "UNK")
     pg   = chunk.get("page", 0)
     ck   = chunk.get("chunk", idx)
-    return f"{proj}_{doc}_p{pg}_c{ck}"
+    src  = chunk.get("source_path", "")
+    src_hash = hashlib.sha1(src.encode("utf-8", errors="ignore")).hexdigest()[:10] if src else "nosrc"
+    return f"{proj}_{doc}_p{pg}_c{ck}_{src_hash}"
 
 
 def main():
