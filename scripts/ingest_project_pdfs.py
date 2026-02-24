@@ -65,17 +65,34 @@ def main():
 
     existing_keys = set()
     if index_csv.exists():
-        with index_csv.open("r", encoding="utf-8", newline="") as f:
+        with index_csv.open("r", encoding="utf-8-sig", newline="") as f:
             r = csv.DictReader(f)
             for row in r:
-                k = (row.get("origen", ""), row.get("id_ref", ""))
+                k = (row.get("origen", ""), row.get("ruta", ""))
                 existing_keys.add(k)
+
+    existing_sources = set()
+    if docs_out.exists():
+        with docs_out.open("r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                    existing_sources.add(row.get("source_path", ""))
+                except Exception:
+                    continue
 
     new_index_rows = []
     total_chunks = 0
+    indexed_pdfs = 0
 
-    with docs_out.open("w", encoding="utf-8") as fd, chunks_out.open("w", encoding="utf-8") as fc:
+    with docs_out.open("a", encoding="utf-8") as fd, chunks_out.open("a", encoding="utf-8") as fc:
         for p in pdfs:
+            if str(p) in existing_sources:
+                continue
+
             rel = p.relative_to(src)
             doc_id = infer_doc_id(p.name)
             sha = sha256_file(p)
@@ -112,8 +129,8 @@ def main():
                 "extract_error": doc_err,
             }
             fd.write(json.dumps(doc_row, ensure_ascii=False) + "\n")
+            indexed_pdfs += 1
 
-            # Summary markdown
             sm = summaries_dir / f"{doc_id}.md"
             with sm.open("w", encoding="utf-8") as fs:
                 fs.write(f"# {doc_id}\n\n")
@@ -138,7 +155,7 @@ def main():
                     }
                     fc.write(json.dumps(ck, ensure_ascii=False) + "\n")
 
-            idx_key = ("onedrive", doc_id)
+            idx_key = ("onedrive", str(p))
             if idx_key not in existing_keys:
                 new_index_rows.append({
                     "tipo": "doc",
@@ -153,7 +170,6 @@ def main():
                     "observaciones": f"pages={page_count}; extract={doc_row['extract_status']}",
                 })
 
-    # Append new rows to INDEX.csv
     fieldnames = ["tipo", "fecha", "origen", "id_ref", "titulo", "version", "estado", "ruta", "hash", "observaciones"]
     write_header = not index_csv.exists()
     with index_csv.open("a", encoding="utf-8", newline="") as f:
@@ -165,9 +181,10 @@ def main():
 
     print(json.dumps({
         "project": args.project_code,
-        "pdf_count": len(pdfs),
+        "pdf_found": len(pdfs),
+        "pdf_indexed": indexed_pdfs,
         "new_index_rows": len(new_index_rows),
-        "chunks": total_chunks,
+        "chunks_added": total_chunks,
         "docs_jsonl": str(docs_out),
         "chunks_jsonl": str(chunks_out),
     }, ensure_ascii=False))

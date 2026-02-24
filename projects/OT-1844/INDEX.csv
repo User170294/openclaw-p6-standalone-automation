@@ -1,4 +1,4 @@
-tipo,fecha,origen,id_ref,titulo,version,estado,ruta,hash,observaciones
+﻿tipo,fecha,origen,id_ref,titulo,version,estado,ruta,hash,observaciones
 doc,2026-02-24,onedrive,4-V2-2000-ME-SPE-000002_0,4-V2-2000-ME-SPE-000002_0.PDF,,activo,C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\004_ID 1425_Fabricación para Proyecto Agua Lavado Celdas\BBTT\BBTT\4-V2-2000-ME-SPE-000002_0.PDF,73e42f93a46486755b55486d8b5da4ef1fbe5bf3b394ab6692c6d385d7a2dd27,pages=11; extract=ok
 doc,2026-02-24,onedrive,4-V2-2000-ME-SPE-000024_0,4-V2-2000-ME-SPE-000024_0.PDF,,activo,C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\004_ID 1425_Fabricación para Proyecto Agua Lavado Celdas\BBTT\BBTT\4-V2-2000-ME-SPE-000024_0.PDF,f6507d754359c4d3e6dae6147c40c362c3a5e1a2fde34ea679ce7fd0061b8e85,pages=41; extract=ok
 doc,2026-02-24,onedrive,4-V2-2000-PP-SPE-000001_1,4-V2-2000-PP-SPE-000001_1.pdf,,activo,C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\004_ID 1425_Fabricación para Proyecto Agua Lavado Celdas\BBTT\BBTT\4-V2-2000-PP-SPE-000001_1.pdf,901f199a83c344e28f79489d82251380cc3c59c09c3039e05418d18e595e4696,pages=72; extract=ok
