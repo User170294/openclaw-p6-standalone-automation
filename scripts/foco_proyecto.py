@@ -44,6 +44,10 @@ DEFAULT_TOP       = 6
 MAX_CONTEXT_CHARS = 6000
 RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
+# Caché en memoria (válido dentro del mismo proceso Python)
+_EMBED_MODEL_CACHE: Dict[str, Any] = {}
+_RERANK_MODEL_CACHE: Dict[str, Any] = {}
+
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
 GATEWAY_WS    = os.getenv("OPENCLAW_WS_URL",            "ws://127.0.0.1:18789/ws")
 HOOK_TOKEN    = os.getenv("OPENCLAW_HOOK_TOKEN",        "rag-hook-edgardo-2026")
@@ -418,6 +422,24 @@ def synthesize_local(query: str, context: str) -> str:
 
 # ── Flujo principal ───────────────────────────────────────────────────────────
 
+def get_embedding_model(model_name: str):
+    if model_name in _EMBED_MODEL_CACHE:
+        return _EMBED_MODEL_CACHE[model_name]
+    from sentence_transformers import SentenceTransformer
+    model = SentenceTransformer(model_name)
+    _EMBED_MODEL_CACHE[model_name] = model
+    return model
+
+
+def get_reranker_model(model_name: str):
+    if model_name in _RERANK_MODEL_CACHE:
+        return _RERANK_MODEL_CACHE[model_name]
+    from sentence_transformers import CrossEncoder
+    model = CrossEncoder(model_name)
+    _RERANK_MODEL_CACHE[model_name] = model
+    return model
+
+
 def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool):
     print(f"\n🔍 Buscando: \"{query}\"\n")
     chunks = semantic_search(collection, emb_model, query, top)
@@ -472,7 +494,7 @@ def main():
     args = ap.parse_args()
 
     try:
-        from sentence_transformers import SentenceTransformer, CrossEncoder
+        import sentence_transformers  # noqa: F401
     except ImportError:
         print("❌ Ejecuta: pip install sentence-transformers chromadb")
         sys.exit(1)
@@ -480,10 +502,13 @@ def main():
     print(f"→ Proyecto:   {args.project}")
     print(f"→ OpenClaw:   {GATEWAY_HTTP}  |  WS: {GATEWAY_WS}")
     print(f"→ Sesión:     {SESSION_KEY}")
-    print(f"→ Cargando modelo de embeddings ({args.model})...")
-    emb_model = SentenceTransformer(args.model)
-    print(f"→ Cargando reranker ({RERANK_MODEL_NAME})...")
-    reranker = CrossEncoder(RERANK_MODEL_NAME)
+    t0 = time.perf_counter()
+    emb_model = get_embedding_model(args.model)
+    t1 = time.perf_counter()
+    reranker = get_reranker_model(RERANK_MODEL_NAME)
+    t2 = time.perf_counter()
+    print(f"→ Embeddings ({args.model}) listo en {(t1 - t0):.2f}s")
+    print(f"→ Reranker ({RERANK_MODEL_NAME}) listo en {(t2 - t1):.2f}s")
 
     collection = load_chroma(args.chroma_dir, args.project)
     total = collection.count()
