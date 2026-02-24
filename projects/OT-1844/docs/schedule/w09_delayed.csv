@@ -1,0 +1,21 @@
+code,name,wbs,status,bl_end,ac_end_cur,phys_pct,float_hr
+A2910,"Armado, Soldadura y Rectificado de Bandejas",Bandeja Central (12 Un),TK_NotStart,,,0.0,198.0
+A2900,Cilindrado (fabricación del cuerpo) SS316L,Bandeja Central (12 Un),TK_NotStart,,,0.0,198.0
+A2720,Granallado / Preparación de Superficie,Bastidor,TK_NotStart,,,0.0,252.0
+A2670,Corte y Fabricación de Consoldas Centrales,Bastidor,TK_NotStart,,,0.0,243.0
+A2690,Armado y Remates de Soldadura Bastidor,Bastidor,TK_NotStart,,,0.0,216.0
+A2870,Fabricación Conjunto válvula/boquilla (DET. 1-5),Manifold Distribuidor,TK_NotStart,,,0.0,171.0
+A2860,Fabricación Brazos radiales (spools repetitivos),Manifold Distribuidor,TK_NotStart,,,0.0,171.0
+A3000,Corte y Fabricación de Consoldas Centrales,Bastidor,TK_NotStart,,,0.0,135.0
+A2710,"Inspección de soldadura (VT, LP si aplica)",Bastidor,TK_NotStart,,,0.0,216.0
+A2760,Cilindrado (fabricación del cuerpo) SS316L,Bandeja Perimetral (12 Un),TK_NotStart,,,0.0,180.0
+A2880,Control de calidad (QC) e inspecciones,Manifold Distribuidor,TK_NotStart,,,0.0,171.0
+A3010,"Corte y Fabricación Distribuidor 8""""",Bastidor,TK_NotStart,,,0.0,135.0
+A2990,Corte y Fabricación de Consoldas Exteriores,Bastidor,TK_NotStart,,,0.0,135.0
+A2770,"Armado, Soldadura y Rectificado de Bandejas",Bandeja Perimetral (12 Un),TK_NotStart,,,0.0,180.0
+A2660,Corte y Fabricación de Consoldas Exteriores,Bastidor,TK_Active,2026-02-16,2026-02-25,50.0,243.0
+A1660,Suminstro de Materiales,Suministro conjuntos sistema de agua de lavado,TK_Active,2026-02-18,2026-02-27,70.0,171.0
+A2650,Corte y Fabricación de Vigas y Perfil Z,Bastidor,TK_Active,2026-02-20,2026-02-26,50.0,171.0
+A2680,"Corte y Fabricación Distribuidor 8""""",Bastidor,TK_Active,2026-02-20,2026-02-24,50.0,198.0
+A2850,Fabricación del cuerpo central (spool/cabezal),Manifold Distribuidor,TK_Active,2026-02-23,2026-02-25,80.0,171.0
+A2800,Fabricación Baranda radial removible,Barandas (16 Un),TK_Active,2026-02-26,2026-03-02,20.0,171.0
