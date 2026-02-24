@@ -1,7 +1,7 @@
 # PM_4519143302_Fabricación Bandejas Agua Lavado Celdas OT 1844_Rev.A
 
 - Archivo: PM_4519143302_Fabricación Bandejas Agua Lavado Celdas OT 1844_Rev.A.pdf
-- Ruta origen: C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\004_ID 1425_Fabricación para Proyecto Agua Lavado Celdas\001_OT 1844\CONTROL DE PROYECTO\PM_4519143302_Fabricación Bandejas Agua Lavado Celdas OT 1844_Rev.A.pdf
+- Ruta origen: C:\Users\josej\OneDrive - SIMTEXX SPA\PO 4519143302 Fabricación Bandejas Agua Lavado Celda_OT 1844 Celdas - Documentos\Planificación\PM_4519143302_Fabricación Bandejas Agua Lavado Celdas OT 1844_Rev.A.pdf
 - Páginas: 1
 - Estado extracción: ok
 
