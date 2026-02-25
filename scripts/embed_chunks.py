@@ -14,6 +14,10 @@ import json
 import sys
 from pathlib import Path
 
+# utilidades compartidas
+sys.path.insert(0, str(Path(__file__).parent))
+from rag_utils import normalize_project_code, collection_name_from_project
+
 CHROMA_DIR = Path("data/chroma")
 MODEL_NAME = "paraphrase-multilingual-mpnet-base-v2"
 BATCH_SIZE = 64
@@ -81,7 +85,8 @@ def main():
     chroma_path.mkdir(parents=True, exist_ok=True)
     client = chromadb.PersistentClient(path=str(chroma_path))
 
-    collection_name = args.project.lower().replace("-", "_")
+    project_norm = normalize_project_code(args.project)
+    collection_name = collection_name_from_project(project_norm)
     if args.reset:
         try:
             client.delete_collection(collection_name)
@@ -143,6 +148,7 @@ def main():
         print(f"   [{pct:5.1f}%] {inserted}/{total} chunks insertados", end="\r")
 
     print(f"\n✅ Listo. {inserted} chunks nuevos en ChromaDB.")
+    print(f"   Proyecto normalizado: '{project_norm}'")
     print(f"   Colección: '{collection_name}'")
     print(f"   Total en colección: {collection.count()}")
     print(f"   Directorio: {chroma_path.resolve()}")

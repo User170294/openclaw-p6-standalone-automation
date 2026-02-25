@@ -40,13 +40,22 @@ from typing import Any, Dict, List, Optional, Tuple
 # ── Configuración ─────────────────────────────────────────────────────────────
 CHROMA_DIR        = Path("data/chroma")
 MODEL_NAME        = "paraphrase-multilingual-mpnet-base-v2"
-DEFAULT_TOP       = 6
+DEFAULT_TOP       = 10
 MAX_CONTEXT_CHARS = 6000
 RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # Caché en memoria (válido dentro del mismo proceso Python)
 _EMBED_MODEL_CACHE: Dict[str, Any] = {}
-_RERANK_MODEL_CACHE: Dict[str, Any] = {}
+
+# Importar utilidades compartidas de reranking
+import sys as _sys
+_sys.path.insert(0, str(Path(__file__).parent))
+from rag_utils import (
+    get_reranker_model as _get_reranker_model,
+    rerank_chunks as _rerank_chunks,
+    normalize_project_code,
+    collection_name_from_project,
+)
 
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
 GATEWAY_WS    = os.getenv("OPENCLAW_WS_URL",            "ws://127.0.0.1:18789/ws")
@@ -180,12 +189,15 @@ def build_ws_device_block(nonce: str, gateway_token: str, scopes: List[str]) -> 
 def load_chroma(chroma_dir: str, project: str):
     import chromadb
     client = chromadb.PersistentClient(path=chroma_dir)
-    collection_name = project.lower().replace("-", "_")
+    project_norm = normalize_project_code(project)
+    collection_name = collection_name_from_project(project_norm)
     try:
         return client.get_collection(collection_name)
     except Exception:
         print(f"❌ Colección '{collection_name}' no existe.")
-        print(f"   Ejecuta primero: python scripts/embed_chunks.py --chunks data/{project.lower().replace('-','_')}_chunks.jsonl --project {project}")
+        if project_norm != project:
+            print(f"   (normalizado desde '{project}' a '{project_norm}')")
+        print(f"   Ejecuta primero: python scripts/embed_chunks.py --chunks data/{project_norm.lower().replace('-','_')}_chunks.jsonl --project {project_norm}")
         sys.exit(1)
 
 
@@ -214,18 +226,9 @@ def semantic_search(collection, model, query: str, top: int) -> list:
     return out
 
 
-def rerank_chunks(query: str, chunks: List[Dict[str, Any]], reranker) -> List[Dict[str, Any]]:
-    if not chunks:
-        return chunks
-    pairs = [(query, ch.get("text", "")) for ch in chunks]
-    scores = reranker.predict(pairs)
-    rescored = []
-    for ch, s in zip(chunks, scores):
-        c = dict(ch)
-        c["rerank_score"] = float(s)
-        rescored.append(c)
-    rescored.sort(key=lambda x: x.get("rerank_score", -1e9), reverse=True)
-    return rescored
+# Usar funciones importadas del módulo compartido
+rerank_chunks = _rerank_chunks
+get_reranker_model_shared = _get_reranker_model
 
 
 def build_context(chunks: list, max_chars: int) -> str:
@@ -431,13 +434,9 @@ def get_embedding_model(model_name: str):
     return model
 
 
-def get_reranker_model(model_name: str):
-    if model_name in _RERANK_MODEL_CACHE:
-        return _RERANK_MODEL_CACHE[model_name]
-    from sentence_transformers import CrossEncoder
-    model = CrossEncoder(model_name)
-    _RERANK_MODEL_CACHE[model_name] = model
-    return model
+def get_reranker_model(model_name: str = RERANK_MODEL_NAME):
+    """Wrapper para compatibilidad con código existente."""
+    return get_reranker_model_shared(model_name)
 
 
 def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool):
