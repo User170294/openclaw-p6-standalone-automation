@@ -61,3 +61,14 @@
 ---
 
 **Nota**: Cada sesiÃ³n de foco debe registrar su ejecuciÃ³n aquÃ­ inmediatamente despuÃ©s de entregar panorama al usuario.
+
+## [2026-02-25 15:22 UTC-3] — Reindex + verificación OT-1844
+- Trigger: "ejecutala y volvamos a verificar"
+- Modelo: openai-codex/gpt-5.3-codex
+- Acción RAG: ? `embed_chunks.py --chunks data/ot-1844_chunks.jsonl --project OT-1844 --reset`
+- Resultado RAG: 1203 chunks cargados en colección `ot_1844`.
+- Verificación búsqueda: ? `search_project.py --project OT-1844 --ask "estado actual" --top 3`
+- Verificación alias ruta: ? creado junction `projects/1844 -> projects/OT-1844`
+- Verificación archivos en `projects/1844`: ? README/MEMORY/LOG/INDEX accesibles
+- Observación técnica: `data/chroma/ot_1844` no existe como carpeta física; Chroma persiste por UUID + sqlite (`data/chroma/chroma.sqlite3`).
+- Cumplimiento protocolo: ? completo (con adaptación de ruta)
