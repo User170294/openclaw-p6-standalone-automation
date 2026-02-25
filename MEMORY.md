@@ -1,4 +1,4 @@
-# MEMORY.md — Memoria Permanente
+# MEMORY.md - Memoria Permanente
 
 **Última actualización**: 2026-02-22
 
@@ -26,15 +26,18 @@
 - Outlook Notes: para crear notas persistentes en OWA usar creación de nota nueva + tipeo real en editor Draft.js; evitar manipulación DOM directa para escribir contenido.
 - Política de cierre de sesión: guardar solo señal útil (decisiones, pendientes reales, cambios) en `memory/YYYY-MM-DD.md`, sin disparadores por tiempo fijo.
 - Al cerrar sesión, mostrar confirmación verificable del guardado (ruta + bloque guardado).
-- Para OT-1844, cuando se pida “resumen”, entregar formato de informe detallado (hilos + contexto + pendientes + riesgos), no solo resumen ejecutivo.
+- Para OT-1844, cuando se pida "resumen", entregar formato de informe detallado (hilos + contexto + pendientes + riesgos), no solo resumen ejecutivo.
+- **Procedimiento de foco en proyectos** (2026-02-25): protocolo imperativo reforzado en `AGENTS.md` — PROHIBIDO responder al trigger de foco sin ejecutar checklist completo de lectura + RAG + consolidación. Registrar cada activación en `memory/focus-log.md`.
 
 ### RAG Semántico de Proyectos (activo desde 2026-02-23)
 - Stack: sentence-transformers (`paraphrase-multilingual-MiniLM-L12-v2`) + ChromaDB persistente.
-- Vector store: `data/chroma/` — colecciones por proyecto (ej. `ot_1844`).
+- Vector store: `data/chroma/` - colecciones por proyecto (ej. `ot_1844`).
 - Scripts: `scripts/embed_chunks.py`, `scripts/search_project.py`, `scripts/foco_proyecto.py`.
 - OT-1844 indexada: 2262 chunks desde `data/ot-1844_chunks.jsonl`.
 - Regla de activación: al hacer "foco en proyecto", verificar colección ChromaDB y usar RAG automáticamente para consultas técnicas. Citar fuente [DOC_ID pág. N].
 - Para nuevos proyectos: correr `embed_chunks.py` con los chunks del proyecto nuevo.
+- Retrieval de RAG actualizado a modo híbrido (vector + BM25 con fusión RRF) en `search_project.py` y `foco_proyecto.py`.
+- Benchmark operativo en `scripts/rag_ab_test.py` con métricas `avg_rerank` y `rel@3` por query.
 - Siempre pasar `PYTHONUTF8=1` al ejecutar los scripts en Windows.
 - Convención oficial de semana calendario para OT-1844: W08 = 2026-02-16 a 2026-02-22; luego consecutivo (W09, W10, ...). Usar formato `W##` en todos los reportes.
 
