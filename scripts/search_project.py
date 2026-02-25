@@ -51,6 +51,11 @@ def main():
     ap.add_argument("--no-rerank",  action="store_true", help="Desactivar reranking (solo embeddings)")
     ap.add_argument("--model",      default=MODEL_NAME)
     ap.add_argument("--reranker-model", default=None, help="Modelo CrossEncoder para reranking")
+    ap.add_argument("--hybrid", dest="hybrid", action="store_true", help="Activa búsqueda híbrida (vector + BM25)")
+    ap.add_argument("--no-hybrid", dest="hybrid", action="store_false", help="Solo vector")
+    ap.set_defaults(hybrid=True)
+    ap.add_argument("--recall-k", type=int, default=50, help="Candidatos previos para fusión/reranking")
+    ap.add_argument("--rrf-k", type=int, default=60, help="Constante k para fusión RRF")
     ap.add_argument("--chroma-dir", default=str(CHROMA_DIR))
     args = ap.parse_args()
 
@@ -73,6 +78,8 @@ def main():
         collection_name_from_project,
         RERANK_MODEL_NAME,
         DEFAULT_TOP_K,
+        bm25_rank,
+        rrf_fuse,
     )
     if args.top is None:
         args.top = DEFAULT_TOP_K
@@ -104,34 +111,84 @@ def main():
     where = None
     tag_list = [t.strip() for t in args.tags.split(",") if t.strip()]
     if tag_list:
-        # ChromaDB where: busca tags que contengan cualquiera de los valores
-        # Usamos $contains sobre el campo tags (string csv)
         conditions = [{"tags": {"$contains": t}} for t in tag_list]
         where = {"$or": conditions} if len(conditions) > 1 else conditions[0]
 
-    # ── Consulta ──────────────────────────────────────────────────────────────
+    # ── Recuperación vectorial inicial (recall) ──────────────────────────────
+    recall_k = min(max(args.top, args.recall_k), collection.count())
     query_kwargs = dict(
         query_embeddings=q_embedding,
-        n_results=min(args.top, collection.count()),
+        n_results=recall_k,
         include=["documents", "metadatas", "distances"],
     )
     if where:
         query_kwargs["where"] = where
 
     results = collection.query(**query_kwargs)
+    v_docs = results["documents"][0]
+    v_metas = results["metadatas"][0]
+    v_dists = results["distances"][0]
 
-    docs      = results["documents"][0]
-    metadatas = results["metadatas"][0]
-    distances = results["distances"][0]
+    # ── Recuperación léxica BM25 (opcional híbrida) ──────────────────────────
+    lex_candidates = []
+    if args.hybrid:
+        get_kwargs = {"include": ["documents", "metadatas"]}
+        if where:
+            get_kwargs["where"] = where
+        all_rows = collection.get(**get_kwargs)
+        l_docs = all_rows.get("documents", [])
+        l_metas = all_rows.get("metadatas", [])
+        ranked_bm25 = bm25_rank(args.ask, l_docs)
+        for idx, bm25_s in ranked_bm25[:recall_k]:
+            lex_candidates.append((l_docs[idx], l_metas[idx], bm25_s))
 
-    # ── Filtro post-query por doc_id (substring) ──────────────────────────────
+    # ── Fusión RRF vector + léxico ────────────────────────────────────────────
+    candidates = {}
+    vector_rank = []
+    lexical_rank = []
+
+    for i, (d, m, dist) in enumerate(zip(v_docs, v_metas, v_dists), start=1):
+        key = f"{m.get('doc_id','')}|{m.get('page','')}|{hash(d)}"
+        candidates[key] = {
+            "text": d,
+            "meta": m,
+            "distance": dist,
+            "vector_score": 1 - dist,
+            "bm25_score": 0.0,
+        }
+        vector_rank.append(key)
+
+    for d, m, bm25_s in lex_candidates:
+        key = f"{m.get('doc_id','')}|{m.get('page','')}|{hash(d)}"
+        if key not in candidates:
+            candidates[key] = {
+                "text": d,
+                "meta": m,
+                "distance": 1.0,
+                "vector_score": 0.0,
+                "bm25_score": bm25_s,
+            }
+        else:
+            candidates[key]["bm25_score"] = bm25_s
+        lexical_rank.append(key)
+
+    if args.hybrid and lexical_rank:
+        fused = rrf_fuse([vector_rank, lexical_rank], k=args.rrf_k)
+        ordered_keys = [k for k, _ in fused][:recall_k]
+    else:
+        ordered_keys = vector_rank[:recall_k]
+
+    # ── Prefiltro por doc_id ANTES de rerank final ───────────────────────────
     if args.doc:
-        filtered = [
-            (d, m, dist)
-            for d, m, dist in zip(docs, metadatas, distances)
-            if args.doc.lower() in m.get("doc_id", "").lower()
+        ordered_keys = [
+            k for k in ordered_keys
+            if args.doc.lower() in candidates[k]["meta"].get("doc_id", "").lower()
         ]
-        docs, metadatas, distances = zip(*filtered) if filtered else ([], [], [])
+
+    # preparar listas para rerank/final
+    docs = [candidates[k]["text"] for k in ordered_keys]
+    metadatas = [candidates[k]["meta"] for k in ordered_keys]
+    distances = [candidates[k]["distance"] for k in ordered_keys]
 
     # ── Reranking (si no está desactivado) ────────────────────────────────────
     rerank_scores = None
@@ -156,6 +213,13 @@ def main():
         distances = [ch["distance"] for ch in reranked]
         rerank_scores = [ch["rerank_score"] for ch in reranked]
 
+    # recorte final top-k
+    docs = list(docs)[:args.top]
+    metadatas = list(metadatas)[:args.top]
+    distances = list(distances)[:args.top]
+    if rerank_scores:
+        rerank_scores = list(rerank_scores)[:args.top]
+
     # ── Output ────────────────────────────────────────────────────────────────
     if args.json:
         output = []
@@ -177,6 +241,7 @@ def main():
         print(f"   Proyecto: {project_norm}  |  Colección: {collection_name}  |  Top: {args.top}")
         if tag_list:
             print(f"   Filtro tags: {tag_list}")
+        print(f"   Retrieval: {'híbrido (vector+BM25)' if args.hybrid else 'vector'}")
         if not args.no_rerank:
             print(f"   Reranking: ✅ activo ({args.reranker_model})")
         print(f"   Total en colección: {collection.count()} chunks\n")

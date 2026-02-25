@@ -3,7 +3,10 @@ rag_utils.py
 Utilidades compartidas para RAG semántico de proyectos.
 """
 
-from typing import Any, Dict, List
+import math
+import re
+from collections import Counter, defaultdict
+from typing import Any, Dict, List, Tuple
 
 # Cache de modelos en memoria
 _RERANK_MODEL_CACHE: Dict[str, Any] = {}
@@ -39,6 +42,57 @@ def get_reranker_model(model_name: str = RERANK_MODEL_NAME):
     model = CrossEncoder(model_name)
     _RERANK_MODEL_CACHE[model_name] = model
     return model
+
+
+def tokenize(text: str) -> List[str]:
+    """Tokenización simple y robusta para recuperación léxica."""
+    return re.findall(r"\w+", (text or "").lower(), flags=re.UNICODE)
+
+
+def bm25_rank(query: str, docs: List[str], k1: float = 1.5, b: float = 0.75) -> List[Tuple[int, float]]:
+    """Ranking BM25 puro (sin dependencias externas)."""
+    if not docs:
+        return []
+
+    tokenized_docs = [tokenize(d) for d in docs]
+    doc_lens = [len(toks) for toks in tokenized_docs]
+    avgdl = sum(doc_lens) / max(1, len(doc_lens))
+
+    df = defaultdict(int)
+    for toks in tokenized_docs:
+        for t in set(toks):
+            df[t] += 1
+
+    N = len(docs)
+    q_terms = tokenize(query)
+    q_tf = Counter(q_terms)
+
+    ranked: List[Tuple[int, float]] = []
+    for i, toks in enumerate(tokenized_docs):
+        tf = Counter(toks)
+        score = 0.0
+        for term, qf in q_tf.items():
+            if term not in tf:
+                continue
+            n_qi = df.get(term, 0)
+            idf = math.log(1 + (N - n_qi + 0.5) / (n_qi + 0.5))
+            f = tf[term]
+            denom = f + k1 * (1 - b + b * (doc_lens[i] / max(avgdl, 1e-9)))
+            score += idf * ((f * (k1 + 1)) / max(denom, 1e-9)) * qf
+        ranked.append((i, score))
+
+    ranked.sort(key=lambda x: x[1], reverse=True)
+    return ranked
+
+
+def rrf_fuse(rank_lists: List[List[int]], k: int = 60) -> List[Tuple[int, float]]:
+    """Reciprocal Rank Fusion para combinar rankings heterogéneos."""
+    scores = defaultdict(float)
+    for ranking in rank_lists:
+        for r, idx in enumerate(ranking, start=1):
+            scores[idx] += 1.0 / (k + r)
+    fused = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    return fused
 
 
 def rerank_chunks(query: str, chunks: List[Dict[str, Any]], reranker) -> List[Dict[str, Any]]:

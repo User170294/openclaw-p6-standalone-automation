@@ -55,6 +55,8 @@ from rag_utils import (
     collection_name_from_project,
     RERANK_MODEL_NAME,
     DEFAULT_TOP_K,
+    bm25_rank,
+    rrf_fuse,
 )
 
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
@@ -203,26 +205,55 @@ def load_chroma(chroma_dir: str, project: str):
 
 # ── Búsqueda semántica ────────────────────────────────────────────────────────
 
-def semantic_search(collection, model, query: str, top: int) -> list:
+def hybrid_search(collection, model, query: str, top: int, use_hybrid: bool = True, recall_k: int = 50, rrf_k: int = 60) -> list:
     q_emb = model.encode([query]).tolist()
-    results = collection.query(
+    recall_n = min(max(top, recall_k), collection.count())
+
+    vec = collection.query(
         query_embeddings=q_emb,
-        n_results=min(top, collection.count()),
+        n_results=recall_n,
         include=["documents", "metadatas", "distances"],
     )
-    out = []
-    for doc, meta, dist in zip(
-        results["documents"][0],
-        results["metadatas"][0],
-        results["distances"][0],
-    ):
-        out.append({
-            "text":   doc,
-            "doc_id": meta.get("doc_id", ""),
-            "page":   meta.get("page", ""),
-            "tags":   meta.get("tags", "").split(","),
-            "score":  round(1 - dist, 4),
-        })
+
+    candidates = {}
+    vector_rank = []
+    for d, m, dist in zip(vec["documents"][0], vec["metadatas"][0], vec["distances"][0]):
+        key = f"{m.get('doc_id','')}|{m.get('page','')}|{hash(d)}"
+        candidates[key] = {
+            "text": d,
+            "doc_id": m.get("doc_id", ""),
+            "page": m.get("page", ""),
+            "tags": m.get("tags", "").split(","),
+            "score": round(1 - dist, 4),
+            "distance": dist,
+        }
+        vector_rank.append(key)
+
+    if use_hybrid:
+        all_rows = collection.get(include=["documents", "metadatas"])
+        docs_all = all_rows.get("documents", [])
+        metas_all = all_rows.get("metadatas", [])
+        bm25 = bm25_rank(query, docs_all)
+        lexical_rank = []
+        for idx, _ in bm25[:recall_n]:
+            d = docs_all[idx]
+            m = metas_all[idx]
+            key = f"{m.get('doc_id','')}|{m.get('page','')}|{hash(d)}"
+            if key not in candidates:
+                candidates[key] = {
+                    "text": d,
+                    "doc_id": m.get("doc_id", ""),
+                    "page": m.get("page", ""),
+                    "tags": m.get("tags", "").split(","),
+                    "score": 0.0,
+                    "distance": 1.0,
+                }
+            lexical_rank.append(key)
+        order = [k for k, _ in rrf_fuse([vector_rank, lexical_rank], k=rrf_k)]
+    else:
+        order = vector_rank
+
+    out = [candidates[k] for k in order[:recall_n]]
     return out
 
 
@@ -439,9 +470,9 @@ def get_reranker_model(model_name: str = RERANK_MODEL_NAME):
     return get_reranker_model_shared(model_name)
 
 
-def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool):
-    print(f"\n🔍 Buscando: \"{query}\"\n")
-    chunks = semantic_search(collection, emb_model, query, top)
+def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool, use_hybrid: bool):
+    print(f"\n🔍 Buscando: \"{query}\" ({'híbrido' if use_hybrid else 'vector'})\n")
+    chunks = hybrid_search(collection, emb_model, query, top, use_hybrid=use_hybrid)
 
     if not chunks:
         print("⚠️  Sin resultados.")
@@ -489,6 +520,9 @@ def main():
     ap.add_argument("--no-synth",   action="store_true")
     ap.add_argument("--local",      action="store_true")
     ap.add_argument("--model",      default=MODEL_NAME)
+    ap.add_argument("--hybrid", dest="hybrid", action="store_true", help="Activa retrieval híbrido")
+    ap.add_argument("--no-hybrid", dest="hybrid", action="store_false", help="Solo vector")
+    ap.set_defaults(hybrid=True)
     ap.add_argument("--chroma-dir", default=str(CHROMA_DIR))
     args = ap.parse_args()
 
@@ -514,7 +548,7 @@ def main():
     print(f"→ Colección lista: {total} chunks indexados\n")
 
     if args.ask:
-        answer(args.ask, collection, emb_model, reranker, args.top, args.no_synth, args.local)
+        answer(args.ask, collection, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
     else:
         print(f"✅ Foco activo: {args.project} ({total} chunks)")
         print("   Escribe tu consulta o 'salir' para terminar.\n")
@@ -529,7 +563,7 @@ def main():
             if query.lower() in ("salir", "exit", "quit", "q"):
                 print("👋 Saliendo.")
                 break
-            answer(query, collection, emb_model, reranker, args.top, args.no_synth, args.local)
+            answer(query, collection, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
 
 
 if __name__ == "__main__":

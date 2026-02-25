@@ -8,6 +8,10 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
+import sys
+sys.path.insert(0, str(Path(__file__).parent))
+from rag_utils import normalize_project_code
+
 
 def norm(s: str) -> str:
     return re.sub(r"\s+", " ", (s or "")).strip()
@@ -43,11 +47,27 @@ def infer_doc_id(name: str) -> str:
     return m.group(1).replace("_", "-").upper() if m else base
 
 
+def build_tags(project_code: str, custom_tags_csv: str = ""):
+    norm = normalize_project_code(project_code)
+    tags = [project_code, norm]
+    if custom_tags_csv:
+        tags.extend([t.strip() for t in custom_tags_csv.split(",") if t.strip()])
+    # dedupe preservando orden
+    seen = set()
+    out = []
+    for t in tags:
+        if t not in seen:
+            out.append(t)
+            seen.add(t)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", required=True)
     ap.add_argument("--project", required=True)
     ap.add_argument("--project-code", required=True)
+    ap.add_argument("--tags", default="", help="Tags extra CSV (ej: PO-4519,ID-1425)")
     args = ap.parse_args()
 
     src = Path(args.source)
@@ -62,6 +82,8 @@ def main():
     index_csv = project_dir / "INDEX.csv"
     summaries_dir = project_dir / "docs" / "summaries"
     summaries_dir.mkdir(parents=True, exist_ok=True)
+
+    chunk_tags = build_tags(args.project_code, args.tags)
 
     existing_keys = set()
     if index_csv.exists():
@@ -151,7 +173,7 @@ def main():
                         "chunk": i,
                         "text": ch,
                         "source_path": str(p),
-                        "tags": [args.project_code, "OT-1844", "PO-4519143302", "ID-1425"],
+                        "tags": chunk_tags,
                     }
                     fc.write(json.dumps(ck, ensure_ascii=False) + "\n")
 
