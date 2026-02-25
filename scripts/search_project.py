@@ -16,7 +16,6 @@ from pathlib import Path
 
 CHROMA_DIR   = Path("data/chroma")
 MODEL_NAME   = "paraphrase-multilingual-mpnet-base-v2"
-DEFAULT_TOP  = 10
 PREVIEW_CHARS = 400
 
 
@@ -45,12 +44,13 @@ def main():
     ap = argparse.ArgumentParser(description="Búsqueda semántica en chunks de proyecto")
     ap.add_argument("--project",    required=True, help="Código de proyecto (ej. OT-1844)")
     ap.add_argument("--ask",        required=True, help="Consulta en lenguaje natural")
-    ap.add_argument("--top",        type=int, default=DEFAULT_TOP, help="Número de resultados")
+    ap.add_argument("--top",        type=int, default=None, help="Número de resultados")
     ap.add_argument("--tags",       default="", help="Filtrar por tags (csv), ej: pintura,coating")
     ap.add_argument("--doc",        default="", help="Filtrar por doc_id (substring)")
     ap.add_argument("--json",       action="store_true", help="Output en JSON")
     ap.add_argument("--no-rerank",  action="store_true", help="Desactivar reranking (solo embeddings)")
     ap.add_argument("--model",      default=MODEL_NAME)
+    ap.add_argument("--reranker-model", default=None, help="Modelo CrossEncoder para reranking")
     ap.add_argument("--chroma-dir", default=str(CHROMA_DIR))
     args = ap.parse_args()
 
@@ -66,7 +66,18 @@ def main():
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).parent))
-    from rag_utils import get_reranker_model, rerank_chunks, normalize_project_code, collection_name_from_project
+    from rag_utils import (
+        get_reranker_model,
+        rerank_chunks,
+        normalize_project_code,
+        collection_name_from_project,
+        RERANK_MODEL_NAME,
+        DEFAULT_TOP_K,
+    )
+    if args.top is None:
+        args.top = DEFAULT_TOP_K
+    if not args.reranker_model:
+        args.reranker_model = RERANK_MODEL_NAME
 
     # ── Conexión ChromaDB ─────────────────────────────────────────────────────
     chroma_path = Path(args.chroma_dir)
@@ -125,7 +136,7 @@ def main():
     # ── Reranking (si no está desactivado) ────────────────────────────────────
     rerank_scores = None
     if not args.no_rerank and docs:
-        reranker = get_reranker_model()
+        reranker = get_reranker_model(args.reranker_model)
         chunks_for_rerank = [
             {
                 "text": d,
@@ -167,7 +178,7 @@ def main():
         if tag_list:
             print(f"   Filtro tags: {tag_list}")
         if not args.no_rerank:
-            print(f"   Reranking: ✅ activo")
+            print(f"   Reranking: ✅ activo ({args.reranker_model})")
         print(f"   Total en colección: {collection.count()} chunks\n")
 
         if not docs:

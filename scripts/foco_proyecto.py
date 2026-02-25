@@ -40,9 +40,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # ── Configuración ─────────────────────────────────────────────────────────────
 CHROMA_DIR        = Path("data/chroma")
 MODEL_NAME        = "paraphrase-multilingual-mpnet-base-v2"
-DEFAULT_TOP       = 10
 MAX_CONTEXT_CHARS = 6000
-RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 # Caché en memoria (válido dentro del mismo proceso Python)
 _EMBED_MODEL_CACHE: Dict[str, Any] = {}
@@ -55,6 +53,8 @@ from rag_utils import (
     rerank_chunks as _rerank_chunks,
     normalize_project_code,
     collection_name_from_project,
+    RERANK_MODEL_NAME,
+    DEFAULT_TOP_K,
 )
 
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
@@ -485,7 +485,7 @@ def main():
     ap = argparse.ArgumentParser(description="Foco de proyecto — RAG semántico con OpenClaw")
     ap.add_argument("--project",    required=True)
     ap.add_argument("--ask",        default="")
-    ap.add_argument("--top",        type=int, default=DEFAULT_TOP)
+    ap.add_argument("--top",        type=int, default=DEFAULT_TOP_K)
     ap.add_argument("--no-synth",   action="store_true")
     ap.add_argument("--local",      action="store_true")
     ap.add_argument("--model",      default=MODEL_NAME)

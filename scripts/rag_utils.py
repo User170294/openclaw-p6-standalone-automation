@@ -9,6 +9,7 @@ from typing import Any, Dict, List
 _RERANK_MODEL_CACHE: Dict[str, Any] = {}
 
 RERANK_MODEL_NAME = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+DEFAULT_TOP_K = 10
 
 
 def normalize_project_code(project: str) -> str:
