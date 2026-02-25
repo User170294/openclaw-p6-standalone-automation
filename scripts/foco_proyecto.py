@@ -55,8 +55,16 @@ from rag_utils import (
     collection_name_from_project,
     RERANK_MODEL_NAME,
     DEFAULT_TOP_K,
-    bm25_rank,
     rrf_fuse,
+    get_or_build_bm25_index,
+    bm25_rank_from_index,
+)
+from rag_metrics import (
+    RagQueryLog,
+    write_rag_log,
+    count_tokens_cl100k,
+    now_utc_iso,
+    ms_since,
 )
 
 GATEWAY_HTTP  = os.getenv("OPENCLAW_HTTP_URL",          "http://127.0.0.1:18789")
@@ -233,7 +241,8 @@ def hybrid_search(collection, model, query: str, top: int, use_hybrid: bool = Tr
         all_rows = collection.get(include=["documents", "metadatas"])
         docs_all = all_rows.get("documents", [])
         metas_all = all_rows.get("metadatas", [])
-        bm25 = bm25_rank(query, docs_all)
+        bm25_index = get_or_build_bm25_index(collection.name, docs_all)
+        bm25 = bm25_rank_from_index(query, bm25_index)
         lexical_rank = []
         for idx, _ in bm25[:recall_n]:
             d = docs_all[idx]
@@ -470,7 +479,19 @@ def get_reranker_model(model_name: str = RERANK_MODEL_NAME):
     return get_reranker_model_shared(model_name)
 
 
-def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool, use_local: bool, use_hybrid: bool):
+def answer(
+    query: str,
+    collection,
+    project_norm: str,
+    collection_name: str,
+    emb_model,
+    reranker,
+    top: int,
+    no_synth: bool,
+    use_local: bool,
+    use_hybrid: bool,
+):
+    t0 = time.perf_counter()
     print(f"\n🔍 Buscando: \"{query}\" ({'híbrido' if use_hybrid else 'vector'})\n")
     chunks = hybrid_search(collection, emb_model, query, top, use_hybrid=use_hybrid)
 
@@ -497,7 +518,41 @@ def answer(query: str, collection, emb_model, reranker, top: int, no_synth: bool
             print(f"\n[{i}] {ch['doc_id']} p.{ch['page']}\n{preview}")
         return
 
+    chunks_payload = []
+    for i, ch in enumerate(chunks[:top], 1):
+        item = {
+            "rank": i,
+            "doc_id": ch.get("doc_id"),
+            "page": ch.get("page"),
+            "score": ch.get("score"),
+        }
+        if "rerank_score" in ch:
+            item["rerank_score"] = ch["rerank_score"]
+        chunks_payload.append(item)
+
     context = build_context(chunks, MAX_CONTEXT_CHARS)
+    tokens_sent = count_tokens_cl100k(
+        f"{SYSTEM_PROMPT}\n\nContexto de documentos:\n{context}\n\nPregunta: {query}"
+    )
+
+    write_rag_log(
+        RagQueryLog(
+            ts_utc=now_utc_iso(),
+            source="foco_proyecto",
+            project=project_norm,
+            collection=collection_name,
+            query=query,
+            tokens_sent=tokens_sent,
+            chunks_retrieved=chunks_payload,
+            top_k_requested=top,
+            top_k_returned=len(chunks_payload),
+            retrieval_mode="hybrid" if use_hybrid else "vector",
+            rerank_enabled=True,
+            elapsed_ms=ms_since(t0),
+            extra={"max_context_chars": MAX_CONTEXT_CHARS},
+        )
+    )
+
     print("\n💬 Respuesta:\n" + "─" * 60)
 
     if use_local:
@@ -544,11 +599,13 @@ def main():
     print(f"→ Reranker ({RERANK_MODEL_NAME}) listo en {(t2 - t1):.2f}s")
 
     collection = load_chroma(args.chroma_dir, args.project)
+    project_norm = normalize_project_code(args.project)
+    collection_name = collection_name_from_project(project_norm)
     total = collection.count()
     print(f"→ Colección lista: {total} chunks indexados\n")
 
     if args.ask:
-        answer(args.ask, collection, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
+        answer(args.ask, collection, project_norm, collection_name, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
     else:
         print(f"✅ Foco activo: {args.project} ({total} chunks)")
         print("   Escribe tu consulta o 'salir' para terminar.\n")
@@ -563,7 +620,7 @@ def main():
             if query.lower() in ("salir", "exit", "quit", "q"):
                 print("👋 Saliendo.")
                 break
-            answer(query, collection, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
+            answer(query, collection, project_norm, collection_name, emb_model, reranker, args.top, args.no_synth, args.local, args.hybrid)
 
 
 if __name__ == "__main__":

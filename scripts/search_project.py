@@ -12,6 +12,7 @@ Uso:
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 CHROMA_DIR   = Path("data/chroma")
@@ -27,11 +28,11 @@ def fmt_result(i: int, doc: str, meta: dict, dist: float, rerank_score: float = 
     preview = doc[:PREVIEW_CHARS].replace("\n", " ")
     if len(doc) > PREVIEW_CHARS:
         preview += "…"
-    
+
     score_line = f"score: {score:.3f}"
     if rerank_score is not None:
         score_line += f"  |  rerank: {rerank_score:.4f}"
-    
+
     return (
         f"\n{'─'*60}\n"
         f"[{i}] {doc_id}  |  pág. {page}  |  {score_line}\n"
@@ -66,7 +67,7 @@ def main():
     except ImportError as e:
         print(f"❌ {e} — ejecuta: pip install sentence-transformers chromadb")
         sys.exit(1)
-    
+
     # Importar utilidades de reranking
     import sys
     from pathlib import Path
@@ -80,11 +81,23 @@ def main():
         DEFAULT_TOP_K,
         bm25_rank,
         rrf_fuse,
+        get_or_build_bm25_index,
+        bm25_rank_from_index,
     )
+    from rag_metrics import (
+        RagQueryLog,
+        write_rag_log,
+        count_tokens_cl100k,
+        now_utc_iso,
+        ms_since,
+    )
+
     if args.top is None:
         args.top = DEFAULT_TOP_K
     if not args.reranker_model:
         args.reranker_model = RERANK_MODEL_NAME
+
+    t0 = time.perf_counter()
 
     # ── Conexión ChromaDB ─────────────────────────────────────────────────────
     chroma_path = Path(args.chroma_dir)
@@ -138,7 +151,8 @@ def main():
         all_rows = collection.get(**get_kwargs)
         l_docs = all_rows.get("documents", [])
         l_metas = all_rows.get("metadatas", [])
-        ranked_bm25 = bm25_rank(args.ask, l_docs)
+        bm25_index = get_or_build_bm25_index(collection_name, l_docs)
+        ranked_bm25 = bm25_rank_from_index(args.ask, bm25_index)
         for idx, bm25_s in ranked_bm25[:recall_k]:
             lex_candidates.append((l_docs[idx], l_metas[idx], bm25_s))
 
@@ -206,7 +220,7 @@ def main():
             for d, m, dist in zip(docs, metadatas, distances)
         ]
         reranked = rerank_chunks(args.ask, chunks_for_rerank, reranker)
-        
+
         # Reordenar docs, metadatas, distances según el nuevo orden
         docs = [ch["text"] for ch in reranked]
         metadatas = [{"doc_id": ch["doc_id"], "page": ch["page"], "tags": ",".join(ch["tags"])} for ch in reranked]
@@ -219,6 +233,37 @@ def main():
     distances = list(distances)[:args.top]
     if rerank_scores:
         rerank_scores = list(rerank_scores)[:args.top]
+
+    chunks_payload = []
+    for i, (d, m, dist) in enumerate(zip(docs, metadatas, distances), 1):
+        item = {
+            "rank": i,
+            "doc_id": m.get("doc_id"),
+            "page": m.get("page"),
+            "score": round(1 - dist, 6),
+            "distance": round(float(dist), 6),
+        }
+        if rerank_scores:
+            item["rerank_score"] = round(float(rerank_scores[i - 1]), 6)
+        chunks_payload.append(item)
+
+    write_rag_log(
+        RagQueryLog(
+            ts_utc=now_utc_iso(),
+            source="search_project",
+            project=project_norm,
+            collection=collection_name,
+            query=args.ask,
+            tokens_sent=count_tokens_cl100k(args.ask),
+            chunks_retrieved=chunks_payload,
+            top_k_requested=args.top,
+            top_k_returned=len(chunks_payload),
+            retrieval_mode="hybrid" if args.hybrid else "vector",
+            rerank_enabled=not args.no_rerank,
+            elapsed_ms=ms_since(t0),
+            extra={"recall_k": recall_k, "rrf_k": args.rrf_k},
+        )
+    )
 
     # ── Output ────────────────────────────────────────────────────────────────
     if args.json:
