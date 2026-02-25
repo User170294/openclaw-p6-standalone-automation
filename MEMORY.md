@@ -26,6 +26,7 @@
 - Outlook Notes: para crear notas persistentes en OWA usar creación de nota nueva + tipeo real en editor Draft.js; evitar manipulación DOM directa para escribir contenido.
 - Política de cierre de sesión: guardar solo señal útil (decisiones, pendientes reales, cambios) en `memory/YYYY-MM-DD.md`, sin disparadores por tiempo fijo.
 - Al cerrar sesión, mostrar confirmación verificable del guardado (ruta + bloque guardado).
+- Para OT-1844, cuando se pida “resumen”, entregar formato de informe detallado (hilos + contexto + pendientes + riesgos), no solo resumen ejecutivo.
 
 ### RAG Semántico de Proyectos (activo desde 2026-02-23)
 - Stack: sentence-transformers (`paraphrase-multilingual-MiniLM-L12-v2`) + ChromaDB persistente.

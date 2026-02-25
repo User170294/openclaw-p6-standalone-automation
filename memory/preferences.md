@@ -17,4 +17,5 @@
 - No usar emojis ni iconos en las respuestas. Resultan poco profesionales. Usar texto plano siempre.
 - Errores recurrentes quedan documentados en `.learnings/ERRORS.md`. Revisar ese archivo ante cualquier duda de formato o comportamiento.
 - Al cerrar sesión, Edgardo quiere ver confirmación verificable: ruta y bloque exacto guardado en memoria.
+- Cuando Edgardo pida “resumen” de un proyecto, espera formato de informe detallado (hilos, contexto de comunicación, estado del servicio, pendientes y riesgos), no solo síntesis breve.
 - Convención OT-1844: usar semanas en formato `W##` (W08, W09, W10...). Definición acordada: W08 = 16–22 feb 2026, y sucesivas por semana calendario.
