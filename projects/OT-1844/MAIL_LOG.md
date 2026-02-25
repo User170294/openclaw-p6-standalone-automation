@@ -27,3 +27,26 @@ Se considera correo relacionado si cumple al menos una:
 4. Referencia explícita al nombre del proyecto.
 
 Si un correo coincide con múltiples proyectos, mover a `review-pending/` para validación manual.
+
+## Corte OWA + índice local — 2026-02-25 (AM)
+
+### Nuevos detectados hoy (OT 1844 Recibidos)
+1) **10:32 — FE DE ERRATAS / OT 1844- CORTES INOXIDABLES & CILINDRADO** (Marcela Medina / hilo Matias Lara)
+   - Contexto: corrige requerimiento de corte/cilindrado y adjunta paquete técnico (13 adjuntos: DWG/PDF + imagen de indicaciones).
+   - Contenido clave: material requerido **15 planchas 6000x1500x6 + 1 plancha 3000x1500x6** y advertencia de piezas opuestas en cilindrado.
+2) **09:29 — OC 4519143302 ... MINUTA REUNION 0005** (Paz Torres y equipo BHP)
+   - Contexto: envío de minuta y pendientes por confirmar tras inconvenientes de reunión.
+   - Contenido clave: se remite minuta + puntos pendientes + presentación de avance; queda por confirmar fecha de siguiente reunión/validación.
+3) **08:53 — RE: ... Solicitud de Visita BHP** (hilo Luisiana/BHP)
+   - Contexto del hilo leído: coordinación de visita BHP + trazabilidad técnica previa por RFI FRP.
+   - Contenido clave del historial: BHP pidió formalizar cambios por RFI en Aconex; Simtexx respondió priorización y Control Documentos reportó RFI regularizada por transmittal.
+4) **09:33 — OT 1844- CORTES INOXIDABLES & CILINDRADO** (mismo hilo de cortes)
+   - Contexto: mensaje previo al de FE DE ERRATAS con instrucción inicial de despacho a proveedor de cortes y set de adjuntos.
+
+### Verificación con índice local (000 Correos)
+- Nuevo de hoy en índice local: **1 correo**
+  - 08:53 — RE Solicitud de Visita BHP (Luisiana Chico)
+
+### Observación operativa
+- OWA muestra más mensajes recientes del día que aún no están en la carpeta local indexada (000 Correos).
+- Acción sugerida: exportar/guardar los nuevos de hoy al repositorio local para mantener consistencia de histórico.
