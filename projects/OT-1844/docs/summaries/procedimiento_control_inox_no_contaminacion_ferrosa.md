@@ -14,7 +14,7 @@ Establecer controles obligatorios para prevenir contaminación ferrosa en acero 
 Aplica a todo componente de acero inoxidable (principalmente bandejas y elementos asociados) desde recepción de material hasta liberación final de calidad.
 
 ## 3) Referencias técnicas
-- ASTM A380/A380M — Cleaning, Descaling and Passivation of Stainless Steel Parts
+- ASTM A380/A380M-25 — Cleaning, Descaling, Pickling and Passivation of Stainless Steel Parts
 - ASTM A967/A967M — Chemical Passivation Treatments for Stainless Steel Parts
 - SSPC SP1 — Solvent Cleaning (como limpieza previa de contaminantes)
 - AWS D1.1 (soldadura estructural, cuando corresponda)
@@ -59,15 +59,17 @@ Aplica a todo componente de acero inoxidable (principalmente bandejas y elemento
 ## 6) Secuencia de limpieza y pasivado (estándar)
 
 1. **Prelimpieza:** retiro de polvo/aceite/grasa (SSPC SP1).  
-2. **Limpieza mecánica fina:** sólo abrasivo dedicado inox.  
-3. **Decapado (si aplica):** según instrucción técnica aprobada por Calidad (producto, concentración, tiempo, temperatura).  
-4. **Enjuague intermedio:** agua limpia, preferible desmineralizada.  
-5. **Pasivado:** conforme ASTM A967 (método definido por Calidad).  
-6. **Enjuague final:** agua limpia/desmineralizada.  
-7. **Secado:** paño limpio dedicado o aire limpio libre de aceite.  
-8. **Protección final:** film o embalaje limpio, evitando contacto ferroso hasta despacho.
+2. **Limpieza mecánica fina:** sólo abrasivo dedicado inox (A380 7.2.8).  
+3. **Limpieza de zonas de soldadura:** remover tintes térmicos/óxidos/salpicaduras antes del pasivado (A380 7.3).  
+4. **Decapado (si aplica):** según instrucción técnica aprobada por Calidad (producto, concentración, tiempo, temperatura).  
+5. **Neutralización (si aplica al químico usado):** seguida de enjuague para remover todo residuo neutralizante (A380).  
+6. **Enjuague intermedio/final:** agua limpia, preferible desmineralizada, hasta ausencia de residuos químicos.  
+7. **Pasivado:** conforme ASTM A967 / práctica A380 según criticidad definida por Calidad.  
+8. **Secado completo:** paño limpio dedicado o aire limpio libre de aceite, sin humedad retenida.  
+9. **Protección final:** film o embalaje limpio; proteger superficie limpia para evitar recontaminación durante manejo y despacho (A380 9.5).
 
-> Importante: Todo químico debe tener FDS y aprobación HSE/Calidad antes de uso.
+> Importante: Todo químico debe tener FDS y aprobación HSE/Calidad antes de uso.  
+> Para limpieza en circuitos/líneas (si aplica), asegurar recirculación/arrastre suficiente para remover residuos (referencia A380; típicamente 0,9–1,2 m/s como guía de flushing).
 
 ---
 
@@ -76,9 +78,11 @@ Aplica a todo componente de acero inoxidable (principalmente bandejas y elemento
 - Acabado uniforme de limpieza/pasivado según estándar visual acordado.
 - Trazabilidad completa del proceso en registro QC.
 
-### 7.1 Verificación recomendada
+### 7.1 Verificación recomendada (alineada a ASTM A380)
 - Inspección visual 100%.
-- Ensayo de detección de hierro libre (ferroxyl o equivalente validado por Calidad), por muestreo o 100% según criticidad.
+- Ensayo de detección de hierro libre (ferroxyl, copper sulfate u otro método cualitativo aprobado por Calidad).
+- Verificar efectividad del pasivado con criterios de aceptación definidos por Calidad (métodos cualitativos tipo A380 §§8.2.5 / 8.3.4).
+- Registrar evidencia de secado total y condición superficial final antes de embalaje.
 
 ---
 
@@ -101,8 +105,10 @@ Para cada lote/ítem:
 - Inspector QC
 - Método de limpieza aplicado
 - Químico (si aplica), concentración, tiempo, temperatura
+- Control de baño/solución: fecha de preparación, horas de uso, criterio de reposición/reemplazo
 - Resultado inspección visual
 - Resultado test contaminación ferrosa (si aplica)
+- Resultado verificación cualitativa de pasivado
 - Estado final: Aprobado / Rechazado
 - Observaciones y acciones correctivas
 
