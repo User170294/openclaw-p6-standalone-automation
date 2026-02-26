@@ -17,3 +17,10 @@
   - `bodega_unificado_20260226_1308.csv`
 - Registros consolidados: 528 filas.
 - Observación: `SM_STOCK CASA MATRIZ.xlsx` quedó bloqueado (Permission denied), no entró en este primer corte.
+
+## 2026-02-26 13:11 (UTC-3)
+- Se generó vista reducida por producto con cantidades en columnas por bodega:
+  - `bodega_cantidades_por_bodega_20260226_1311.xlsx`
+  - `bodega_cantidades_por_bodega_20260226_1311.csv`
+- Filas resultantes: 313 productos únicos.
+- Objetivo: disminuir líneas repetidas y facilitar comparación entre bodegas.
