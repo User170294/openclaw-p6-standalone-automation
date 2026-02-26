@@ -19,3 +19,5 @@
 - Al cerrar sesión, Edgardo quiere ver confirmación verificable: ruta y bloque exacto guardado en memoria.
 - Cuando Edgardo pida “resumen” de un proyecto, espera formato de informe detallado (hilos, contexto de comunicación, estado del servicio, pendientes y riesgos), no solo síntesis breve.
 - Convención OT-1844: usar semanas en formato `W##` (W08, W09, W10...). Definición acordada: W08 = 16–22 feb 2026, y sucesivas por semana calendario.
+- Preferencia operativa recurrente: cuando Edgardo diga “trae la carpeta al frente”, significa abrirla en su equipo (Explorador local), no solo indicar ruta en el panel de archivos.
+- Preferencia operativa recurrente: cuando Edgardo diga “tráelo al frente”, debo abrir el archivo/carpeta en su equipo local (app asociada o Explorador), no solo responder con la ruta.
