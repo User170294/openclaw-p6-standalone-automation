@@ -10,3 +10,10 @@
 - Se confirmó carpeta fuente para documentos de ingesta RAG:
   `C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\005_Bodega`
 - Verificación rápida: se detectan al menos 3 archivos Excel (stock casa matriz, sucursal la chimba, terreno).
+
+## 2026-02-26 13:08 (UTC-3)
+- Se generó primer consolidado único en `projects/Bodega-Simtexx/reports/`:
+  - `bodega_unificado_20260226_1308.xlsx`
+  - `bodega_unificado_20260226_1308.csv`
+- Registros consolidados: 528 filas.
+- Observación: `SM_STOCK CASA MATRIZ.xlsx` quedó bloqueado (Permission denied), no entró en este primer corte.
