@@ -24,3 +24,13 @@
   - `bodega_cantidades_por_bodega_20260226_1311.csv`
 - Filas resultantes: 313 productos únicos.
 - Objetivo: disminuir líneas repetidas y facilitar comparación entre bodegas.
+
+## 2026-02-26 13:14 (UTC-3)
+- Se reprocesó consolidado incluyendo `SM_STOCK CASA MATRIZ.xlsx` (archivo antes bloqueado):
+  - `bodega_unificado_20260226_1314.xlsx`
+  - `bodega_unificado_20260226_1314.csv`
+- Registros consolidados: 914 filas.
+- Se simplificó informe pivote eliminando `Disponible` por redundancia con `Stock`:
+  - `bodega_stock_por_bodega_20260226_1314.xlsx`
+  - `bodega_stock_por_bodega_20260226_1314.csv`
+- Resultado pivote: 490 productos únicos.
