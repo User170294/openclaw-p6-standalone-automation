@@ -123,9 +123,14 @@ def main():
     # ── Filtros opcionales ────────────────────────────────────────────────────
     where = None
     tag_list = [t.strip() for t in args.tags.split(",") if t.strip()]
-    if tag_list:
-        conditions = [{"tags": {"$contains": t}} for t in tag_list]
-        where = {"$or": conditions} if len(conditions) > 1 else conditions[0]
+
+    def _meta_has_any_tag(meta: dict, tags: list[str]) -> bool:
+        if not tags:
+            return True
+        raw = (meta or {}).get("tags", "")
+        parts = [p.strip().lower() for p in str(raw).split(",") if p.strip()]
+        wanted = {t.lower() for t in tags}
+        return any(t in wanted for t in parts)
 
     # ── Recuperación vectorial inicial (recall) ──────────────────────────────
     recall_k = min(max(args.top, args.recall_k), collection.count())
@@ -134,23 +139,30 @@ def main():
         n_results=recall_k,
         include=["documents", "metadatas", "distances"],
     )
-    if where:
-        query_kwargs["where"] = where
-
     results = collection.query(**query_kwargs)
     v_docs = results["documents"][0]
     v_metas = results["metadatas"][0]
     v_dists = results["distances"][0]
 
+    if tag_list:
+        filtered = [
+            (d, m, dist) for d, m, dist in zip(v_docs, v_metas, v_dists)
+            if _meta_has_any_tag(m, tag_list)
+        ]
+        v_docs = [x[0] for x in filtered]
+        v_metas = [x[1] for x in filtered]
+        v_dists = [x[2] for x in filtered]
+
     # ── Recuperación léxica BM25 (opcional híbrida) ──────────────────────────
     lex_candidates = []
     if args.hybrid:
-        get_kwargs = {"include": ["documents", "metadatas"]}
-        if where:
-            get_kwargs["where"] = where
-        all_rows = collection.get(**get_kwargs)
+        all_rows = collection.get(include=["documents", "metadatas"])
         l_docs = all_rows.get("documents", [])
         l_metas = all_rows.get("metadatas", [])
+        if tag_list:
+            keep = [i for i, m in enumerate(l_metas) if _meta_has_any_tag(m, tag_list)]
+            l_docs = [l_docs[i] for i in keep]
+            l_metas = [l_metas[i] for i in keep]
         bm25_index = get_or_build_bm25_index(collection_name, l_docs)
         ranked_bm25 = bm25_rank_from_index(args.ask, bm25_index)
         for idx, bm25_s in ranked_bm25[:recall_k]:

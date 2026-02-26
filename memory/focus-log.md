@@ -62,19 +62,42 @@
 
 **Nota**: Cada sesiÃ³n de foco debe registrar su ejecuciÃ³n aquÃ­ inmediatamente despuÃ©s de entregar panorama al usuario.
 
-## [2026-02-25 15:22 UTC-3] — Reindex + verificación OT-1844
+## [2026-02-25 15:22 UTC-3] ï¿½ Reindex + verificaciï¿½n OT-1844
 - Trigger: "ejecutala y volvamos a verificar"
 - Modelo: openai-codex/gpt-5.3-codex
-- Acción RAG: ? `embed_chunks.py --chunks data/ot-1844_chunks.jsonl --project OT-1844 --reset`
-- Resultado RAG: 1203 chunks cargados en colección `ot_1844`.
-- Verificación búsqueda: ? `search_project.py --project OT-1844 --ask "estado actual" --top 3`
-- Verificación alias ruta: ? creado junction `projects/1844 -> projects/OT-1844`
-- Verificación archivos en `projects/1844`: ? README/MEMORY/LOG/INDEX accesibles
-- Observación técnica: `data/chroma/ot_1844` no existe como carpeta física; Chroma persiste por UUID + sqlite (`data/chroma/chroma.sqlite3`).
-- Cumplimiento protocolo: ? completo (con adaptación de ruta)
-## 2026-02-25 21:21 (UTC-3) — Foco en finanzas
+- Acciï¿½n RAG: ? `embed_chunks.py --chunks data/ot-1844_chunks.jsonl --project OT-1844 --reset`
+- Resultado RAG: 1203 chunks cargados en colecciï¿½n `ot_1844`.
+- Verificaciï¿½n bï¿½squeda: ? `search_project.py --project OT-1844 --ask "estado actual" --top 3`
+- Verificaciï¿½n alias ruta: ? creado junction `projects/1844 -> projects/OT-1844`
+- Verificaciï¿½n archivos en `projects/1844`: ? README/MEMORY/LOG/INDEX accesibles
+- Observaciï¿½n tï¿½cnica: `data/chroma/ot_1844` no existe como carpeta fï¿½sica; Chroma persiste por UUID + sqlite (`data/chroma/chroma.sqlite3`).
+- Cumplimiento protocolo: ? completo (con adaptaciï¿½n de ruta)
+## 2026-02-25 21:21 (UTC-3) ï¿½ Foco en finanzas
 - Trigger: ""vamos a finazas""
-- Archivos leídos: projects/finanzas/README.md; projects/finanzas/MEMORY.md; projects/finanzas/LOG.md; projects/finanzas/INDEX.csv
-- RAG ejecutada: no ? colección no encontrada
-- Brechas: sin chunks JSONL en data/; sin colección ChromaDB data/chroma/finanzas
-- Propuesta: indexar chunks del proyecto finanzas para habilitar búsqueda semántica
+- Archivos leï¿½dos: projects/finanzas/README.md; projects/finanzas/MEMORY.md; projects/finanzas/LOG.md; projects/finanzas/INDEX.csv
+- RAG ejecutada: no ? colecciï¿½n no encontrada
+- Brechas: sin chunks JSONL en data/; sin colecciï¿½n ChromaDB data/chroma/finanzas
+- Propuesta: indexar chunks del proyecto finanzas para habilitar bÃºsqueda semÃ¡ntica
+
+## [2026-02-26 08:05 UTC-3] â€” Foco en finanzas
+- Trigger: "vamoas con finanzas"
+- Modelo: openai-codex/gpt-5.3-codex
+- Archivos leÃ­dos:
+  - âœ… projects/finanzas/README.md
+  - âœ… projects/finanzas/MEMORY.md
+  - âœ… projects/finanzas/LOG.md
+  - âœ… projects/finanzas/INDEX.csv
+  - âœ… data/ contiene `finanzas_chunks.jsonl`
+  - âŒ data/chroma/ no muestra colecciÃ³n `finanzas`
+- RAG ejecutada: âŒ no â†’ ColecciÃ³n RAG no encontrada para finanzas
+- Brechas detectadas:
+  - Falta colecciÃ³n ChromaDB del proyecto para consultas semÃ¡nticas
+  - `MEMORY.md` del proyecto aÃºn sin decisiones consolidadas (pendiente)
+- Propuesta entregada: indexar `data/finanzas_chunks.jsonl` para habilitar bÃºsqueda RAG y luego revalidar top 3 de â€œestado actualâ€.
+- Cumplimiento protocolo: âœ… completo
+## [2026-02-26 08:12 UTC-3] — Foco en OT-1844
+- Trigger: ""hagamos foco en el proyecto 1844""
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
+- RAG ejecutada: sí ? [1203 chunks, top score 0.000]
+- Brechas: comando grep no disponible en PowerShell; data/chroma/ no muestra carpeta nominal ot_1844 (colección existente en Chroma SQLite)
+- Propuesta: ajustar checklist cross-platform (Select-String) y validar calidad de retrieval para query ""estado actual"".
