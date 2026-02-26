@@ -1,6 +1,6 @@
 # MEMORY.md - Memoria Permanente
 
-**Última actualización**: 2026-02-22
+**Última actualización**: 2026-02-25
 
 ## 🎯 Información Crítica
 
@@ -28,6 +28,7 @@
 - Al cerrar sesión, mostrar confirmación verificable del guardado (ruta + bloque guardado).
 - Para OT-1844, cuando se pida "resumen", entregar formato de informe detallado (hilos + contexto + pendientes + riesgos), no solo resumen ejecutivo.
 - **Procedimiento de foco en proyectos** (2026-02-25): protocolo imperativo reforzado en `AGENTS.md` — PROHIBIDO responder al trigger de foco sin ejecutar checklist completo de lectura + RAG + consolidación. Registrar cada activación en `memory/focus-log.md`.
+- **Normalización de rutas OT-1844** (2026-02-25): se eliminó alias `projects/1844` (junction) y se mantiene `projects/OT-1844` como ruta canónica para evitar ambigüedad y fallos por rutas mixtas.
 
 ### RAG Semántico de Proyectos (activo desde 2026-02-23)
 - Stack: sentence-transformers (`paraphrase-multilingual-MiniLM-L12-v2`) + ChromaDB persistente.
