@@ -20,3 +20,20 @@ print("\n--- TASKPRED columns ---")
 cur.execute("PRAGMA table_info(TASKPRED)")
 for col in cur.fetchall():
     print(f"{col[1]}|{col[2]}")
+
+print("\n--- PROJWBS columns ---")
+cur.execute("PRAGMA table_info(PROJWBS)")
+for col in cur.fetchall():
+    print(f"{col[1]}|{col[2]}")
+
+print("\n--- PROJWBS like SIMTEXX ---")
+cur.execute("""
+SELECT WBS_ID, PROJ_ID, WBS_SHORT_NAME, WBS_NAME, PARENT_WBS_ID
+FROM PROJWBS
+WHERE UPPER(COALESCE(WBS_SHORT_NAME,'')) LIKE '%SIMTEXX%'
+   OR UPPER(COALESCE(WBS_NAME,'')) LIKE '%SIMTEXX%'
+ORDER BY PROJ_ID, WBS_ID
+LIMIT 30
+""")
+for row in cur.fetchall():
+    print("|".join([str(x) if x is not None else "" for x in row]))
