@@ -72,3 +72,9 @@
 - Verificación archivos en `projects/1844`: ? README/MEMORY/LOG/INDEX accesibles
 - Observación técnica: `data/chroma/ot_1844` no existe como carpeta física; Chroma persiste por UUID + sqlite (`data/chroma/chroma.sqlite3`).
 - Cumplimiento protocolo: ? completo (con adaptación de ruta)
+## 2026-02-25 21:21 (UTC-3) — Foco en finanzas
+- Trigger: ""vamos a finazas""
+- Archivos leídos: projects/finanzas/README.md; projects/finanzas/MEMORY.md; projects/finanzas/LOG.md; projects/finanzas/INDEX.csv
+- RAG ejecutada: no ? colección no encontrada
+- Brechas: sin chunks JSONL en data/; sin colección ChromaDB data/chroma/finanzas
+- Propuesta: indexar chunks del proyecto finanzas para habilitar búsqueda semántica
