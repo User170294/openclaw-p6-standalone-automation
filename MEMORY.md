@@ -41,6 +41,7 @@
 - Benchmark operativo en `scripts/rag_ab_test.py` con métricas `avg_rerank` y `rel@3` por query.
 - Siempre pasar `PYTHONUTF8=1` al ejecutar los scripts en Windows.
 - Convención oficial de semana calendario para OT-1844: W08 = 2026-02-16 a 2026-02-22; luego consecutivo (W09, W10, ...). Usar formato `W##` en todos los reportes.
+- OT-1844 RAG (2026-02-26): se retaggearon chunks (`data/ot-1844_chunks.jsonl`), se reindexó colección `ot_1844` (1203 chunks), y `scripts/search_project.py` quedó corregido con filtro de tags robusto por metadata (evita falsos "sin resultados" con `--tags`).
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
