@@ -101,3 +101,9 @@
 - RAG ejecutada: sí ? [1203 chunks, top score 0.000]
 - Brechas: comando grep no disponible en PowerShell; data/chroma/ no muestra carpeta nominal ot_1844 (colección existente en Chroma SQLite)
 - Propuesta: ajustar checklist cross-platform (Select-String) y validar calidad de retrieval para query ""estado actual"".
+## [2026-02-26 10:36 UTC-3] — Foco en OT-1844
+- Trigger: ""vamos al 1844""
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
+- RAG ejecutada: sí ? [1267 chunks, top score 0.000; rerank top -2.6666]
+- Brechas: no hay carpeta visible por nombre en data/chroma (lookup directo falló); recuperación semántica para "estado actual" con baja relevancia
+- Propuesta: consultar con query orientada (hitos/avance/W09) o refrescar embeddings si persiste baja señal
