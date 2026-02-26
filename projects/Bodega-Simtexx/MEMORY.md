@@ -3,6 +3,7 @@
 ## Decisiones vigentes
 - Proyecto orientado a cuadratura de insumos + trazabilidad entrada/salida.
 - Se prioriza un enfoque simple, auditable y escalable.
+- Carpeta fuente oficial para ingesta documental/RAG: `C:\Users\josej\OneDrive - SIMTEXX SPA\OPERACIONES - Documentos\005_Bodega`.
 
 ## Pendientes clave
 - Confirmar número de bodegas involucradas.
