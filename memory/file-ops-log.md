@@ -1,0 +1,1 @@
+- [2026-02-25 21:19:19 -03:00] Limpieza alias proyecto: eliminado junction projects/1844 -> projects/OT-1844. Verificacion dependencias: sin referencias activas a projects/1844 fuera de memory/focus-log.md (historico).
