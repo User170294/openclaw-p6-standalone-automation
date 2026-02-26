@@ -34,3 +34,11 @@
   - `bodega_stock_por_bodega_20260226_1314.xlsx`
   - `bodega_stock_por_bodega_20260226_1314.csv`
 - Resultado pivote: 490 productos únicos.
+
+## 2026-02-26 13:24 (UTC-3)
+- Se agregaron columnas solicitadas al informe pivote: `Cod. U. Medida`, `Costo Unit.`, `Costo Total`.
+- Archivo generado:
+  - `bodega_stock_enriquecido_20260226_1324.xlsx`
+  - `bodega_stock_enriquecido_20260226_1324.csv`
+- Filas resultantes: 482 productos únicos.
+- Observación: en esta corrida `TE_TERRENO.xlsx` estaba bloqueado (Permission denied), por lo que no entró en este corte.
