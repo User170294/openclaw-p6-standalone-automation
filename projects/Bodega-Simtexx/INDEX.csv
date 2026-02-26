@@ -1,0 +1,4 @@
+id,tipo,nombre,estado,ultima_actualizacion,notas
+DOC-001,base,README.md,activo,2026-02-26,Documento maestro de alcance y objetivo
+DOC-002,base,MEMORY.md,activo,2026-02-26,Memoria de decisiones y pendientes
+DOC-003,base,LOG.md,activo,2026-02-26,Bitácora de avances
