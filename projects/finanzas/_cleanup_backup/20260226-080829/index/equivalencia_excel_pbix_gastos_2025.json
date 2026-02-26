@@ -1,0 +1,87 @@
+{
+  "excel_source": "C:\\Users\\josej\\OneDrive\\002 SIMTEXX\\000_Control de Porcesos\\004_Informe M.Munizaga\\Presupuesto 2025 Simtexx Junio 2025.xlsx",
+  "sheet": "RESUMEN",
+  "equivalencias": [
+    {
+      "excel_metrica": "Gastos Adm y Ventas (fila 32)",
+      "pbix_equivalente": "No directo en visuales; probable componente dentro de Sum(001_Dat_Presupuesto.Valor) sujeto a filtros de tipo/categoría",
+      "estado": "parcial"
+    },
+    {
+      "excel_metrica": "Gastos Operaciones (fila 37)",
+      "pbix_equivalente": "No directo en visuales; probable componente dentro de Sum(001_Dat_Presupuesto.Valor) sujeto a filtros",
+      "estado": "parcial"
+    },
+    {
+      "excel_metrica": "Gastos Financieros (fila 50)",
+      "pbix_equivalente": "No explícito en visuales detectados",
+      "estado": "no-evidencia"
+    },
+    {
+      "excel_metrica": "Total Gastos mensual (32+37+50)",
+      "pbix_equivalente": "No hay medida explícita de gastos totales; visual principal cruza Presupuesto vs Venta",
+      "estado": "no-equivalente-directo"
+    },
+    {
+      "excel_metrica": "Resultado Financiero Consolidado",
+      "pbix_equivalente": "Visuales de página 1 usan Sum(001_Dat_Presupuesto.Valor) y Sum(002_Dat_Venta.Valor) por Mes",
+      "estado": "equivalente-conceptual"
+    }
+  ],
+  "totales_2025": {
+    "Gastos Adm y Ventas": 1624260362.1,
+    "Gastos Operaciones": 651470277.15,
+    "Gastos Financieros": 67005845.0,
+    "Total Gastos (calc)": 2342736484.24
+  },
+  "mensual_total_gastos": [
+    {
+      "mes": "Ene",
+      "total": 160867757.44
+    },
+    {
+      "mes": "Feb",
+      "total": 171809624.68
+    },
+    {
+      "mes": "Mar",
+      "total": 185974446.96
+    },
+    {
+      "mes": "Abr",
+      "total": 197430359.8
+    },
+    {
+      "mes": "May",
+      "total": 202156081.49
+    },
+    {
+      "mes": "Jun",
+      "total": 200709233.64
+    },
+    {
+      "mes": "Jul",
+      "total": 197093245.52
+    },
+    {
+      "mes": "Ago",
+      "total": 209390321.08
+    },
+    {
+      "mes": "Sep",
+      "total": 202879505.47
+    },
+    {
+      "mes": "Oct",
+      "total": 205773201.29
+    },
+    {
+      "mes": "Nov",
+      "total": 201432657.62
+    },
+    {
+      "mes": "Dic",
+      "total": 207220049.25
+    }
+  ]
+}

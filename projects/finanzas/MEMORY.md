@@ -1,17 +1,17 @@
 # MEMORY — Proyecto Finanzas
 
 ## Decisiones
-- (pendiente)
+- Limpieza de registros sensibles/rutas ejecutada el 2026-02-26 (UTC-3).
 
 ## Fuentes de datos detectadas
-- Informe Mensual M.MUNIZAGA.xlsx
-- Informe Enero 2026_M.MUNIZAGA.pbix
+- (sin fuentes registradas)
 
 ## Riesgos detectados
 - Inconsistencia de nombres de cuentas entre hojas/fuentes
 - Dependencia de BUSCARX con claves no siempre existentes
 
 ## Próximos pasos
-1. Levantar inventario completo de tablas/medidas/columnas
-2. Definir métricas prioritarias del negocio
-3. Proponer arquitectura de automatización
+1. Definir nuevas fuentes autorizadas para el proyecto
+2. Levantar inventario completo de tablas/medidas/columnas
+3. Definir métricas prioritarias del negocio
+4. Proponer arquitectura de automatización
