@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-DB = r"C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B - copia.db"
+DB = r"C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db"
 PARENT_WBS_ID = 151785
 TEMPLATE_PROJ_ID = 26196
 

@@ -12,3 +12,7 @@
 - Corrida en dry-run ejecutada.
 - Resultados: NO_PREDECESSOR=10837, OVERDUE_MILESTONE=6566.
 - Reportes generados en `data/`: `pilot_audit_20260226_143723.csv` y `pilot_audit_20260226_143723.md`.
+
+## 2026-02-27 16:15 (UTC-3)
+- Ruta base SQLite actualizada por usuario a: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`.
+- Se actualizan scripts base para usar la nueva ruta: `scripts/inspect_sqlite.py` y `scripts/create_project_under_simtexx.py`.
