@@ -29,3 +29,13 @@
 - Ejecución transaccional con `scripts/prune_eps_keep_root.py --keep-root 151785 --apply`.
 - Eliminados: PROJECT=1103, PROJWBS=54769, TASK=184533, TASKPRED=238938, TASKRSRC=221717.
 - Verificación posterior: `ROOTS_LEFT=1` y raíz remanente `151785|Simtexx|Maestranza`.
+
+## 2026-02-27 17:24 (UTC-3)
+- Proyecto objetivo: `PROJ_ID=26258` (`OT 1844_B`).
+- Recurso original intervenido: `RSRC_ID=9398`.
+- Respaldo previo generado: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.BACKUP_20260227_172424.db`.
+- Script aplicado: `scripts/replace_resource_with_three_ops.py --proj-id 26258 --old-rsrc 9398 --apply`.
+- Recursos nuevos creados (RT_Labor): `9570=OP1`, `9571=OP2`, `9572=OP3`.
+- Reasignación: 151 asignaciones originales repartidas en 3 por actividad (total nuevas filas TASKRSRC: 453 para OP1/OP2/OP3).
+- Conservación HH validada: total `TARGET_QTY` del recurso reemplazado se mantuvo en `7740.0` (2580.0 por cada OP).
+- Estado final de recursos del proyecto: OP1, OP2, OP3 + `9399 (Ing. OT 1844)`.
