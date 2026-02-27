@@ -22,3 +22,10 @@
 - Respaldo previo generado: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.BACKUP_20260227_163242.db`.
 - Registros eliminados (principal): PROJECT=1, PROJWBS=44, TASK=165, TASKPRED=181, TASKRSRC=476, REFRDEL=1443.
 - Verificación posterior: `PROJECT_LEFT=0`.
+
+## 2026-02-27 17:10 (UTC-3)
+- Limpieza masiva de EPS raíz para conservar solo `WBS_ID=151785` (`Simtexx | Maestranza`).
+- Respaldo previo generado: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.BACKUP_20260227_171013.db`.
+- Ejecución transaccional con `scripts/prune_eps_keep_root.py --keep-root 151785 --apply`.
+- Eliminados: PROJECT=1103, PROJWBS=54769, TASK=184533, TASKPRED=238938, TASKRSRC=221717.
+- Verificación posterior: `ROOTS_LEFT=1` y raíz remanente `151785|Simtexx|Maestranza`.
