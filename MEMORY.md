@@ -44,6 +44,7 @@
 - OT-1844 RAG (2026-02-26): se retaggearon chunks (`data/ot-1844_chunks.jsonl`), se reindexó colección `ot_1844` (1203 chunks), y `scripts/search_project.py` quedó corregido con filtro de tags robusto por metadata (evita falsos "sin resultados" con `--tags`).
 - P6 Standalone (2026-02-26): cambios de recursos para OT 1844 se ejecutan primero en BD WORK clonada; no sobre BD principal sin validación.
 - P6 OT 1844_B (PROJ_ID 26196, 2026-02-26): se implementó reasignación por cuadrillas OP1/OP2/OP3 por WBS nivel 3 (153937, 153962, 153970, 153978, 153986) manteniendo HH.
+- P6 OT 1844_B (PROJ_ID 26196, 2026-02-27): proyecto eliminado de la DB SQLite principal por instrucción del usuario, con backup previo (`...Rev B.BACKUP_20260227_163242.db`) y verificación `PROJECT_LEFT=0`.
 - Regla técnica P6 (2026-02-26): al crear/reasignar recursos en SQLite, asegurar `RSRC.RSRC_TYPE` y `TASKRSRC.RSRC_TYPE` en `RT_Labor` para que P6 los trate como HH/labor y no material.
 
 ## 📚 Qué recordar

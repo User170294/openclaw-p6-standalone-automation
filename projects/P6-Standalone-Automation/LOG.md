@@ -16,3 +16,9 @@
 ## 2026-02-27 16:15 (UTC-3)
 - Ruta base SQLite actualizada por usuario a: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`.
 - Se actualizan scripts base para usar la nueva ruta: `scripts/inspect_sqlite.py` y `scripts/create_project_under_simtexx.py`.
+
+## 2026-02-27 16:32 (UTC-3)
+- Eliminado proyecto `PROJ_ID=26196` (`OT 1844_B`) desde SQLite en operación transaccional.
+- Respaldo previo generado: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.BACKUP_20260227_163242.db`.
+- Registros eliminados (principal): PROJECT=1, PROJWBS=44, TASK=165, TASKPRED=181, TASKRSRC=476, REFRDEL=1443.
+- Verificación posterior: `PROJECT_LEFT=0`.
