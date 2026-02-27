@@ -95,15 +95,58 @@
   - `MEMORY.md` del proyecto a√∫n sin decisiones consolidadas (pendiente)
 - Propuesta entregada: indexar `data/finanzas_chunks.jsonl` para habilitar b√∫squeda RAG y luego revalidar top 3 de ‚Äúestado actual‚Äù.
 - Cumplimiento protocolo: ‚úÖ completo
-## [2026-02-26 08:12 UTC-3] ó Foco en OT-1844
+## [2026-02-26 08:12 UTC-3] ÔøΩ Foco en OT-1844
 - Trigger: ""hagamos foco en el proyecto 1844""
-- Archivos leÌdos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
-- RAG ejecutada: sÌ ? [1203 chunks, top score 0.000]
-- Brechas: comando grep no disponible en PowerShell; data/chroma/ no muestra carpeta nominal ot_1844 (colecciÛn existente en Chroma SQLite)
+- Archivos leÔøΩdos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
+- RAG ejecutada: sÔøΩ ? [1203 chunks, top score 0.000]
+- Brechas: comando grep no disponible en PowerShell; data/chroma/ no muestra carpeta nominal ot_1844 (colecciÔøΩn existente en Chroma SQLite)
 - Propuesta: ajustar checklist cross-platform (Select-String) y validar calidad de retrieval para query ""estado actual"".
-## [2026-02-26 10:36 UTC-3] ó Foco en OT-1844
+## [2026-02-26 10:36 UTC-3] ÔøΩ Foco en OT-1844
 - Trigger: ""vamos al 1844""
-- Archivos leÌdos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
-- RAG ejecutada: sÌ ? [1267 chunks, top score 0.000; rerank top -2.6666]
-- Brechas: no hay carpeta visible por nombre en data/chroma (lookup directo fallÛ); recuperaciÛn sem·ntica para "estado actual" con baja relevancia
-- Propuesta: consultar con query orientada (hitos/avance/W09) o refrescar embeddings si persiste baja seÒal
+- Archivos leÔøΩdos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100); projects/OT-1844/INDEX.csv (50)
+- RAG ejecutada: sÔøΩ ? [1267 chunks, top score 0.000; rerank top -2.6666]
+- Brechas: no hay carpeta visible por nombre en data/chroma (lookup directo fallÔøΩ); recuperaciÔøΩn semÔøΩntica para "estado actual" con baja relevancia
+- Propuesta: consultar con query orientada (hitos/avance/W09) o refrescar embeddings si persiste baja seÔøΩal
+
+## [2026-02-26 15:31 UTC-3] ‚Äî Foco en primavera
+- Trigger: "primavera"
+- Modelo: openai-codex/gpt-5.3-codex
+- Archivos le√≠dos:
+  - ‚ùå projects/primavera/README.md (no existe)
+  - ‚ùå projects/primavera/MEMORY.md (no existe)
+  - ‚ùå projects/primavera/LOG.md (no existe)
+  - ‚ùå projects/primavera/INDEX.csv (no existe)
+  - ‚ùå data/ sin coincidencias `primavera` (chunks/backups)
+  - ‚ùå data/chroma/ sin coincidencias `primavera` (colecci√≥n)
+- RAG ejecutada: ‚ùå no ‚Üí Colecci√≥n RAG no encontrada para primavera
+- Brechas detectadas:
+  - Estructura de proyecto ausente en `projects/primavera`
+  - No existen chunks JSONL del proyecto en `data/`
+  - No existe colecci√≥n ChromaDB para el proyecto
+- Propuesta entregada: crear estructura base del proyecto y luego indexar chunks para habilitar RAG
+- Cumplimiento protocolo: ‚úÖ completo
+
+## [2026-02-26 15:32 UTC-3] ó Foco en P6-Standalone-Automation
+- Trigger: "P6"
+- Modelo: openai-codex/gpt-5.3-codex
+- Archivos leÌdos:
+  - ? projects/P6-Standalone-Automation/README.md
+  - ? projects/P6-Standalone-Automation/MEMORY.md
+  - ? projects/P6-Standalone-Automation/LOG.md
+  - ? projects/P6-Standalone-Automation/INDEX.csv
+  - ? data/ sin coincidencias de chunks/backups del proyecto
+  - ? data/chroma/ sin coincidencias de colecciÛn del proyecto
+- RAG ejecutada: ? no ? ColecciÛn RAG no encontrada para P6-Standalone-Automation
+- Brechas detectadas:
+  - No hay chunks JSONL del proyecto en `data/`
+  - No hay colecciÛn ChromaDB para consultas sem·nticas
+- Propuesta entregada: generar chunks e indexar colecciÛn para habilitar RAG de estado tÈcnico
+- Cumplimiento protocolo: ? completo
+
+## [2026-02-27 16:06 UTC-3] ó Foco en P6-Standalone-Automation
+- Trigger: vamos a p6
+- Archivos leÌdos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
+- RAG ejecutada: sÌ ? colecciÛn no encontrada (0 chunks, top score N/A)
+- Brechas: sin chunks JSONL del proyecto en data/; sin colecciÛn ChromaDB p6_standalone_automation; INDEX.csv incompleto (solo 3 entradas base)
+- Propuesta: generar chunks del proyecto e indexar con embed_chunks.py, luego re-ejecutar search_project.py
+
