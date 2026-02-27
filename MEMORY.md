@@ -46,6 +46,7 @@
 - P6 OT 1844_B (PROJ_ID 26196, 2026-02-26): se implementó reasignación por cuadrillas OP1/OP2/OP3 por WBS nivel 3 (153937, 153962, 153970, 153978, 153986) manteniendo HH.
 - P6 OT 1844_B (PROJ_ID 26196, 2026-02-27): proyecto eliminado de la DB SQLite principal por instrucción del usuario, con backup previo (`...Rev B.BACKUP_20260227_163242.db`) y verificación `PROJECT_LEFT=0`.
 - Regla técnica P6 (2026-02-26): al crear/reasignar recursos en SQLite, asegurar `RSRC.RSRC_TYPE` y `TASKRSRC.RSRC_TYPE` en `RT_Labor` para que P6 los trate como HH/labor y no material.
+- Criterio oficial de control semanal P6 OT-1844 (2026-02-27): calcular y reportar avance/proyección con curva S de Labor Units time-phased en días laborales (L-V), alineado con Activity Usage Profile (Baseline + Planned Value Labor Units). No usar corte simple por `TARGET_END_DATE` para programas de trabajo.
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
