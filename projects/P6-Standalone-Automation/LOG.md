@@ -39,3 +39,10 @@
 - Reasignación: 151 asignaciones originales repartidas en 3 por actividad (total nuevas filas TASKRSRC: 453 para OP1/OP2/OP3).
 - Conservación HH validada: total `TARGET_QTY` del recurso reemplazado se mantuvo en `7740.0` (2580.0 por cada OP).
 - Estado final de recursos del proyecto: OP1, OP2, OP3 + `9399 (Ing. OT 1844)`.
+
+## 2026-02-27 17:40 (UTC-3)
+- Ajuste correctivo de distribución temporal en `PROJ_ID=26258` tras detectar desalineación de curva respecto a `26260`.
+- Respaldo previo generado: `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.BACKUP_20260227_174014.db`.
+- Script aplicado: `scripts/fix_op_rate_spread.py --proj-id 26258 --op-ids 9570,9571,9572 --apply`.
+- Acción: división por 3 de `TARGET_QTY_PER_HR` y `REMAIN_QTY_PER_HR` en 453 asignaciones OP.
+- Resultado: `SUM_TQPH` proyecto 26258 quedó en `346.000021` (vs `346.0` en 26260; diferencia mínima por redondeo).
