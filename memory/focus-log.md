@@ -4,15 +4,22 @@
 - RAG ejecutada: no â†’ colecciÃ³n no encontrada (`data/chroma/p6`)
 - Brechas: estructura de proyecto inexistente en `projects/P6`; sin chunks detectados en `data/`; sin colecciÃ³n ChromaDB
 - Propuesta: crear estructura base del proyecto P6 y luego indexar chunks para habilitar RAG
-## [2026-02-27 17:03 UTC-3] — Foco en P6-Standalone-Automation
+## [2026-02-27 17:03 UTC-3] ï¿½ Foco en P6-Standalone-Automation
 - Trigger: ""vamos con foco al proyecto P6-Standalone-Automation""
-- Archivos leídos: projects/P6-Standalone-Automation/README.md, MEMORY.md, LOG.md, INDEX.csv
-- RAG ejecutada: no ? colección no encontrada (data/chroma/p6_standalone_automation)
-- Brechas: sin chunks detectados del proyecto en data/; sin colección ChromaDB
-- Propuesta: generar/ubicar chunks del proyecto e indexar colección para habilitar consultas semánticas
-## [2026-02-28 14:03 UTC-3] — Foco en P6-Standalone-Automation
+- Archivos leï¿½dos: projects/P6-Standalone-Automation/README.md, MEMORY.md, LOG.md, INDEX.csv
+- RAG ejecutada: no ? colecciï¿½n no encontrada (data/chroma/p6_standalone_automation)
+- Brechas: sin chunks detectados del proyecto en data/; sin colecciï¿½n ChromaDB
+- Propuesta: generar/ubicar chunks del proyecto e indexar colecciï¿½n para habilitar consultas semï¿½nticas
+## [2026-02-28 14:03 UTC-3] ï¿½ Foco en P6-Standalone-Automation
 - Trigger: hagamos foco en P6-Standalone-Automation
-- Archivos leídos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
-- RAG ejecutada: no ? colección no encontrada
-- Brechas: sin chunks JSONL del proyecto en data/; sin colección ChromaDB en data/chroma/
-- Propuesta: indexar chunks y crear colección RAG del proyecto
+- Archivos leï¿½dos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
+- RAG ejecutada: no ? colecciï¿½n no encontrada
+- Brechas: sin chunks JSONL del proyecto en data/; sin colecciï¿½n ChromaDB en data/chroma/
+- Propuesta: indexar chunks y crear colecciï¿½n RAG del proyecto
+
+## [2026-02-28 14:43 UTC-3] â€” Foco en P6-Standalone-Automation
+- Trigger: "hagamos foco en P6-Standalone-Automation"
+- Archivos leÃ­dos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 lÃ­neas); projects/P6-Standalone-Automation/INDEX.csv (50 lÃ­neas)
+- RAG ejecutada: no â†’ colecciÃ³n no encontrada (`data/chroma/p6_standalone_automation`)
+- Brechas: ruta de colecciÃ³n no existe aunque LOG registra indexaciÃ³n previa; posible divergencia entre nombre lÃ³gico de colecciÃ³n y directorio fÃ­sico UUID en Chroma
+- Propuesta: reindexar/validar colecciÃ³n `p6_standalone_automation` y luego correr bÃºsqueda "estado actual"
