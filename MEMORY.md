@@ -1,6 +1,6 @@
 # MEMORY.md - Memoria Permanente
 
-**Última actualización**: 2026-02-25
+**Última actualización**: 2026-02-28
 
 ## 🎯 Información Crítica
 
@@ -47,6 +47,7 @@
 - P6 OT 1844_B (PROJ_ID 26196, 2026-02-27): proyecto eliminado de la DB SQLite principal por instrucción del usuario, con backup previo (`...Rev B.BACKUP_20260227_163242.db`) y verificación `PROJECT_LEFT=0`.
 - Regla técnica P6 (2026-02-26): al crear/reasignar recursos en SQLite, asegurar `RSRC.RSRC_TYPE` y `TASKRSRC.RSRC_TYPE` en `RT_Labor` para que P6 los trate como HH/labor y no material.
 - Criterio oficial de control semanal P6 OT-1844 (2026-02-27): calcular y reportar avance/proyección con curva S de Labor Units time-phased en días laborales (L-V), alineado con Activity Usage Profile (Baseline + Planned Value Labor Units). No usar corte simple por `TARGET_END_DATE` para programas de trabajo.
+- Lección aprendida P6 forecast (2026-02-28): para reportes semanales, tomar Forecast desde la lógica P6 (`Actual + Remaining Early` time-phased) y no mezclar métodos ni distribuir linealmente desde TASK/TASKRSRC cuando se busque reproducir la curva del cliente en P6.
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
