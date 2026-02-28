@@ -48,6 +48,7 @@
 - Regla técnica P6 (2026-02-26): al crear/reasignar recursos en SQLite, asegurar `RSRC.RSRC_TYPE` y `TASKRSRC.RSRC_TYPE` en `RT_Labor` para que P6 los trate como HH/labor y no material.
 - Criterio oficial de control semanal P6 OT-1844 (2026-02-27): calcular y reportar avance/proyección con curva S de Labor Units time-phased en días laborales (L-V), alineado con Activity Usage Profile (Baseline + Planned Value Labor Units). No usar corte simple por `TARGET_END_DATE` para programas de trabajo.
 - Lección aprendida P6 forecast (2026-02-28): para reportes semanales, tomar Forecast desde la lógica P6 (`Actual + Remaining Early` time-phased) y no mezclar métodos ni distribuir linealmente desde TASK/TASKRSRC cuando se busque reproducir la curva del cliente en P6.
+- Criterio validado por usuario (2026-02-28): proyección/valor planificado semanal se calcula con curva S time-phased semanal (semana ISO lunes-domingo), distribuyendo HH de actividades en días laborales y luego agregando por semana; usar `% semana` y `% acumulado` sobre BAC total.
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
