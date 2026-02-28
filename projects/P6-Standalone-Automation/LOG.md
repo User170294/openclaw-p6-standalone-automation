@@ -46,3 +46,12 @@
 - Script aplicado: `scripts/fix_op_rate_spread.py --proj-id 26258 --op-ids 9570,9571,9572 --apply`.
 - AcciÃ³n: divisiÃ³n por 3 de `TARGET_QTY_PER_HR` y `REMAIN_QTY_PER_HR` en 453 asignaciones OP.
 - Resultado: `SUM_TQPH` proyecto 26258 quedÃ³ en `346.000021` (vs `346.0` en 26260; diferencia mÃ­nima por redondeo).
+
+## 2026-02-28 14:06 (UTC-3)
+- Ingestado estándar de planificación solicitado por usuario:
+  C:\Users\josej\OneDrive - SIMTEXX SPA\PO 4519143302 Fabricación Bandejas Agua Lavado Celda_OT 1844 Celdas - Documentos\Planificación\PRACTICE STANDARD FOR SCHEDULING 3ra.pdf.
+- Proceso ejecutado: scripts/ingest_project_pdfs.py (fuente staging local en data/ingest_tmp/p6-standalone-automation).
+- Resultado ingestión: pdf_found=1, pdf_indexed=1, chunks_added=400.
+- Archivos actualizados: data/p6-standalone-automation_docs.jsonl, data/p6-standalone-automation_chunks.jsonl, projects/P6-Standalone-Automation/INDEX.csv, projects/P6-Standalone-Automation/docs/summaries/PRACTICE STANDARD FOR SCHEDULING 3ra.md.
+- Indexación vectorial ejecutada con scripts/embed_chunks.py.
+- Colección ChromaDB: p6_standalone_automation con 400 chunks.

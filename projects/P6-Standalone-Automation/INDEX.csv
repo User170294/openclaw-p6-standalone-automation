@@ -2,3 +2,4 @@ id,tipo,archivo,descripcion,estado,actualizado
 1,doc,README.md,Definicion del proyecto y alcance,inicial,2026-02-26
 2,doc,MEMORY.md,Decisiones y pendientes clave,inicial,2026-02-26
 3,log,LOG.md,Bitacora operativa,inicial,2026-02-26
+doc,2026-02-28,onedrive,PRACTICE STANDARD FOR SCHEDULING 3ra,PRACTICE STANDARD FOR SCHEDULING 3ra.pdf,,activo,data\ingest_tmp\p6-standalone-automation\PRACTICE STANDARD FOR SCHEDULING 3ra.pdf,53d704d33e1629aecf7ba4f022b93604f0d67ae4f1d271a772de3ad408ef1c72,pages=222; extract=ok
