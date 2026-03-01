@@ -22,3 +22,4 @@
 - Preferencia operativa recurrente: cuando Edgardo diga “trae la carpeta al frente”, significa abrirla en su equipo (Explorador local), no solo indicar ruta en el panel de archivos.
 - Preferencia operativa recurrente: cuando Edgardo diga “tráelo al frente”, debo abrir el archivo/carpeta en su equipo local (app asociada o Explorador), no solo responder con la ruta.
 - Directriz (2026-02-27): evitar comandos inline tipo `python -c` que disparen popups de autorización; usar scripts `.py` explícitos y legibles para consultas operativas.
+- Preferencia P6 (2026-02-28): al pedir información de programas OT-1844, usar método EV/EAC/ETC en HH desde `TASKRSRC` con fecha-hora de corte explícita; entregar tabla HH + %BAC y desglose semanal (parcial/acumulado) cuando aplique.

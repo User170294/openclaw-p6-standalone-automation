@@ -49,6 +49,7 @@
 - Criterio oficial de control semanal P6 OT-1844 (2026-02-27): calcular y reportar avance/proyección con curva S de Labor Units time-phased en días laborales (L-V), alineado con Activity Usage Profile (Baseline + Planned Value Labor Units). No usar corte simple por `TARGET_END_DATE` para programas de trabajo.
 - Lección aprendida P6 forecast (2026-02-28): para reportes semanales, tomar Forecast desde la lógica P6 (`Actual + Remaining Early` time-phased) y no mezclar métodos ni distribuir linealmente desde TASK/TASKRSRC cuando se busque reproducir la curva del cliente en P6.
 - Criterio validado por usuario (2026-02-28): proyección/valor planificado semanal se calcula con curva S time-phased semanal (semana ISO lunes-domingo), distribuyendo HH de actividades en días laborales y luego agregando por semana; usar `% semana` y `% acumulado` sobre BAC total.
+- Método operativo EV/EAC/ETC para programas P6 OT-1844 (2026-02-28): usar `TASKRSRC` como fuente principal de HH (`TARGET_QTY`=BAC, `ACT_REG_QTY`=EV real al corte, `REMAIN_QTY`=ETC), con corte explícito fecha-hora (ej. 22-feb 23:59). Calcular `EAC = EV + ETC` y reportar tabla en HH y `%BAC`; para detalle semanal EV, distribuir `ACT_REG_QTY` en días laborales (L-V) entre `ACT_START_DATE` y `min(ACT_END_DATE, fecha_corte)` y agregar por semana ISO (lunes-domingo).
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
