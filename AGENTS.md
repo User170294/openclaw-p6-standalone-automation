@@ -1,6 +1,6 @@
 # AGENTS.md — Configuración de Agentes
 
-## Agente Principal: Claw
+## Agente Principal: Lilit
 
 ### Identidad
 - **ID**: main (default)
@@ -27,17 +27,127 @@
 
 ## Flujos de Trabajo por Caso de Uso
 
-### 🎯 Foco en Proyecto (regla prioritaria)
+### 🎯 Foco en Proyecto (PROCEDIMIENTO OBLIGATORIO)
+
+**⚠️ REGLA CRÍTICA**: Este flujo es **imperativo y verificable**. NO responder al usuario sin completar TODOS los pasos de ejecución.
+
+#### Trigger de activación
+Cualquiera de estos patrones activa el procedimiento:
+- "hagamos foco"
+- "foco en [proyecto]"
+- "partamos con [OT/PO]"
+- "activa foco en [proyecto]"
+
+#### CHECKLIST DE EJECUCIÓN OBLIGATORIA
+
+**PASO 1 — Lectura de estado interno (OBLIGATORIO)**
+
+Ejecutar estas lecturas EN ESTE ORDEN antes de cualquier respuesta al usuario:
+
 ```
-Trigger: "hagamos foco", "foco en [proyecto]", "partamos con [OT/PO]"
-1) Revisar SIEMPRE primero el estado interno:
-   - workspace/proyectos (projects/<proyecto>/)
-   - memoria (MEMORY.md y memory/*.md)
-   - índices y logs internos (INDEX, LOG, MAIL_LOG, TEAMS_LOG, data/*.jsonl)
-2) Entregar resumen base interno (qué hay, documentos, último estado, brechas).
-3) Recién después, y solo si el usuario lo pide o valida, abrir fuentes externas (OWA/Teams).
-Bloqueo: no abrir OWA/Teams automáticamente ante el trigger de foco.
-Output: panorama inicial + propuesta de siguiente paso.
+1.1) read(projects/<proyecto>/README.md)
+     → Si falla: reportar "README.md no encontrado" + ruta esperada
+     
+1.2) read(projects/<proyecto>/MEMORY.md)
+     → Si falla: reportar "MEMORY.md no encontrado" + ruta esperada
+     
+1.3) read(projects/<proyecto>/LOG.md, limit=100)
+     → Si falla: reportar "LOG.md no encontrado" + continuar
+     
+1.4) read(projects/<proyecto>/INDEX.csv, limit=50)
+     → Si falla: reportar "INDEX.csv no encontrado" + continuar
+     
+1.5) exec(ls data/ | grep <proyecto>)
+     → Verificar existencia de chunks JSONL y backups
+     
+1.6) exec(ls data/chroma/ | grep <proyecto_normalizado>)
+     → Verificar existencia de colección ChromaDB
+```
+
+**PASO 2 — Verificación RAG (OBLIGATORIO)**
+
+```
+2.1) Si existe data/chroma/<proyecto_normalizado>/:
+     → exec($env:PYTHONUTF8=1; python scripts/search_project.py --project <proyecto> --ask "estado actual" --top 3)
+     → Esperar resultado completo (incluye carga de modelos)
+     → Registrar: cantidad de chunks en colección + top 3 documentos retornados
+     
+2.2) Si NO existe colección ChromaDB:
+     → Reportar: "Colección RAG no encontrada para <proyecto>"
+     → Ofrecer: "¿Quieres que indexe los chunks ahora?"
+```
+
+**PASO 3 — Consolidación de hallazgos (OBLIGATORIO)**
+
+Solo después de completar pasos 1 y 2, construir panorama con:
+
+```
+3.1) Identificación del proyecto (desde README.md o MEMORY.md):
+     - OT / PO / ID / Nombre / Cliente / Estado
+     
+3.2) Decisiones clave vigentes (desde MEMORY.md):
+     - Alcance / Materiales / Normativas / Cambios técnicos aprobados
+     
+3.3) Hitos y fechas críticas (desde README.md o LOG.md):
+     - Próximas entregas / Hitos con float=0
+     
+3.4) Hallazgos RAG (desde resultado de search_project.py):
+     - Top 3 documentos relevantes con [DOC_ID pág. N]
+     - Score de similitud + reranking
+     
+3.5) Brechas detectadas:
+     - Archivos faltantes
+     - Scripts rotos
+     - Datos inconsistentes
+```
+
+**PASO 4 — Entrega al usuario (OBLIGATORIO)**
+
+Formato de respuesta MÍNIMO requerido:
+
+```
+**Foco activado en [PROYECTO] — Panorama interno:**
+
+### Estado del Repositorio
+[Resumen de archivos encontrados/faltantes]
+
+### Datos Clave del Proyecto
+[Tabla con OT/PO/ID/Cliente/Estado/Alcance/Materiales]
+
+### Hitos de Entrega
+[Tabla con fechas críticas]
+
+### Hallazgos RAG
+[Top 3 chunks con cita de fuente]
+
+### Brechas detectadas
+[Lista numerada de problemas encontrados]
+
+### Siguiente paso sugerido
+[Propuesta concreta: corrección/consulta/reporte]
+```
+
+#### BLOQUEOS Y PROHIBICIONES
+
+❌ **PROHIBIDO responder con confirmación genérica** ("activo foco…", "te preparo…") sin ejecutar herramientas.
+
+❌ **PROHIBIDO inventar datos** técnicos si la RAG no retorna resultados (score < 0.5).
+
+❌ **PROHIBIDO abrir OWA/Teams** automáticamente ante el trigger de foco (solo después de validación del usuario).
+
+✅ **PERMITIDO fallar explícitamente**: si algún paso falla, reportar el error concreto con ruta/comando fallido.
+
+#### REGISTRO DE EJECUCIÓN
+
+Después de completar el foco, agregar entrada en `memory/focus-log.md`:
+
+```markdown
+## [FECHA HORA UTC-3] — Foco en [PROYECTO]
+- Trigger: [frase exacta del usuario]
+- Archivos leídos: [lista]
+- RAG ejecutada: [sí/no] → [N chunks, top score]
+- Brechas: [lista corta]
+- Propuesta: [siguiente paso]
 ```
 
 ### 📧 Email y Comunicaciones

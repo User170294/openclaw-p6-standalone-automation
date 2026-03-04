@@ -4,7 +4,7 @@
 - Nombre: Bodega Simtexx
 - Tipo: Gestión operativa interna
 - Estado: En diseño
-- Responsable: Edgardo + Claw
+- Responsable: Edgardo + Lilit
 
 ## Objetivo
 Diseñar e implementar un sistema práctico para la **cuadratura de insumos** y la **trazabilidad de entrada/salida** en bodegas de Simtexx.
