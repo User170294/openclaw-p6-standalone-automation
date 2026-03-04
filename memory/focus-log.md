@@ -47,3 +47,21 @@
 - RAG ejecutada: sí ? 2160 chunks, top score rerank=0.7512
 - Brechas: data/chroma sin carpeta legible ot_1844 (usa UUID); query "estado actual" sesgada a compras (score vector 0.000)
 - Propuesta: fijar query de estado combinada (hitos+avance+riesgos) y validar mapeo colección?nombre para diagnóstico más claro.
+## [2026-03-03 14:18 UTC-3] — Foco en OT-1844
+- Trigger: "OT-1844"
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/* (filtro ot-1844); data/chroma/* (filtro ot_1844)
+- RAG ejecutada: no ? colección no encontrada (`data/chroma/ot_1844` inexistente)
+- Brechas: sin colección ChromaDB visible para OT-1844 en ruta esperada; RAG semántico no ejecutable bajo protocolo actual
+- Propuesta: indexar ahora los chunks OT-1844 para crear colección y habilitar búsqueda de estado actual
+## [2026-03-03 14:19 UTC-3] — Foco en OT-1844
+- Trigger: "OT-1844"
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/* (filtro ot-1844); data/chroma/* (filtro ot_1844)
+- RAG ejecutada: sí ? 2160 chunks, top rerank 0.7512 (query: "estado actual")
+- Brechas: la query "estado actual" recupera principalmente compras (baja diversidad temática)
+- Propuesta: para panorama general usar query compuesta (avance + hitos + riesgos + compras) o filtros por tags
+## [2026-03-04 11:32 UTC-3] — Foco en OT-1844
+- Trigger: "OT-1844"
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas)
+- RAG ejecutada: sí ? 2160 chunks, top score 0.7512
+- Brechas: ruta data/chroma/ot_1844 no existe como carpeta física (backend usa UUIDs); consulta "estado actual" sesga a compras
+- Propuesta: usar query compuesta con tags (cronograma+hitos+riesgos+compras) para panorama integral
