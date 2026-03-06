@@ -318,11 +318,17 @@ Triggers: "como hicimos", "el script que", "la semana pasada",
 "recuerdas cuando", "lo que generaste", "como la vez que",
 "no se supone que", "hagamos como antes"
 
-Al detectar trigger:
-1. Buscar en artifacts/INDEX.md por keyword de la query
-2. Buscar en memory/episodes/ por fecha o keyword
-3. Si hay match: cargar solo ese item al contexto y responder
-4. Si no hay match: decirlo directamente, sin inventar
+Al detectar trigger de recuperacion:
+1. Ejecutar desde workspace:
+ $env:PYTHONUTF8=1; python scripts/memory_search.py --ask "[query del usuario]" --top 3
+2. Inyectar los resultados como contexto antes de responder
+3. Si no hay resultados: decirlo directamente, sin inventar
+
+Al cerrar sesion O al producir un artefacto significativo:
+1. Guardar episodio en memory/episodes/[YYYY-MM-DD].md (append)
+2. Ejecutar desde workspace:
+ $env:PYTHONUTF8=1; python scripts/episode_writer.py --file memory/episodes/[YYYY-MM-DD].md --tags "[tags relevantes]"
+3. Silenciosamente, sin avisar al usuario
 
 ---
 
