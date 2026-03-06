@@ -200,6 +200,23 @@ Input: instalar skill / crear automatización / configurar cron
 Output: automatización activa + documentación
 ```
 
+### Regla critica: creacion de archivos Python
+
+SIEMPRE que crees o modifiques un archivo .py:
+1. Usar exclusivamente este metodo para escribir a disco:
+ [System.IO.File]::WriteAllText(
+ "ruta\archivo.py",
+ $code,
+ [System.Text.UTF8Encoding]::new($false)
+ )
+2. NUNCA usar Out-File, Set-Content, ni metodos internos 
+ de escritura directa para archivos .py
+3. Despues de escribir, validar siempre con:
+ python -c "import ast, pathlib; ast.parse(pathlib.Path(r'ruta').read_text(encoding='utf-8')); print('Sintaxis OK')"
+4. Si la validacion falla: leer el archivo, corregir 
+ indentacion y reescribir con WriteAllText antes de 
+ reportar al usuario
+
 ### 🧾 Cierre de Sesión (guardado útil, sin ruido)
 ```
 Objetivo: guardar solo “señal” (decisiones, pendientes reales, cambios), no resumen completo de cada chat.
