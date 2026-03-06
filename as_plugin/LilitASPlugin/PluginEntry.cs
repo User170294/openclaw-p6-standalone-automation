@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -18,21 +19,30 @@ namespace LilitASPlugin
         private HttpListener? _listener;
         private Thread? _serverThread;
         private const int PORT = 18850;
+        private static readonly string LOG_PATH = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "LilitASPlugin",
+            "plugin.log");
 
         public void Initialize()
         {
             try
             {
+                Log("Initialize() start");
                 _listener = new HttpListener();
                 _listener.Prefixes.Add($"http://localhost:{PORT}/");
+                _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
+                Log($"Starting HttpListener on port {PORT}");
                 _listener.Start();
                 _serverThread = new Thread(ServeRequests) { IsBackground = true };
                 _serverThread.Start();
+                Log("HttpListener started successfully");
                 AcApp.DocumentManager.MdiActiveDocument?
                     .Editor.WriteMessage($"\nLilitASPlugin activo en puerto {PORT}\n");
             }
             catch (System.Exception ex)
             {
+                Log($"Initialize error: {ex}");
                 AcApp.DocumentManager.MdiActiveDocument?
                     .Editor.WriteMessage($"\nLilitASPlugin error: {ex.Message}\n");
             }
@@ -40,7 +50,15 @@ namespace LilitASPlugin
 
         public void Terminate()
         {
-            try { _listener?.Stop(); } catch { }
+            try
+            {
+                Log("Terminate() called");
+                _listener?.Stop();
+            }
+            catch (System.Exception ex)
+            {
+                Log($"Terminate error: {ex}");
+            }
         }
 
         private void ServeRequests()
@@ -52,7 +70,11 @@ namespace LilitASPlugin
                     var ctx = _listener.GetContext();
                     ThreadPool.QueueUserWorkItem(_ => HandleRequest(ctx));
                 }
-                catch { break; }
+                catch (System.Exception ex)
+                {
+                    Log($"ServeRequests loop stopped: {ex.Message}");
+                    break;
+                }
             }
         }
 
@@ -200,6 +222,17 @@ namespace LilitASPlugin
                     return JsonSerializer.Serialize(new { error = ex.Message });
                 }
             }
+        }
+
+        private static void Log(string message)
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(LOG_PATH);
+                if (!string.IsNullOrWhiteSpace(dir)) Directory.CreateDirectory(dir);
+                File.AppendAllText(LOG_PATH, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
+            }
+            catch { }
         }
 
         private static void TryAdd(Dictionary<string, object> props,
