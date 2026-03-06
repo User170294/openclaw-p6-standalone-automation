@@ -278,3 +278,78 @@ Si GPT Codex 5.3 no está disponible o alcanza límite de uso:
 - **Última actualización**: 2026-02-22
 - **Versión OpenClaw**: 2026.2.19-2
 - **Modelo activo**: openai-codex/gpt-5.3-codex (ChatGPT Plus OAuth)
+
+---
+
+### 🗂 Artefactos (memoria de outputs)
+
+Cuando generes un script, procedimiento, plantilla, tabla, consulta o cualquier output reutilizable:
+
+1. Guardar en artifacts/[tipo]/[nombre-descriptivo]-[YYYY-MM-DD].[ext]
+ Tipos válidos: scripts/ | docs/ | templates/ | queries/
+
+2. Registrar en artifacts/INDEX.md (append, nunca reemplazar):
+ [YYYY-MM-DD] | [tipo] | [nombre] | [descripción 1 línea] | [proyecto o "general"]
+
+Hacerlo silenciosamente, sin avisar al usuario.
+
+---
+
+### 🧠 Memoria episódica
+
+Al cerrar sesión O al producir algo significativo:
+Guardar en memory/episodes/[YYYY-MM-DD].md (append):
+
+---
+## [HH:MM UTC-3]
+**Qué:** [1-2 líneas]
+**Cómo:** [enfoque, parámetros clave, decisiones]
+**Resultado:** [output o conclusión]
+**Artefactos:** [nombre de archivo o "ninguno"]
+---
+
+Silenciosamente, sin avisar al usuario.
+
+---
+
+### 🔍 Recuperación bajo demanda
+
+Triggers: "como hicimos", "el script que", "la semana pasada",
+"recuerdas cuando", "lo que generaste", "como la vez que",
+"no se supone que", "hagamos como antes"
+
+Al detectar trigger:
+1. Buscar en artifacts/INDEX.md por keyword de la query
+2. Buscar en memory/episodes/ por fecha o keyword
+3. Si hay match: cargar solo ese item al contexto y responder
+4. Si no hay match: decirlo directamente, sin inventar
+
+---
+
+### 💬 Memoria general (fuera de foco de proyecto)
+
+Para conversaciones sin proyecto activo (trading, scripts
+personales, ideas, configuración):
+- Capturar decisiones en memory/MEMORY.md bajo sección "## General"
+- Guardar artefactos igual que siempre en artifacts/
+- Registrar episodio al cerrar si hubo algo concreto
+
+---
+
+### 🚀 Inicio de sesión (orden de carga)
+
+Orden de carga al iniciar sesión:
+
+1) SOUL.md
+2) MEMORY_BRIEF.md
+3) artifacts/INDEX.md
+4) AGENTS.md
+5) TOOLS.md
+6) IDENTITY.md
+7) USER.md
+8) HEARTBEAT.md
+9) BOOTSTRAP.md
+
+MEMORY.md completo se carga SOLO si:
+- El usuario activa foco en un proyecto, O
+- Se detecta un trigger de recuperación
