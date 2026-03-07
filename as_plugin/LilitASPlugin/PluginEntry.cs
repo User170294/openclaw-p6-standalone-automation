@@ -264,7 +264,10 @@ namespace LilitASPlugin
                         };
 
                         if (obj is Entity ent)
+                        {
                             props["capa"] = ent.Layer;
+                            props["visible"] = ent.Visible;
+                        }
                         if (obj is BlockReference br)
                             props["nombre_bloque"] = br.Name;
 
@@ -319,7 +322,11 @@ namespace LilitASPlugin
                         ["clase"] = obj.GetRXClass().Name
                     };
 
-                    if (obj is Entity ent) props["capa"] = ent.Layer;
+                    if (obj is Entity ent)
+                    {
+                        props["capa"] = ent.Layer;
+                        props["visible"] = ent.Visible;
+                    }
                     if (obj is BlockReference br) props["nombre_bloque"] = br.Name;
 
                     TryAdd(props, "peso_kg", objType, obj, "Weight");
