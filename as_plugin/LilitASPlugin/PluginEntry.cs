@@ -324,6 +324,11 @@ namespace LilitASPlugin
                     string? densidad = query("densidad");
                     response = RunOnAcadThread(() => GetBlockWeight(handle, densidad));
                 }
+                else if (path == "/accion/area_handles" && method == "POST")
+                {
+                    string body = query("_body") ?? "{}";
+                    response = RunOnAcadThread(() => GetAreaByHandlesFromJson(body));
+                }
                 else if (path == "/accion/ejecutar_comando" && method == "POST")
                 {
                     string? cmd = query("cmd");
@@ -800,6 +805,18 @@ namespace LilitASPlugin
                     return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
                 }
             }
+        }
+
+        private string GetAreaByHandlesFromJson(string? bodyJson)
+        {
+            // Pendiente: cálculo de área en API de AutoCAD 2025 (MassProperties no expone Area/SurfaceArea en esta build)
+            // Se mantiene endpoint para compatibilidad de cliente.
+            return JsonSerializer.Serialize(new
+            {
+                ok = false,
+                error = "cálculo de área no disponible en esta versión del plugin",
+                hint = "usar comando AREA/LIST en AutoCAD o implementar vía Brep API"
+            });
         }
 
         private string SelectByHandlesFromJson(string? bodyJson)
