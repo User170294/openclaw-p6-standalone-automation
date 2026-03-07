@@ -9,6 +9,7 @@ using System.Threading;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.EditorInput;
 using AcApp = Autodesk.AutoCAD.ApplicationServices.Core.Application;
 
 [assembly: ExtensionApplication(typeof(LilitASPlugin.PluginEntry))]
@@ -44,8 +45,35 @@ namespace LilitASPlugin
                 AcApp.Idle += OnApplicationIdle;
 
                 _listener = new HttpListener();
-                _listener.Prefixes.Add($"http://localhost:{PORT}/");
-                _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
+                bool hasPrefix = false;
+
+                // Registrar prefijos de forma tolerante: si uno falla por URLACL/permisos,
+                // seguimos con el que sí esté disponible para no dejar el plugin caído.
+                try
+                {
+                    _listener.Prefixes.Add($"http://localhost:{PORT}/");
+                    hasPrefix = true;
+                    Log($"Prefix registered: http://localhost:{PORT}/");
+                }
+                catch (System.Exception ex)
+                {
+                    Log($"Prefix registration failed (localhost): {ex.Message}");
+                }
+
+                try
+                {
+                    _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
+                    hasPrefix = true;
+                    Log($"Prefix registered: http://127.0.0.1:{PORT}/");
+                }
+                catch (System.Exception ex)
+                {
+                    Log($"Prefix registration failed (127.0.0.1): {ex.Message}");
+                }
+
+                if (!hasPrefix)
+                    throw new System.Exception($"No se pudo registrar ningún prefix HTTP para el puerto {PORT}");
+
                 Log($"Starting HttpListener on port {PORT}");
                 _listener.Start();
 
@@ -172,6 +200,10 @@ namespace LilitASPlugin
                 {
                     string? cmd = ctx.Request.QueryString["cmd"];
                     response = RunOnAcadThread(() => ExecuteAcadCommand(cmd));
+                }
+                else if (path == "/accion/convertir_visible_a_advance" && method == "POST")
+                {
+                    response = RunOnAcadThread(ConvertVisibleSolidsToAdvance);
                 }
                 else
                 {
@@ -658,6 +690,90 @@ namespace LilitASPlugin
             catch (System.Exception ex)
             {
                 return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd });
+            }
+        }
+
+        private string ConvertVisibleSolidsToAdvance()
+        {
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            try
+            {
+                List<ObjectId> lineIds = new();
+                using (doc.LockDocument())
+                using (var tr = doc.Database.TransactionManager.StartTransaction())
+                {
+                    var ms = (BlockTableRecord)tr.GetObject(
+                        SymbolUtilityServices.GetBlockModelSpaceId(doc.Database),
+                        OpenMode.ForWrite);
+
+                    foreach (ObjectId id in ms)
+                    {
+                        var obj = tr.GetObject(id, OpenMode.ForRead);
+                        if (obj is not Solid3d s3d) continue;
+                        if (obj is Entity ent && !ent.Visible) continue;
+
+                        Extents3d ex;
+                        try { ex = s3d.GeometricExtents; }
+                        catch { continue; }
+
+                        double dx = ex.MaxPoint.X - ex.MinPoint.X;
+                        double dy = ex.MaxPoint.Y - ex.MinPoint.Y;
+                        double dz = ex.MaxPoint.Z - ex.MinPoint.Z;
+
+                        Autodesk.AutoCAD.Geometry.Point3d p1;
+                        Autodesk.AutoCAD.Geometry.Point3d p2;
+
+                        if (dx >= dy && dx >= dz)
+                        {
+                            double cy = (ex.MinPoint.Y + ex.MaxPoint.Y) / 2.0;
+                            double cz = (ex.MinPoint.Z + ex.MaxPoint.Z) / 2.0;
+                            p1 = new Autodesk.AutoCAD.Geometry.Point3d(ex.MinPoint.X, cy, cz);
+                            p2 = new Autodesk.AutoCAD.Geometry.Point3d(ex.MaxPoint.X, cy, cz);
+                        }
+                        else if (dy >= dx && dy >= dz)
+                        {
+                            double cx = (ex.MinPoint.X + ex.MaxPoint.X) / 2.0;
+                            double cz = (ex.MinPoint.Z + ex.MaxPoint.Z) / 2.0;
+                            p1 = new Autodesk.AutoCAD.Geometry.Point3d(cx, ex.MinPoint.Y, cz);
+                            p2 = new Autodesk.AutoCAD.Geometry.Point3d(cx, ex.MaxPoint.Y, cz);
+                        }
+                        else
+                        {
+                            double cx = (ex.MinPoint.X + ex.MaxPoint.X) / 2.0;
+                            double cy = (ex.MinPoint.Y + ex.MaxPoint.Y) / 2.0;
+                            p1 = new Autodesk.AutoCAD.Geometry.Point3d(cx, cy, ex.MinPoint.Z);
+                            p2 = new Autodesk.AutoCAD.Geometry.Point3d(cx, cy, ex.MaxPoint.Z);
+                        }
+
+                        var ln = new Line(p1, p2) { Layer = "LILIT_AXES" };
+                        ms.AppendEntity(ln);
+                        tr.AddNewlyCreatedDBObject(ln, true);
+                        lineIds.Add(ln.ObjectId);
+                    }
+
+                    tr.Commit();
+                }
+
+                if (lineIds.Count == 0)
+                    return JsonSerializer.Serialize(new { ok = false, error = "no hay sólidos visibles para convertir" });
+
+                doc.Editor.SetImpliedSelection(lineIds.ToArray());
+                doc.SendStringToExecute("_.AstM4CommLine2Beam \n", true, false, false);
+
+                return JsonSerializer.Serialize(new
+                {
+                    ok = true,
+                    accion = "convertir_visible_a_advance",
+                    solids_detectados = lineIds.Count,
+                    metodo = "ejes_desde_bbox + AstM4CommLine2Beam",
+                    queued = true
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return JsonSerializer.Serialize(new { ok = false, error = ex.Message });
             }
         }
 
