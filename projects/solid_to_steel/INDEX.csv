@@ -1,3 +1,5 @@
 tipo,id,titulo,ruta,notas
 meta,project,SOLID_TO_STEEL,projects/solid_to_steel,Proyecto inicial creado
 file,dwg_base,Prueba_1,projects/solid_to_steel/Prueba_1.dwg,Archivo DWG base oficial del proyecto
+file,plugin_entry,LilitASPlugin PluginEntry,as_plugin/LilitASPlugin/PluginEntry.cs,Servidor local migrado a Named Pipe LilitASPluginPipe
+file,python_client,as_query.py,scripts/as_query.py,Cliente Python con transporte pipe local + fallback HTTP
