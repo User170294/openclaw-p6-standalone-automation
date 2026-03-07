@@ -162,6 +162,12 @@ namespace LilitASPlugin
                 {
                     response = RunOnAcadThread(ShowAllObjects);
                 }
+                else if (path == "/accion/peso_bloque" && method == "GET")
+                {
+                    string? handle = ctx.Request.QueryString["handle"];
+                    string? densidad = ctx.Request.QueryString["densidad"];
+                    response = RunOnAcadThread(() => GetBlockWeight(handle, densidad));
+                }
                 else
                 {
                     status = 404;
@@ -535,6 +541,90 @@ namespace LilitASPlugin
                 catch (System.Exception ex)
                 {
                     return JsonSerializer.Serialize(new { ok = false, error = ex.Message });
+                }
+            }
+        }
+
+        private string GetBlockWeight(string? handle, string? densidadText)
+        {
+            if (string.IsNullOrWhiteSpace(handle))
+                return JsonSerializer.Serialize(new { ok = false, error = "handle requerido" });
+
+            double densityKgM3 = 7850.0;
+            if (!string.IsNullOrWhiteSpace(densidadText) && double.TryParse(densidadText, out var d) && d > 0)
+                densityKgM3 = d;
+
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            using (doc.LockDocument())
+            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            {
+                try
+                {
+                    long handleLong = Convert.ToInt64(handle, 16);
+                    var objHandle = new Handle(handleLong);
+                    ObjectId id = doc.Database.GetObjectId(false, objHandle, 0);
+                    var obj = tr.GetObject(id, OpenMode.ForRead);
+
+                    if (obj is not BlockReference br)
+                        return JsonSerializer.Serialize(new { ok = false, error = "el handle no corresponde a BlockReference" });
+
+                    string nombre = br.Name ?? "(sin_nombre)";
+                    var exploded = new DBObjectCollection();
+                    br.Explode(exploded);
+
+                    double totalMm3 = 0.0;
+                    int solids = 0;
+                    int others = 0;
+
+                    foreach (DBObject dbo in exploded)
+                    {
+                        try
+                        {
+                            if (dbo is Solid3d s3d)
+                            {
+                                var mp = s3d.MassProperties;
+                                totalMm3 += mp.Volume;
+                                solids++;
+                            }
+                            else
+                            {
+                                others++;
+                            }
+                        }
+                        catch
+                        {
+                            others++;
+                        }
+                        finally
+                        {
+                            dbo.Dispose();
+                        }
+                    }
+
+                    // mm3 -> m3
+                    double totalM3 = totalMm3 / 1_000_000_000.0;
+                    double pesoKg = totalM3 * densityKgM3;
+
+                    tr.Commit();
+                    return JsonSerializer.Serialize(new
+                    {
+                        ok = true,
+                        accion = "peso_bloque",
+                        handle,
+                        bloque = nombre,
+                        densidad_kg_m3 = densityKgM3,
+                        volumen_mm3 = totalMm3,
+                        volumen_m3 = totalM3,
+                        peso_kg = pesoKg,
+                        solids,
+                        others
+                    });
+                }
+                catch (System.Exception ex)
+                {
+                    return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
                 }
             }
         }
