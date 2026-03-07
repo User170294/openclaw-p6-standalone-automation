@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.IO.Pipes;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -20,7 +21,12 @@ namespace LilitASPlugin
     {
         private HttpListener? _listener;
         private Thread? _serverThread;
+        private Thread? _pipeThread;
+        private CancellationTokenSource? _pipeCts;
+
         private const int PORT = 18850;
+        private const bool ENABLE_HTTP = false;
+        private const string PIPE_NAME = "LilitASPluginPipe";
 
         private readonly ConcurrentQueue<UiWorkItem> _uiQueue = new();
         private int _pendingJobs = 0;
@@ -37,6 +43,19 @@ namespace LilitASPlugin
             public string ResultJson { get; set; } = JsonSerializer.Serialize(new { ok = false, error = "sin resultado" });
         }
 
+        private sealed class PipeRequest
+        {
+            public string? method { get; set; }
+            public string? path { get; set; }
+            public Dictionary<string, string>? query { get; set; }
+        }
+
+        private sealed class PipeEnvelope
+        {
+            public int status { get; set; }
+            public string body { get; set; } = "{}";
+        }
+
         public void Initialize()
         {
             try
@@ -44,45 +63,56 @@ namespace LilitASPlugin
                 Log("Initialize() start");
                 AcApp.Idle += OnApplicationIdle;
 
-                _listener = new HttpListener();
-                bool hasPrefix = false;
-
-                // Registrar prefijos de forma tolerante: si uno falla por URLACL/permisos,
-                // seguimos con el que sí esté disponible para no dejar el plugin caído.
-                try
+                _pipeCts = new CancellationTokenSource();
+                _pipeThread = new Thread(() => ServePipeRequests(_pipeCts.Token))
                 {
-                    _listener.Prefixes.Add($"http://localhost:{PORT}/");
-                    hasPrefix = true;
-                    Log($"Prefix registered: http://localhost:{PORT}/");
-                }
-                catch (System.Exception ex)
+                    IsBackground = true,
+                    Name = "LilitASPlugin.NamedPipe"
+                };
+                _pipeThread.Start();
+                Log($"Named pipe server started: \\\\.\\pipe\\{PIPE_NAME}");
+
+                if (ENABLE_HTTP)
                 {
-                    Log($"Prefix registration failed (localhost): {ex.Message}");
+                    _listener = new HttpListener();
+                    bool hasPrefix = false;
+
+                    try
+                    {
+                        _listener.Prefixes.Add($"http://localhost:{PORT}/");
+                        hasPrefix = true;
+                        Log($"Prefix registered: http://localhost:{PORT}/");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Log($"Prefix registration failed (localhost): {ex.Message}");
+                    }
+
+                    try
+                    {
+                        _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
+                        hasPrefix = true;
+                        Log($"Prefix registered: http://127.0.0.1:{PORT}/");
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Log($"Prefix registration failed (127.0.0.1): {ex.Message}");
+                    }
+
+                    if (!hasPrefix)
+                        throw new System.Exception($"No se pudo registrar ningún prefix HTTP para el puerto {PORT}");
+
+                    Log($"Starting HttpListener on port {PORT}");
+                    _listener.Start();
+
+                    _serverThread = new Thread(ServeRequests) { IsBackground = true, Name = "LilitASPlugin.HttpListener" };
+                    _serverThread.Start();
+
+                    Log("HttpListener started successfully");
                 }
 
-                try
-                {
-                    _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
-                    hasPrefix = true;
-                    Log($"Prefix registered: http://127.0.0.1:{PORT}/");
-                }
-                catch (System.Exception ex)
-                {
-                    Log($"Prefix registration failed (127.0.0.1): {ex.Message}");
-                }
-
-                if (!hasPrefix)
-                    throw new System.Exception($"No se pudo registrar ningún prefix HTTP para el puerto {PORT}");
-
-                Log($"Starting HttpListener on port {PORT}");
-                _listener.Start();
-
-                _serverThread = new Thread(ServeRequests) { IsBackground = true, Name = "LilitASPlugin.HttpListener" };
-                _serverThread.Start();
-
-                Log("HttpListener started successfully");
                 AcApp.DocumentManager.MdiActiveDocument?
-                    .Editor.WriteMessage($"\nLilitASPlugin activo en puerto {PORT}\n");
+                    .Editor.WriteMessage($"\nLilitASPlugin activo por named pipe (\\\\.\\pipe\\{PIPE_NAME})\n");
             }
             catch (System.Exception ex)
             {
@@ -98,6 +128,7 @@ namespace LilitASPlugin
             {
                 Log("Terminate() called");
                 AcApp.Idle -= OnApplicationIdle;
+                _pipeCts?.Cancel();
                 _listener?.Stop();
                 _listener?.Close();
             }
@@ -145,10 +176,77 @@ namespace LilitASPlugin
             }
         }
 
+        private void ServePipeRequests(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    using var server = new NamedPipeServerStream(
+                        PIPE_NAME,
+                        PipeDirection.InOut,
+                        1,
+                        PipeTransmissionMode.Byte,
+                        PipeOptions.None);
+
+                    server.WaitForConnection();
+
+                    using var reader = new StreamReader(server, Encoding.UTF8, false, 4096, leaveOpen: true);
+                    using var writer = new StreamWriter(server, new UTF8Encoding(false), 4096, leaveOpen: true)
+                    {
+                        AutoFlush = true
+                    };
+
+                    var line = reader.ReadLine();
+                    if (string.IsNullOrWhiteSpace(line))
+                        continue;
+
+                    var req = JsonSerializer.Deserialize<PipeRequest>(line);
+                    var (status, body) = RouteRequest(
+                        req?.path ?? "/",
+                        req?.method ?? "GET",
+                        key => req?.query != null && req.query.TryGetValue(key, out var val) ? val : null);
+
+                    var envelope = new PipeEnvelope { status = status, body = body };
+                    writer.WriteLine(JsonSerializer.Serialize(envelope));
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                catch (System.Exception ex)
+                {
+                    Log($"Pipe server error: {ex.Message}");
+                    Thread.Sleep(300);
+                }
+            }
+
+            Log("Named pipe server stopped");
+        }
+
         private void HandleRequest(HttpListenerContext ctx)
         {
-            string path = ctx.Request.Url?.AbsolutePath ?? "/";
-            string method = ctx.Request.HttpMethod;
+            var (status, response) = RouteRequest(
+                ctx.Request.Url?.AbsolutePath ?? "/",
+                ctx.Request.HttpMethod,
+                key => ctx.Request.QueryString[key]);
+
+            try
+            {
+                byte[] buffer = Encoding.UTF8.GetBytes(response);
+                ctx.Response.StatusCode = status;
+                ctx.Response.ContentType = "application/json; charset=utf-8";
+                ctx.Response.ContentLength64 = buffer.Length;
+                ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            finally
+            {
+                try { ctx.Response.OutputStream.Close(); } catch { }
+            }
+        }
+
+        private (int status, string response) RouteRequest(string path, string method, Func<string, string?> query)
+        {
             string response = "{}";
             int status = 200;
 
@@ -156,7 +254,7 @@ namespace LilitASPlugin
             {
                 if (path == "/ping" && method == "GET")
                 {
-                    response = JsonSerializer.Serialize(new { status = "ok", plugin = "LilitASPlugin", port = PORT });
+                    response = JsonSerializer.Serialize(new { status = "ok", plugin = "LilitASPlugin", transport = "named-pipe", pipe = PIPE_NAME });
                 }
                 else if (path == "/status" && method == "GET")
                 {
@@ -164,7 +262,7 @@ namespace LilitASPlugin
                 }
                 else if (path == "/elementos" && method == "GET")
                 {
-                    string? tipo = ctx.Request.QueryString["tipo"];
+                    string? tipo = query("tipo");
                     response = RunOnAcadThread(() => GetElementos(tipo));
                 }
                 else if (path.StartsWith("/elemento/") && method == "GET")
@@ -178,12 +276,12 @@ namespace LilitASPlugin
                 }
                 else if (path == "/accion/explotar" && method == "POST")
                 {
-                    string? handle = ctx.Request.QueryString["handle"];
+                    string? handle = query("handle");
                     response = RunOnAcadThread(() => ExplodeBlockByHandle(handle));
                 }
                 else if (path == "/accion/isolar" && method == "POST")
                 {
-                    string? handle = ctx.Request.QueryString["handle"];
+                    string? handle = query("handle");
                     response = RunOnAcadThread(() => IsolateByHandle(handle));
                 }
                 else if (path == "/accion/mostrar_todo" && method == "POST")
@@ -192,13 +290,13 @@ namespace LilitASPlugin
                 }
                 else if (path == "/accion/peso_bloque" && method == "GET")
                 {
-                    string? handle = ctx.Request.QueryString["handle"];
-                    string? densidad = ctx.Request.QueryString["densidad"];
+                    string? handle = query("handle");
+                    string? densidad = query("densidad");
                     response = RunOnAcadThread(() => GetBlockWeight(handle, densidad));
                 }
                 else if (path == "/accion/ejecutar_comando" && method == "POST")
                 {
-                    string? cmd = ctx.Request.QueryString["cmd"];
+                    string? cmd = query("cmd");
                     response = RunOnAcadThread(() => ExecuteAcadCommand(cmd));
                 }
                 else if (path == "/accion/convertir_visible_a_advance" && method == "POST")
@@ -217,18 +315,7 @@ namespace LilitASPlugin
                 response = JsonSerializer.Serialize(new { error = ex.Message });
             }
 
-            try
-            {
-                byte[] buffer = Encoding.UTF8.GetBytes(response);
-                ctx.Response.StatusCode = status;
-                ctx.Response.ContentType = "application/json; charset=utf-8";
-                ctx.Response.ContentLength64 = buffer.Length;
-                ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-            }
-            finally
-            {
-                try { ctx.Response.OutputStream.Close(); } catch { }
-            }
+            return (status, response);
         }
 
         private object GetStatus()
@@ -241,7 +328,10 @@ namespace LilitASPlugin
             {
                 status = "ok",
                 plugin = "LilitASPlugin",
-                port = PORT,
+                transport = "named-pipe",
+                pipe = PIPE_NAME,
+                http_enabled = ENABLE_HTTP,
+                port = ENABLE_HTTP ? PORT : (int?)null,
                 pending_jobs = _pendingJobs,
                 documento_activo = name,
                 titulo_ventana = title,
