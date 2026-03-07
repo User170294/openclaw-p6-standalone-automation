@@ -270,7 +270,7 @@ namespace LilitASPlugin
                 }
                 else if (path == "/status" && method == "GET")
                 {
-                    response = JsonSerializer.Serialize(GetStatus());
+                    response = RunOnAcadThread(() => JsonSerializer.Serialize(GetStatus()));
                 }
                 else if (path == "/elementos" && method == "GET")
                 {
@@ -333,8 +333,11 @@ namespace LilitASPlugin
         private object GetStatus()
         {
             var doc = AcApp.DocumentManager.MdiActiveDocument;
-            string? name = doc?.Name;
-            string? title = doc?.Window?.Text;
+            string? name = null;
+            string? title = null;
+
+            try { name = doc?.Name; } catch { }
+            try { title = doc?.Window?.Text; } catch { }
 
             return new
             {
