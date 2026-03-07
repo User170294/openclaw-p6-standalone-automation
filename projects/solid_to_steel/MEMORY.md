@@ -3,7 +3,9 @@
 ## Decisiones vigentes
 - Integración local con Advance Steel migrada a transporte **Named Pipe** (`\\.\pipe\LilitASPluginPipe`) para eliminar dependencia de puertos HTTP, URLACL y reglas de firewall.
 - Cliente Python oficial del proyecto (`scripts/as_query.py`) usa Named Pipe como canal primario y fallback HTTP solo por compatibilidad temporal.
-- El endpoint `/ping` del plugin quedó operativo por pipe; `/status` presenta error de estado y queda marcado para corrección.
+- El endpoint `/ping` del plugin quedó operativo por pipe.
+- El servidor Named Pipe del plugin se crea con `PipeSecurity` abierto (WorldSid / Everyone) para permitir conexión desde procesos no elevados.
+- **Arranque oficial del proyecto**: usar el mismo contexto del acceso directo `C:\Users\Public\Desktop\Advance Steel 2025 - English.lnk` (`/language "en-US" /product "ADVS" /p "<<ADVS>>"`). No usar arranque genérico de `acad.exe` sin esos parámetros.
 
 ## Convenciones
 - Archivo de trabajo base del proyecto: `C:\Users\josej\.openclaw\workspace\projects\solid_to_steel\Prueba_1.dwg`

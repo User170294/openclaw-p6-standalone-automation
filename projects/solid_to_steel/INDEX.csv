@@ -3,3 +3,5 @@ meta,project,SOLID_TO_STEEL,projects/solid_to_steel,Proyecto inicial creado
 file,dwg_base,Prueba_1,projects/solid_to_steel/Prueba_1.dwg,Archivo DWG base oficial del proyecto
 file,plugin_entry,LilitASPlugin PluginEntry,as_plugin/LilitASPlugin/PluginEntry.cs,Servidor local migrado a Named Pipe LilitASPluginPipe
 file,python_client,as_query.py,scripts/as_query.py,Cliente Python con transporte pipe local + fallback HTTP
+file,desktop_shortcut,Advance Steel 2025 - English.lnk,C:/Users/Public/Desktop/Advance Steel 2025 - English.lnk,Entrada oficial para levantar entorno ADVS correcto
+file,launcher,launch_advs_project.ps1,projects/solid_to_steel/launch_advs_project.ps1,Arranque estandarizado con parametros del acceso directo + DWG del proyecto

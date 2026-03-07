@@ -6,3 +6,6 @@
 - `scripts/as_query.py` actualizado para consumir pipe local y fallback HTTP.
 - Validación funcional: `/ping` OK por pipe y lectura de elementos desde modelo activo.
 - Hallazgo técnico: `/status` con error de estado interno; pendiente fix en plugin.
+- Se confirmó diferencia de entorno al abrir `acad.exe` directo vs acceso directo de escritorio de Advance Steel.
+- Se fija como estándar del proyecto abrir con parámetros del acceso directo oficial (`/language en-US /product ADVS /p <<ADVS>>`).
+- Validación actual: `ping()` responde OK por Named Pipe.
