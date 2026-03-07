@@ -1,7 +1,6 @@
 import json
 import urllib.parse
 import urllib.request
-from multiprocessing.connection import Client
 
 PIPE_NAME = r"\\.\pipe\LilitASPluginPipe"
 BASE_URL = "http://localhost:18850"
@@ -13,14 +12,24 @@ def _pipe_request(path, method="GET", query=None, timeout=5):
         "path": path,
         "query": query or {},
     }
-    conn = Client(PIPE_NAME, family="AF_PIPE")
-    try:
-        conn.send(json.dumps(payload))
-        raw = conn.recv()
-    finally:
-        conn.close()
+    req = (json.dumps(payload, ensure_ascii=False) + "\n").encode("utf-8")
 
-    envelope = json.loads(raw)
+    with open(PIPE_NAME, "r+b", buffering=0) as pipe:
+        pipe.write(req)
+
+        buf = bytearray()
+        while True:
+            b = pipe.read(1)
+            if not b:
+                break
+            if b == b"\n":
+                break
+            buf.extend(b)
+
+    if not buf:
+        raise RuntimeError("empty response from pipe")
+
+    envelope = json.loads(buf.decode("utf-8"))
     status = int(envelope.get("status", 500))
     body_text = envelope.get("body", "{}")
     body = json.loads(body_text)
