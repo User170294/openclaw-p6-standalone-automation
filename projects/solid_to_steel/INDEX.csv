@@ -1,2 +1,3 @@
 tipo,id,titulo,ruta,notas
 meta,project,SOLID_TO_STEEL,projects/solid_to_steel,Proyecto inicial creado
+file,dwg_base,Prueba_1,projects/solid_to_steel/Prueba_1.dwg,Archivo DWG base oficial del proyecto
