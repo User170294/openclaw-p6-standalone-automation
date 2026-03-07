@@ -333,7 +333,9 @@ namespace LilitASPlugin
                 {
                     string? cmd = query("cmd");
                     string? mapping = query("mapping");
-                    response = RunOnAcadThread(() => ExecuteAcadCommand(cmd, mapping));
+                    string? handlesCsv = query("handles");
+                    string? enters = query("enters");
+                    response = RunOnAcadThread(() => ExecuteAcadCommand(cmd, mapping, handlesCsv, enters));
                 }
                 else if (path == "/accion/seleccionar" && method == "POST")
                 {
@@ -907,7 +909,7 @@ namespace LilitASPlugin
             }
         }
 
-        private string ExecuteAcadCommand(string? cmd, string? mapping)
+        private string ExecuteAcadCommand(string? cmd, string? mapping, string? handlesCsv, string? enters)
         {
             if (string.IsNullOrWhiteSpace(cmd))
                 return JsonSerializer.Serialize(new { ok = false, error = "cmd requerido" });
@@ -917,6 +919,34 @@ namespace LilitASPlugin
 
             try
             {
+                // Selección atómica previa al comando (evita perder implied selection entre llamadas)
+                var selected = new List<string>();
+                var failed = new List<string>();
+                if (!string.IsNullOrWhiteSpace(handlesCsv))
+                {
+                    var ids = new List<ObjectId>();
+                    var parts = handlesCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    using (doc.LockDocument())
+                    {
+                        foreach (var p in parts)
+                        {
+                            try
+                            {
+                                long handleLong = Convert.ToInt64(p, 16);
+                                var objHandle = new Handle(handleLong);
+                                ObjectId id = doc.Database.GetObjectId(false, objHandle, 0);
+                                ids.Add(id);
+                                selected.Add(p.ToUpperInvariant());
+                            }
+                            catch
+                            {
+                                failed.Add(p.ToUpperInvariant());
+                            }
+                        }
+                        doc.Editor.SetImpliedSelection(ids.ToArray());
+                    }
+                }
+
                 string safe = cmd.Trim();
 
                 // Automatización especial para Cocoon: responde al prompt del mapping CSV
@@ -936,16 +966,24 @@ namespace LilitASPlugin
                         cmd = safe,
                         queued = true,
                         modo = "cocoon_auto_mapping",
-                        mapping = mapPath
+                        mapping = mapPath,
+                        selected,
+                        failed
                     });
                 }
 
-                doc.SendStringToExecute(safe + "\n", true, false, false);
-                return JsonSerializer.Serialize(new { ok = true, accion = "ejecutar_comando", cmd = safe, queued = true });
+                int extraEnters = 0;
+                if (!string.IsNullOrWhiteSpace(enters)) int.TryParse(enters, out extraEnters);
+                if (extraEnters < 0) extraEnters = 0;
+                if (extraEnters > 10) extraEnters = 10;
+                string macroCmd = safe + "\n" + new string('\n', extraEnters);
+
+                doc.SendStringToExecute(macroCmd, true, false, false);
+                return JsonSerializer.Serialize(new { ok = true, accion = "ejecutar_comando", cmd = safe, queued = true, selected, failed, enters = extraEnters });
             }
             catch (System.Exception ex)
             {
-                return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd, mapping });
+                return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd, mapping, handlesCsv, enters });
             }
         }
 
