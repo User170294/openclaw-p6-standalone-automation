@@ -168,6 +168,11 @@ namespace LilitASPlugin
                     string? densidad = ctx.Request.QueryString["densidad"];
                     response = RunOnAcadThread(() => GetBlockWeight(handle, densidad));
                 }
+                else if (path == "/accion/ejecutar_comando" && method == "POST")
+                {
+                    string? cmd = ctx.Request.QueryString["cmd"];
+                    response = RunOnAcadThread(() => ExecuteAcadCommand(cmd));
+                }
                 else
                 {
                     status = 404;
@@ -633,6 +638,26 @@ namespace LilitASPlugin
                 {
                     return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
                 }
+            }
+        }
+
+        private string ExecuteAcadCommand(string? cmd)
+        {
+            if (string.IsNullOrWhiteSpace(cmd))
+                return JsonSerializer.Serialize(new { ok = false, error = "cmd requerido" });
+
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            try
+            {
+                string safe = cmd.Trim();
+                doc.SendStringToExecute(safe + "\n", true, false, false);
+                return JsonSerializer.Serialize(new { ok = true, accion = "ejecutar_comando", cmd = safe, queued = true });
+            }
+            catch (System.Exception ex)
+            {
+                return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd });
             }
         }
 
