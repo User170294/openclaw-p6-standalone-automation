@@ -7,6 +7,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.IO.Pipes;
+using System.Security.AccessControl;
+using System.Security.Principal;
+using Microsoft.Win32.SafeHandles;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -182,12 +185,21 @@ namespace LilitASPlugin
             {
                 try
                 {
-                    using var server = new NamedPipeServerStream(
+                    var security = new PipeSecurity();
+                    security.AddAccessRule(new PipeAccessRule(
+                        new SecurityIdentifier(WellKnownSidType.WorldSid, null),
+                        PipeAccessRights.ReadWrite | PipeAccessRights.CreateNewInstance,
+                        AccessControlType.Allow));
+
+                    using var server = NamedPipeServerStreamAcl.Create(
                         PIPE_NAME,
                         PipeDirection.InOut,
-                        1,
+                        NamedPipeServerStream.MaxAllowedServerInstances,
                         PipeTransmissionMode.Byte,
-                        PipeOptions.None);
+                        PipeOptions.Asynchronous,
+                        4096,
+                        4096,
+                        security);
 
                     server.WaitForConnection();
 
