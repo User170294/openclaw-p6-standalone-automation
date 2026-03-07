@@ -109,6 +109,15 @@ namespace LilitASPlugin
                     string? handle = ctx.Request.QueryString["handle"];
                     response = ExplodeBlockByHandle(handle);
                 }
+                else if (path == "/accion/isolar" && method == "POST")
+                {
+                    string? handle = ctx.Request.QueryString["handle"];
+                    response = IsolateByHandle(handle);
+                }
+                else if (path == "/accion/mostrar_todo" && method == "POST")
+                {
+                    response = ShowAllObjects();
+                }
                 else
                 {
                     status = 404;
@@ -358,6 +367,81 @@ namespace LilitASPlugin
                 catch (System.Exception ex)
                 {
                     return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
+                }
+            }
+        }
+
+        private string IsolateByHandle(string? handle)
+        {
+            if (string.IsNullOrWhiteSpace(handle))
+                return JsonSerializer.Serialize(new { ok = false, error = "handle requerido" });
+
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            using (doc.LockDocument())
+            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            {
+                try
+                {
+                    long handleLong = Convert.ToInt64(handle, 16);
+                    var objHandle = new Handle(handleLong);
+                    ObjectId targetId = doc.Database.GetObjectId(false, objHandle, 0);
+
+                    var ms = (BlockTableRecord)tr.GetObject(
+                        SymbolUtilityServices.GetBlockModelSpaceId(doc.Database),
+                        OpenMode.ForRead);
+
+                    int visible = 0, hidden = 0;
+                    foreach (ObjectId id in ms)
+                    {
+                        var obj = tr.GetObject(id, OpenMode.ForWrite);
+                        if (obj is not Entity ent) continue;
+
+                        bool keepVisible = id == targetId;
+                        ent.Visible = keepVisible;
+                        if (keepVisible) visible++; else hidden++;
+                    }
+
+                    tr.Commit();
+                    return JsonSerializer.Serialize(new { ok = true, accion = "isolar", handle, visible, hidden });
+                }
+                catch (System.Exception ex)
+                {
+                    return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
+                }
+            }
+        }
+
+        private string ShowAllObjects()
+        {
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null) return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            using (doc.LockDocument())
+            using (var tr = doc.Database.TransactionManager.StartTransaction())
+            {
+                try
+                {
+                    var ms = (BlockTableRecord)tr.GetObject(
+                        SymbolUtilityServices.GetBlockModelSpaceId(doc.Database),
+                        OpenMode.ForRead);
+
+                    int shown = 0;
+                    foreach (ObjectId id in ms)
+                    {
+                        var obj = tr.GetObject(id, OpenMode.ForWrite);
+                        if (obj is not Entity ent) continue;
+                        ent.Visible = true;
+                        shown++;
+                    }
+
+                    tr.Commit();
+                    return JsonSerializer.Serialize(new { ok = true, accion = "mostrar_todo", shown });
+                }
+                catch (System.Exception ex)
+                {
+                    return JsonSerializer.Serialize(new { ok = false, error = ex.Message });
                 }
             }
         }
