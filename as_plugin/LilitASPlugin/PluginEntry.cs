@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -19,23 +20,38 @@ namespace LilitASPlugin
         private HttpListener? _listener;
         private Thread? _serverThread;
         private const int PORT = 18850;
+
+        private readonly ConcurrentQueue<UiWorkItem> _uiQueue = new();
+        private int _pendingJobs = 0;
+
         private static readonly string LOG_PATH = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "LilitASPlugin",
             "plugin.log");
+
+        private sealed class UiWorkItem
+        {
+            public required Func<string> Action { get; init; }
+            public required ManualResetEventSlim Done { get; init; }
+            public string ResultJson { get; set; } = JsonSerializer.Serialize(new { ok = false, error = "sin resultado" });
+        }
 
         public void Initialize()
         {
             try
             {
                 Log("Initialize() start");
+                AcApp.Idle += OnApplicationIdle;
+
                 _listener = new HttpListener();
                 _listener.Prefixes.Add($"http://localhost:{PORT}/");
                 _listener.Prefixes.Add($"http://127.0.0.1:{PORT}/");
                 Log($"Starting HttpListener on port {PORT}");
                 _listener.Start();
-                _serverThread = new Thread(ServeRequests) { IsBackground = true };
+
+                _serverThread = new Thread(ServeRequests) { IsBackground = true, Name = "LilitASPlugin.HttpListener" };
                 _serverThread.Start();
+
                 Log("HttpListener started successfully");
                 AcApp.DocumentManager.MdiActiveDocument?
                     .Editor.WriteMessage($"\nLilitASPlugin activo en puerto {PORT}\n");
@@ -53,11 +69,34 @@ namespace LilitASPlugin
             try
             {
                 Log("Terminate() called");
+                AcApp.Idle -= OnApplicationIdle;
                 _listener?.Stop();
+                _listener?.Close();
             }
             catch (System.Exception ex)
             {
                 Log($"Terminate error: {ex}");
+            }
+        }
+
+        private void OnApplicationIdle(object? sender, EventArgs e)
+        {
+            // Execute queued AutoCAD/Advance operations on UI thread
+            while (_uiQueue.TryDequeue(out var item))
+            {
+                try
+                {
+                    item.ResultJson = item.Action();
+                }
+                catch (System.Exception ex)
+                {
+                    item.ResultJson = JsonSerializer.Serialize(new { ok = false, error = ex.Message });
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _pendingJobs);
+                    item.Done.Set();
+                }
             }
         }
 
@@ -91,32 +130,37 @@ namespace LilitASPlugin
                 {
                     response = JsonSerializer.Serialize(new { status = "ok", plugin = "LilitASPlugin", port = PORT });
                 }
+                else if (path == "/status" && method == "GET")
+                {
+                    response = JsonSerializer.Serialize(GetStatus());
+                }
                 else if (path == "/elementos" && method == "GET")
                 {
-                    response = GetElementos(ctx.Request.QueryString["tipo"]);
+                    string? tipo = ctx.Request.QueryString["tipo"];
+                    response = RunOnAcadThread(() => GetElementos(tipo));
                 }
                 else if (path.StartsWith("/elemento/") && method == "GET")
                 {
                     string handle = path.Replace("/elemento/", "");
-                    response = GetElementoByHandle(handle);
+                    response = RunOnAcadThread(() => GetElementoByHandle(handle));
                 }
                 else if (path == "/bloques" && method == "GET")
                 {
-                    response = GetBloques();
+                    response = RunOnAcadThread(GetBloques);
                 }
                 else if (path == "/accion/explotar" && method == "POST")
                 {
                     string? handle = ctx.Request.QueryString["handle"];
-                    response = ExplodeBlockByHandle(handle);
+                    response = RunOnAcadThread(() => ExplodeBlockByHandle(handle));
                 }
                 else if (path == "/accion/isolar" && method == "POST")
                 {
                     string? handle = ctx.Request.QueryString["handle"];
-                    response = IsolateByHandle(handle);
+                    response = RunOnAcadThread(() => IsolateByHandle(handle));
                 }
                 else if (path == "/accion/mostrar_todo" && method == "POST")
                 {
-                    response = ShowAllObjects();
+                    response = RunOnAcadThread(ShowAllObjects);
                 }
                 else
                 {
@@ -130,12 +174,61 @@ namespace LilitASPlugin
                 response = JsonSerializer.Serialize(new { error = ex.Message });
             }
 
-            byte[] buffer = Encoding.UTF8.GetBytes(response);
-            ctx.Response.StatusCode = status;
-            ctx.Response.ContentType = "application/json; charset=utf-8";
-            ctx.Response.ContentLength64 = buffer.Length;
-            ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-            ctx.Response.OutputStream.Close();
+            try
+            {
+                byte[] buffer = Encoding.UTF8.GetBytes(response);
+                ctx.Response.StatusCode = status;
+                ctx.Response.ContentType = "application/json; charset=utf-8";
+                ctx.Response.ContentLength64 = buffer.Length;
+                ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+            }
+            finally
+            {
+                try { ctx.Response.OutputStream.Close(); } catch { }
+            }
+        }
+
+        private object GetStatus()
+        {
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            string? name = doc?.Name;
+            string? title = doc?.Window?.Text;
+
+            return new
+            {
+                status = "ok",
+                plugin = "LilitASPlugin",
+                port = PORT,
+                pending_jobs = _pendingJobs,
+                documento_activo = name,
+                titulo_ventana = title,
+                timestamp = DateTimeOffset.Now.ToString("O")
+            };
+        }
+
+        private string RunOnAcadThread(Func<string> action, int timeoutMs = 15000)
+        {
+            using var done = new ManualResetEventSlim(false);
+            var work = new UiWorkItem
+            {
+                Action = action,
+                Done = done
+            };
+
+            _uiQueue.Enqueue(work);
+            Interlocked.Increment(ref _pendingJobs);
+
+            if (!done.Wait(timeoutMs))
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    ok = false,
+                    error = "timeout esperando ejecución en hilo AutoCAD",
+                    timeout_ms = timeoutMs
+                });
+            }
+
+            return work.ResultJson;
         }
 
         private string GetElementos(string? tipoFiltro)
