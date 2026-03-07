@@ -327,7 +327,8 @@ namespace LilitASPlugin
                 else if (path == "/accion/ejecutar_comando" && method == "POST")
                 {
                     string? cmd = query("cmd");
-                    response = RunOnAcadThread(() => ExecuteAcadCommand(cmd));
+                    string? mapping = query("mapping");
+                    response = RunOnAcadThread(() => ExecuteAcadCommand(cmd, mapping));
                 }
                 else if (path == "/accion/seleccionar" && method == "POST")
                 {
@@ -889,7 +890,7 @@ namespace LilitASPlugin
             }
         }
 
-        private string ExecuteAcadCommand(string? cmd)
+        private string ExecuteAcadCommand(string? cmd, string? mapping)
         {
             if (string.IsNullOrWhiteSpace(cmd))
                 return JsonSerializer.Serialize(new { ok = false, error = "cmd requerido" });
@@ -900,12 +901,34 @@ namespace LilitASPlugin
             try
             {
                 string safe = cmd.Trim();
+
+                // Automatización especial para Cocoon: responde al prompt del mapping CSV
+                if (string.Equals(safe, "Cocoon", StringComparison.OrdinalIgnoreCase))
+                {
+                    string mapPath = string.IsNullOrWhiteSpace(mapping)
+                        ? @"C:\Program Files\Autodesk\ApplicationPlugins\ComSpaceCocoonSuite2025.bundle\sectionlibraries\default_AUS_(mm).csv"
+                        : mapping.Trim();
+
+                    string macro = $"{safe}\n\"{mapPath}\"\n\n";
+                    doc.SendStringToExecute(macro, true, false, false);
+
+                    return JsonSerializer.Serialize(new
+                    {
+                        ok = true,
+                        accion = "ejecutar_comando",
+                        cmd = safe,
+                        queued = true,
+                        modo = "cocoon_auto_mapping",
+                        mapping = mapPath
+                    });
+                }
+
                 doc.SendStringToExecute(safe + "\n", true, false, false);
                 return JsonSerializer.Serialize(new { ok = true, accion = "ejecutar_comando", cmd = safe, queued = true });
             }
             catch (System.Exception ex)
             {
-                return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd });
+                return JsonSerializer.Serialize(new { ok = false, error = ex.Message, cmd, mapping });
             }
         }
 
