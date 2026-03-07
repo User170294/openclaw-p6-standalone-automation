@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.IO.Pipes;
 using System.Security.AccessControl;
@@ -51,6 +52,7 @@ namespace LilitASPlugin
             public string? method { get; set; }
             public string? path { get; set; }
             public Dictionary<string, string>? query { get; set; }
+            public string? body { get; set; }
         }
 
         private sealed class PipeEnvelope
@@ -217,7 +219,11 @@ namespace LilitASPlugin
                     var (status, body) = RouteRequest(
                         req?.path ?? "/",
                         req?.method ?? "GET",
-                        key => req?.query != null && req.query.TryGetValue(key, out var val) ? val : null);
+                        key =>
+                        {
+                            if (key == "_body") return req?.body;
+                            return req?.query != null && req.query.TryGetValue(key, out var val) ? val : null;
+                        });
 
                     var envelope = new PipeEnvelope { status = status, body = body };
                     writer.WriteLine(JsonSerializer.Serialize(envelope));
@@ -238,10 +244,22 @@ namespace LilitASPlugin
 
         private void HandleRequest(HttpListenerContext ctx)
         {
+            string? rawBody = null;
+            try
+            {
+                using var sr = new StreamReader(ctx.Request.InputStream, ctx.Request.ContentEncoding ?? Encoding.UTF8, leaveOpen: true);
+                rawBody = sr.ReadToEnd();
+            }
+            catch { }
+
             var (status, response) = RouteRequest(
                 ctx.Request.Url?.AbsolutePath ?? "/",
                 ctx.Request.HttpMethod,
-                key => ctx.Request.QueryString[key]);
+                key =>
+                {
+                    if (key == "_body") return rawBody;
+                    return ctx.Request.QueryString[key];
+                });
 
             try
             {
@@ -310,6 +328,11 @@ namespace LilitASPlugin
                 {
                     string? cmd = query("cmd");
                     response = RunOnAcadThread(() => ExecuteAcadCommand(cmd));
+                }
+                else if (path == "/accion/seleccionar" && method == "POST")
+                {
+                    string body = query("_body") ?? "{}";
+                    response = RunOnAcadThread(() => SelectByHandlesFromJson(body));
                 }
                 else if (path == "/accion/convertir_visible_a_advance" && method == "POST")
                 {
@@ -775,6 +798,94 @@ namespace LilitASPlugin
                 {
                     return JsonSerializer.Serialize(new { ok = false, error = ex.Message, handle });
                 }
+            }
+        }
+
+        private string SelectByHandlesFromJson(string? bodyJson)
+        {
+            var doc = AcApp.DocumentManager.MdiActiveDocument;
+            if (doc == null)
+                return JsonSerializer.Serialize(new { ok = false, error = "sin documento activo" });
+
+            var handlesOk = new List<string>();
+            var handlesError = new List<string>();
+            var ids = new List<ObjectId>();
+
+            try
+            {
+                if (string.IsNullOrWhiteSpace(bodyJson))
+                    bodyJson = "{}";
+
+                var root = JsonNode.Parse(bodyJson)?.AsObject();
+                var arr = root?["handles"]?.AsArray();
+
+                if (arr == null || arr.Count == 0)
+                {
+                    return JsonSerializer.Serialize(new
+                    {
+                        ok = false,
+                        error = "handles requerido (array no vacío)"
+                    });
+                }
+
+                using (doc.LockDocument())
+                using (var tr = doc.Database.TransactionManager.StartTransaction())
+                {
+                    foreach (var item in arr)
+                    {
+                        string? h = item?.GetValue<string>()?.Trim();
+                        if (string.IsNullOrWhiteSpace(h))
+                        {
+                            handlesError.Add("(vacío)");
+                            continue;
+                        }
+
+                        try
+                        {
+                            long handleLong = Convert.ToInt64(h, 16);
+                            var objHandle = new Handle(handleLong);
+                            ObjectId id = doc.Database.GetObjectId(false, objHandle, 0);
+
+                            var obj = tr.GetObject(id, OpenMode.ForRead);
+                            if (obj is Entity)
+                            {
+                                ids.Add(id);
+                                handlesOk.Add(h.ToUpperInvariant());
+                            }
+                            else
+                            {
+                                handlesError.Add(h.ToUpperInvariant());
+                            }
+                        }
+                        catch
+                        {
+                            handlesError.Add(h.ToUpperInvariant());
+                        }
+                    }
+
+                    tr.Commit();
+                }
+
+                doc.Editor.SetImpliedSelection(ids.ToArray());
+
+                return JsonSerializer.Serialize(new
+                {
+                    ok = true,
+                    total_seleccionados = ids.Count,
+                    handles_ok = handlesOk,
+                    handles_error = handlesError
+                });
+            }
+            catch (System.Exception ex)
+            {
+                return JsonSerializer.Serialize(new
+                {
+                    ok = false,
+                    error = ex.Message,
+                    total_seleccionados = 0,
+                    handles_ok = handlesOk,
+                    handles_error = handlesError
+                });
             }
         }
 
