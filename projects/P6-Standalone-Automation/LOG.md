@@ -48,10 +48,17 @@
 - Resultado: `SUM_TQPH` proyecto 26258 quedÃ³ en `346.000021` (vs `346.0` en 26260; diferencia mÃ­nima por redondeo).
 
 ## 2026-02-28 14:06 (UTC-3)
-- Ingestado estándar de planificación solicitado por usuario:
-  C:\Users\josej\OneDrive - SIMTEXX SPA\PO 4519143302 Fabricación Bandejas Agua Lavado Celda_OT 1844 Celdas - Documentos\Planificación\PRACTICE STANDARD FOR SCHEDULING 3ra.pdf.
+- Ingestado estï¿½ndar de planificaciï¿½n solicitado por usuario:
+  C:\Users\josej\OneDrive - SIMTEXX SPA\PO 4519143302 Fabricaciï¿½n Bandejas Agua Lavado Celda_OT 1844 Celdas - Documentos\Planificaciï¿½n\PRACTICE STANDARD FOR SCHEDULING 3ra.pdf.
 - Proceso ejecutado: scripts/ingest_project_pdfs.py (fuente staging local en data/ingest_tmp/p6-standalone-automation).
-- Resultado ingestión: pdf_found=1, pdf_indexed=1, chunks_added=400.
+- Resultado ingestiï¿½n: pdf_found=1, pdf_indexed=1, chunks_added=400.
 - Archivos actualizados: data/p6-standalone-automation_docs.jsonl, data/p6-standalone-automation_chunks.jsonl, projects/P6-Standalone-Automation/INDEX.csv, projects/P6-Standalone-Automation/docs/summaries/PRACTICE STANDARD FOR SCHEDULING 3ra.md.
-- Indexación vectorial ejecutada con scripts/embed_chunks.py.
-- Colección ChromaDB: p6_standalone_automation con 400 chunks.
+- Indexaciï¿½n vectorial ejecutada con scripts/embed_chunks.py.
+- Colecciï¿½n ChromaDB: p6_standalone_automation con 400 chunks.
+
+## 2026-03-09 16:10 (UTC-3)
+- Se consolida estÃ¡ndar operativo para extracciÃ³n de PV/EV semanal desde XER (caso OT-1844).
+- Regla fijada para PV baseline: `TASKRSRC.target_qty` + filtro `RT_Labor` + prorrateo diario L-V + agregaciÃ³n semana ISO (lunes-domingo).
+- Hitos de validaciÃ³n registrados: W08=1134 HH (14.00%), W09=2295 HH (28.33%), W10=3771 HH (46.56%).
+- EV al corte W11 validado desde XER actualizado: 3394.8 HH (41.91%).
+- Objetivo: reutilizar este mÃ©todo como plantilla en automatizaciones P6 futuras para evitar desalineaciones en reportes.
