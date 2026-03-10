@@ -62,3 +62,10 @@
 - Hitos de validación registrados: W08=1134 HH (14.00%), W09=2295 HH (28.33%), W10=3771 HH (46.56%).
 - EV al corte W11 validado desde XER actualizado: 3394.8 HH (41.91%).
 - Objetivo: reutilizar este método como plantilla en automatizaciones P6 futuras para evitar desalineaciones en reportes.
+
+## 2026-03-09 21:29 (UTC-3)
+- Se detecta falla crítica al editar XER por script: archivo generado inválido para import en P6 por pérdida de cabecera `ERMHDR` y cierre `%E`.
+- Causa: reconstrucción completa del archivo sin preservar envolvente nativa del XER.
+- Acción correctiva: nuevo método de parche por líneas (solo `TASKRSRC`), preservando 100% del resto del archivo.
+- Resultado: XER reparado `SPC-Rev.B_Prueba_OP12_FIX2.xer` con import válido esperado, HH totales conservadas (`8100`), OP3 removido y redistribución 50/50 a OP1/OP2.
+- Lección obligatoria: en modificaciones XER, nunca reserializar el archivo completo si no es estrictamente necesario; aplicar edición incremental y validar `ERMHDR` + `%E` + totales antes de importar.
