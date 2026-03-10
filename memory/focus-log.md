@@ -90,3 +90,39 @@
 - RAG ejecutada: no ? colección no encontrada (data/chroma/solid_to_steel)
 - Brechas: sin chunks del proyecto detectados en data/; sin colección ChromaDB nominal para solid_to_steel; MEMORY.md y LOG.md aún con cabecera histórica "ADVANCE STEEL"
 - Propuesta: crear chunks iniciales del proyecto y ejecutar indexación para habilitar RAG; normalizar nombres internos a SOLID_TO_STEEL
+## [2026-03-07 14:11 UTC-3] — Foco en SOLID_TO_STEEL
+- Trigger: "ok vamos con las pruebas, primero hagamos fioco en el proyecto"
+- Archivos leídos: projects/solid_to_steel/README.md; projects/solid_to_steel/MEMORY.md; projects/solid_to_steel/LOG.md; projects/solid_to_steel/INDEX.csv
+- RAG ejecutada: no ? colección no encontrada
+- Brechas: falta colección ChromaDB data/chroma/solid_to_steel; endpoint /status inestable
+- Propuesta: indexar chunks data/solid_to_steel_chunks.jsonl en Chroma y luego correr búsqueda "estado actual"
+## [2026-03-09 12:22 UTC-3] — Foco en selección de proyecto
+- Trigger: "hagamos foco en un proyecto, dime cuales tengo disponible"
+- Archivos leídos: projects/*/README.md; projects/*/MEMORY.md; projects/*/LOG.md (hasta 100); projects/*/INDEX.csv (hasta 50); data/* (filtro por proyecto); data/chroma/* (verificación)
+- RAG ejecutada: sí (OT-1844: 2160 chunks, top rerank 0.7512; FINANZAS: 19 chunks; P6-STANDALONE-AUTOMATION: 400 chunks; SOLID_TO_STEEL: 4 chunks); no para Bodega-Simtexx (colección no encontrada)
+- Brechas: Bodega-Simtexx sin chunks/colección; para todos los proyectos la carpeta nominal data/chroma/<proyecto_normalizado> no aparece (backend usa UUID)
+- Propuesta: seleccionar proyecto objetivo y continuar foco detallado con consolidación completa
+## [2026-03-09 12:28 UTC-3] — Foco en OT-1844
+- Trigger: "OT-1844"
+- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/ot-1844_chunks.jsonl; data/ot-1844_chunks.bak.jsonl; data/ot-1844_docs.jsonl
+- RAG ejecutada: sí ? 2160 chunks, top score rerank=1.2362 (query: "estado actual del proyecto: avance, hitos, riesgos")
+- Brechas: consulta de estado devuelve evidencia técnica parcial/no centrada en cronograma (hitos/avance no priorizados en top 3)
+- Propuesta: correr segunda búsqueda con tags `cronograma,P6,hitos` y consolidar estado semanal W## con foco en entregas y float crítico
+## [2026-03-09 16:33 UTC-3] — Foco en P6-Standalone-Automation
+- Trigger: "cambiemos foco al proyecto P6-Standalone-Automation"
+- Archivos leídos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100 líneas); INDEX.csv (50 líneas); data/p6-standalone-automation_chunks.jsonl; data/p6-standalone-automation_docs.jsonl
+- RAG ejecutada: sí ? colección `p6_standalone_automation` con 400 chunks; top rerank=-10.8523 (query: "estado actual del proyecto")
+- Brechas: consulta de estado actual con baja señal semántica (top 3 genéricos/glosario); falta documentación específica de flujo GitHub para el proyecto
+- Propuesta: definir e implementar baseline GitHub (repo, ramas, PR template, changelog y release de reportes) en este proyecto
+- Fecha/hora UTC-3: 2026-03-10 08:03
+- Trigger: foco en P6-Standalone-Automation
+- Archivos leídos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100); INDEX.csv (50)
+- RAG: sí + 400 chunks + top score rerank=-11.1359
+- Brechas: índice CSV inconsistente; colección no detectable por carpeta canónica data/chroma/p6_standalone_automation (se resuelve vía metadatos internos); resultados RAG poco específicos al estado operativo
+- Propuesta: limpiar INDEX.csv, documentar ruta/estado real de colección Chroma y crear resumen operativo propio en docs para mejorar retrieval
+## 2026-03-10 16:01 UTC-3
+- Trigger: foco en P6-Standalone-Automation
+- Archivos leídos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
+- RAG: sí + 400 chunks + top score 0.000 (rerank top -11.1390)
+- Brechas: INDEX.csv inconsistente; búsqueda RAG de estado devuelve chunks débiles del PDF estándar, falta documentación/resúmenes más orientados a estado operativo actual.
+- Propuesta: crear resumen operativo indexado del proyecto y/o tags más específicos para mejorar retrieval de estado.
