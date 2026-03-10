@@ -3,7 +3,7 @@
 ## Agente principal
 - **Nombre**: Lilit
 - **ID**: `main`
-- **Modelo**: `openai-codex/gpt-5.3-codex`
+- **Modelo**: `openai-codex/gpt-5.4`
 - **Workspace**: `C:\Users\josej\.openclaw\workspace`
 - **Memoria activa**: `memory/`
 

@@ -1,6 +1,6 @@
 # MEMORY.md - Memoria Permanente
 
-**Última actualización**: 2026-02-28
+**Última actualización**: 2026-03-01
 
 ## 🎯 Información Crítica
 
@@ -11,7 +11,7 @@
 - **Lenguaje favorito**: Python
 
 ### Configuración técnica
-- **Modelo activo**: openai-codex/gpt-5.3-codex (ChatGPT Plus OAuth)
+- **Modelo activo**: openai-codex/gpt-5.4 (ChatGPT Plus OAuth)
 - **Workspace**: `C:\Users\josej\.openclaw\workspace`
 - **Canal principal**: Telegram
 
@@ -50,6 +50,7 @@
 - Lección aprendida P6 forecast (2026-02-28): para reportes semanales, tomar Forecast desde la lógica P6 (`Actual + Remaining Early` time-phased) y no mezclar métodos ni distribuir linealmente desde TASK/TASKRSRC cuando se busque reproducir la curva del cliente en P6.
 - Criterio validado por usuario (2026-02-28): proyección/valor planificado semanal se calcula con curva S time-phased semanal (semana ISO lunes-domingo), distribuyendo HH de actividades en días laborales y luego agregando por semana; usar `% semana` y `% acumulado` sobre BAC total.
 - Método operativo EV/EAC/ETC para programas P6 OT-1844 (2026-02-28): usar `TASKRSRC` como fuente principal de HH (`TARGET_QTY`=BAC, `ACT_REG_QTY`=EV real al corte, `REMAIN_QTY`=ETC), con corte explícito fecha-hora (ej. 22-feb 23:59). Calcular `EAC = EV + ETC` y reportar tabla en HH y `%BAC`; para detalle semanal EV, distribuir `ACT_REG_QTY` en días laborales (L-V) entre `ACT_START_DATE` y `min(ACT_END_DATE, fecha_corte)` y agregar por semana ISO (lunes-domingo).
+- **OpenClaw Session Management** (2026-03-01): Usuario necesitaba continuidad entre canales (webchat + Telegram). Solución: cambiar `session.dmScope` en `openclaw.json` de `"per-channel-peer"` a `"main"`. Valores válidos: `main` (sesión única), `per-peer`, `per-channel-peer`, `per-account-channel-peer`. Archivos de sesión en `C:\Users\josej\.openclaw\agents\main\sessions\*.jsonl`; respaldos `.reset.*` pueden eliminarse. Patrón ejecutivo esperado: identificar problema → buscar docs → implementar → verificar → limpiar, directo sin condescendencia.
 
 ## 📚 Qué recordar
 - Decisiones importantes y cambios de estado
