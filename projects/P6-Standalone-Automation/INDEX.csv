@@ -1,5 +1,9 @@
-id,tipo,archivo,descripcion,estado,actualizado
-1,doc,README.md,Definicion del proyecto y alcance,inicial,2026-02-26
-2,doc,MEMORY.md,Decisiones y pendientes clave,inicial,2026-02-26
-3,log,LOG.md,Bitacora operativa,inicial,2026-02-26
-doc,2026-02-28,onedrive,PRACTICE STANDARD FOR SCHEDULING 3ra,PRACTICE STANDARD FOR SCHEDULING 3ra.pdf,,activo,data\ingest_tmp\p6-standalone-automation\PRACTICE STANDARD FOR SCHEDULING 3ra.pdf,53d704d33e1629aecf7ba4f022b93604f0d67ae4f1d271a772de3ad408ef1c72,pages=222; extract=ok
+tipo,archivo,descripcion,estado,actualizado
+doc,README.md,Definicion del proyecto alcance y estado actual,activo,2026-03-10
+doc,MEMORY.md,Decisiones tecnicas criterios y pendientes,activo,2026-03-09
+log,LOG.md,Bitacora operativa del proyecto,activo,2026-03-09
+doc,docs/XER_DB_VALIDATION_FLOW.md,Flujo unico de validacion cruzada entre XER y DB SQLite,activo,2026-03-10
+doc,docs/summaries/PRACTICE STANDARD FOR SCHEDULING 3ra.md,Resumen del estandar de scheduling indexado para consulta,activo,2026-02-28
+dir,001_Prueba Externa,Fixtures XER externos para pruebas comparativas,activo,2026-03-10
+dir,data,Salidas snapshots y reportes de corridas,activo,2026-03-10
+dir,scripts,Scripts productivos y temporales del proyecto,activo,2026-03-10

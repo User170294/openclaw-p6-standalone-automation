@@ -80,3 +80,10 @@
 - Curva semanal consolidada y validada contra extracto semanal P6 (Proyecto SAG 3):
   W30=36, W31=180, W32=180, W33=396, W34=1080, W35=1566, W36=1404, W37=1350, W38=378, W39=216 (BAC=6786, 100%).
 - Decisión de producto: formalizar estándar transversal (no OT-específico) con modo `logic` y modo `p6_visual` para reproducibilidad entre programas.
+
+## 2026-03-10 16:08 (UTC-3)
+- Se ordena la base documental del proyecto para pruebas conjuntas XER + DB.
+- Se detectan fixtures externos en `001_Prueba Externa/`: `15682-SEG al 14-12.xer` y `15682-SEG-LB.xer`.
+- Se crea `docs/XER_DB_VALIDATION_FLOW.md` como flujo operativo único de validación cruzada.
+- Se normaliza `INDEX.csv` para reflejar artefactos vigentes y carpeta de fixtures.
+- Próximo objetivo técnico: comparador reusable `XER vs DB` parametrizable y sin rutas hardcodeadas.

@@ -45,4 +45,10 @@
 
 ## Pendientes
 - Formalizar en script reusable un modo dual: `logic` vs `p6_visual` con validación automática contra export de Usage.
+- Construir comparador reusable `XER vs DB` por parámetros, evitando rutas hardcodeadas y salidas ad-hoc.
 - Diseñar job piloto y criterios de éxito.
+
+## Estado de preparación para pruebas externas (2026-03-10)
+- Se define `001_Prueba Externa/` como carpeta de fixtures XER para validación cruzada.
+- Flujo operativo documentado en `docs/XER_DB_VALIDATION_FLOW.md`.
+- `INDEX.csv` normalizado para reflejar artefactos vigentes del proyecto.
