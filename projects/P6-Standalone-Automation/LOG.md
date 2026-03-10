@@ -69,3 +69,14 @@
 - Acción correctiva: nuevo método de parche por líneas (solo `TASKRSRC`), preservando 100% del resto del archivo.
 - Resultado: XER reparado `SPC-Rev.B_Prueba_OP12_FIX2.xer` con import válido esperado, HH totales conservadas (`8100`), OP3 removido y redistribución 50/50 a OP1/OP2.
 - Lección obligatoria: en modificaciones XER, nunca reserializar el archivo completo si no es estrictamente necesario; aplicar edición incremental y validar `ERMHDR` + `%E` + totales antes de importar.
+
+## 2026-03-09 23:38 (UTC-3)
+- Sesión de depuración profunda del cálculo PV semanal en `OT-1616_0 - B1` usando BD + XER + contraste con Usage Spreadsheet P6.
+- Se descartó definitivamente el prorrateo diario plano para casos con inicio/fin intra-día y excepciones de calendario.
+- Se validó metodología robusta: distribución por horas efectivas de solape sobre ventanas del calendario de actividad + feriados/excepciones.
+- Hallazgos críticos:
+  - A1060: reparto correcto 54/108/54 por media jornada (no 72/72/72).
+  - A1160: desalineación visual por bucket etiquetado en Usage (54/108/108/54), afectando semanas W38/W39.
+- Curva semanal consolidada y validada contra extracto semanal P6 (Proyecto SAG 3):
+  W30=36, W31=180, W32=180, W33=396, W34=1080, W35=1566, W36=1404, W37=1350, W38=378, W39=216 (BAC=6786, 100%).
+- Decisión de producto: formalizar estándar transversal (no OT-específico) con modo `logic` y modo `p6_visual` para reproducibilidad entre programas.

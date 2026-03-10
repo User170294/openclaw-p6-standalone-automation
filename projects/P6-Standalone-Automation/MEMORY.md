@@ -20,6 +20,29 @@
 - EV real al corte W11 (`last_recalc_date=2026-03-08 23:59`): 3394.8 HH (41.91%).
 - Nota de alcance: este estándar replica el control operativo requerido; no aplica curvas `target_crv` ni excepciones de calendario avanzadas de P6 salvo instrucción explícita.
 
+## Estándar transversal validado (2026-03-09 noche) — aplicable a cualquier programa
+- No usar regla única L-V ni prorrateo diario plano como verdad universal.
+- Motor base para PV semanal debe usar, en este orden:
+  1) `TASKRSRC` (`RSRC_TYPE='RT_Labor'`) como fuente HH,
+  2) calendario de actividad (`TASK.CLNDR_ID`) y no asumir calendario fijo,
+  3) excepciones/feriados desde `CALENDAR.CLNDR_DATA` (`Exceptions`),
+  4) distribución por **horas efectivas de solape** (inicio/fin con hora + ventanas del calendario),
+  5) agregación por semana ISO.
+- Para comparaciones contra vista P6 (Usage Spreadsheet), considerar explícitamente posible diferencia entre:
+  - fecha lógica de trabajo,
+  - fecha etiquetada del bucket visual.
+- Validaciones obligatorias antes de emitir informe:
+  - ΣHH semanal = BAC,
+  - ΣHH por actividad = `TARGET_QTY`,
+  - trazabilidad de actividades con desvío por bucket/etiqueta.
+
+## Caso de prueba crítico (OT-1616_0 - B1)
+- Actividad A1060 demostró que prorrateo por día plano falla en tareas con media jornada; el reparto correcto se obtiene por peso horario:
+  - 13-sep: 54 HH, 15-sep: 108 HH, 16-sep: 54 HH (total 216).
+- Actividad A1160 evidenció desplazamiento visual de bucket en Usage Spreadsheet (aparición de 54 HH en 23-sep pese a finish 22-sep 12:30).
+- Curva semanal validada contra extracto semanal P6 para Proyecto SAG 3:
+  - W30 36, W31 180, W32 180, W33 396, W34 1080, W35 1566, W36 1404, W37 1350, W38 378, W39 216 (BAC 6786 = 100%).
+
 ## Pendientes
-- Definir stack de automatización (Python + PowerShell).
+- Formalizar en script reusable un modo dual: `logic` vs `p6_visual` con validación automática contra export de Usage.
 - Diseñar job piloto y criterios de éxito.
