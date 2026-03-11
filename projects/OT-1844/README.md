@@ -157,6 +157,24 @@ Ver: `workspace/.learnings/ERRORS.md`
 
 Antes de responder sobre cronograma o WBS: revisar ese archivo para no repetir el mismo error.
 
+## 12. Referencia obligatoria al hacer foco en este proyecto
+
+Cuando se active foco en OT-1844 y el trabajo involucre:
+- actualización de programa P6,
+- carga de avances desde Excel,
+- cambios en SQLite P6,
+- revisión de HH / costos / calendarios / `% Complete Type`,
+
+revisar también este documento antes de ejecutar cambios:
+- `projects/P6-Standalone-Automation/docs/DB_LOAD_TEST_LEARNINGS_OT1844_2026-03-11.md`
+
+Ese documento contiene errores reales detectados en pruebas de carga DB directa, sus causas y la secuencia operativa recomendada para no repetir fallas de:
+- `TASKRSRC` sin sincronización de `TASK`
+- costos remanentes mal cerrados
+- fechas `00:00` que generan duración actual 0
+- incompatibilidad de calendario
+- cargas ambiguas desde Excel
+
 ---
 
-*Última actualización: 2026-02-22 — Sesión de configuración y mejora de repositorio.*
+*Última actualización: 2026-03-11 — Se agrega referencia cruzada obligatoria a aprendizajes P6-Standalone-Automation para foco y cargas de programa.*

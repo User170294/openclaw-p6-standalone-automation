@@ -33,3 +33,13 @@
 - 23-mar-2026: Entrega 2 bandejas (Hito 3)
 - 30-mar-2026: Entrega 2 bandejas (Hito 4)
 - 06-abr-2026: Entrega 2 bandejas (Hito 5)
+
+### 2026-03-03 � Estado RAG validado
+- Colecci�n sem�ntica OT-1844 reconstruida y operativa (`ot_1844`, 2160 chunks).
+- Comando de reconstrucci�n validado: `python scripts/embed_chunks.py --chunks .\\data\\ot-1844_chunks.jsonl --project OT-1844 --reset`.
+- Nota operativa: para �estado actual� preferir consulta compuesta o filtros por tags para evitar sesgo a compras.
+
+### 2026-03-11 — referencia cruzada para foco en programa
+- Si el trabajo de foco en OT-1844 involucra P6 / DB / carga de avances / HH / costos / calendarios / `% Complete Type`, revisar antes:
+  - `projects/P6-Standalone-Automation/docs/DB_LOAD_TEST_LEARNINGS_OT1844_2026-03-11.md`
+- Ese documento contiene el aprendizaje operativo consolidado de las pruebas reales de carga directa en SQLite P6 para no repetir errores de sincronización `TASKRSRC`→`TASK`, costos remanentes, fechas `00:00`, calendarios y cierres ambiguos.
