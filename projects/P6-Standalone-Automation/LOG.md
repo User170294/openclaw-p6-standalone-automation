@@ -87,3 +87,14 @@
 - Se crea `docs/XER_DB_VALIDATION_FLOW.md` como flujo operativo único de validación cruzada.
 - Se normaliza `INDEX.csv` para reflejar artefactos vigentes y carpeta de fixtures.
 - Próximo objetivo técnico: comparador reusable `XER vs DB` parametrizable y sin rutas hardcodeadas.
+
+## 2026-03-11 15:18 (UTC-3)
+- Se ejecuta campaña intensiva de pruebas de carga directa en SQLite P6 usando OT-1844 (`W012` + baseline asociada) como banco de prueba operacional.
+- Flujo probado: foco de programa → validación de LB → fijación de data date → generación de Excel de revisión → carga parcial de avances → correcciones iterativas sobre HH, fechas, costos y reflejo en UI P6.
+- Hallazgos validados:
+  - Actualizar solo `TASKRSRC` no basta; P6 lee también resumen laboral de `TASK` (`ACT_WORK_QTY`, `REMAIN_WORK_QTY`, `TARGET_WORK_QTY`).
+  - Cierres al 100% requieren sincronizar también costos (`ACT_REG_COST`, `REMAIN_COST`) para evitar at-complete inflado.
+  - Fechas sin hora provenientes de Excel no deben cargarse como `00:00`; deben convertirse a jornada real según calendario/lógica de actividad para evitar duración actual 0.
+  - La carga debe respetar `COMPLETE_PCT_TYPE` del proyecto/actividad (`CP_Drtn` en este caso) y no asumir Units % Complete como regla universal.
+  - Las pruebas parciales deben excluir filas ambiguas (sin inicio o sin término) y tratar por separado cierres 100% vs avances parciales.
+- Resultado: se consolida un patrón operativo reutilizable para el agente en `P6-Standalone-Automation`, pendiente de formalización en script reusable de carga segura desde Excel hacia DB.

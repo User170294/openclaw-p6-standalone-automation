@@ -43,10 +43,20 @@
 - Curva semanal validada contra extracto semanal P6 para Proyecto SAG 3:
   - W30 36, W31 180, W32 180, W33 396, W34 1080, W35 1566, W36 1404, W37 1350, W38 378, W39 216 (BAC 6786 = 100%).
 
+## Aprendizajes operativos (2026-03-11) — pruebas de carga DB directa sobre programa OT-1844
+- Para cargar avances en SQLite P6 no basta con actualizar `TASKRSRC`; también deben sincronizarse los campos resumen de `TASK` usados por la UI de P6 (`ACT_WORK_QTY`, `REMAIN_WORK_QTY`, `TARGET_WORK_QTY`). Si no, P6 puede mostrar actividades al 100% con Actual Labor Units = 0 aunque `TASKRSRC.ACT_REG_QTY` esté correcto.
+- En cierres al 100% también deben sincronizarse costos en `TASKRSRC`: `ACT_REG_COST = TARGET_COST` y `REMAIN_COST = 0`. Si no, el campo At Complete Labor Cost queda inflado (ej. budget 9, at complete 18 por `REMAIN_COST` residual).
+- Si el Excel trae fecha sin hora y usuario indica mismo día de inicio/fin, debe interpretarse como jornada completa compatible con el calendario/plan de la actividad, no `00:00` a `00:00`. Dejar `00:00` genera duración actual 0 en P6.
+- Antes de grabar fechas reales, verificar compatibilidad con `TASK.CLNDR_ID`. Si la fecha real cae fuera del calendario, ajustar el calendario de la actividad o usar una lógica horaria compatible antes de cerrar la actividad.
+- El `% Complete Type` de la actividad debe alinearse con el del proyecto/base cuando no exista razón explícita para diferir. En el caso validado, proyecto y actividades operan con `CP_Drtn`; por lo tanto, no aplicar ciegamente la lógica de `% unidades` como sustituto del porcentaje del proyecto.
+- Para pruebas parciales desde Excel, no cargar filas ambiguas. Si falta fecha de inicio o término, separar esos casos y no forzar cierres. Regla segura para prueba: cargar solo filas con `%`, inicio real y término real explícitos cuando el objetivo es cerrar al 100%.
+- Secuencia operativa mínima para carga robusta: respaldo DB → fijar data date → validar `% complete type` → validar calendario → aplicar HH/fechas/estado en `TASKRSRC` + `TASK` → sincronizar costos → verificar en P6/UI.
+
 ## Pendientes
 - Formalizar en script reusable un modo dual: `logic` vs `p6_visual` con validación automática contra export de Usage.
 - Construir comparador reusable `XER vs DB` por parámetros, evitando rutas hardcodeadas y salidas ad-hoc.
 - Diseñar job piloto y criterios de éxito.
+- Formalizar un cargador seguro de avances desde Excel para DB P6 que valide `% type`, calendario, horas de jornada, sincronización `TASKRSRC`→`TASK` y costos antes de commit.
 
 ## Estado de preparación para pruebas externas (2026-03-10)
 - Se define `001_Prueba Externa/` como carpeta de fixtures XER para validación cruzada.
