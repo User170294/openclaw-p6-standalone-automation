@@ -112,7 +112,10 @@ def load(args) -> dict[str, Any]:
                 "SELECT * FROM TASKRSRC WHERE PROJ_ID=? AND RSRC_TYPE='RT_Labor'",
                 (payload['proj_id'],),
             ).fetchall()
-            payload['base_taskrsrc_rows'] = [dict(r) for r in rows]
+            payload['base_taskrsrc_rows'] = [
+                {k.lower(): v for k, v in dict(r).items()}
+                for r in rows
+            ]
         finally:
             con.close()
     else:

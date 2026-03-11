@@ -70,8 +70,10 @@ class TestPvEngine(unittest.TestCase):
 
             payload = load(Args(db=str(db), proj_id=26432, cutoff='2026-02-22', mode='logic'))
             self.assertEqual(len(payload['base_taskrsrc_rows']), 1)
-            self.assertEqual(payload['base_taskrsrc_rows'][0]['RSRC_TYPE'], 'RT_Labor')
-            self.assertEqual(float(payload['base_taskrsrc_rows'][0]['TARGET_QTY']), 100.0)
+            self.assertIn('rsrc_type', payload['base_taskrsrc_rows'][0])
+            self.assertIn('target_qty', payload['base_taskrsrc_rows'][0])
+            self.assertEqual(payload['base_taskrsrc_rows'][0]['rsrc_type'], 'RT_Labor')
+            self.assertEqual(float(payload['base_taskrsrc_rows'][0]['target_qty']), 100.0)
 
 
 if __name__ == '__main__':
