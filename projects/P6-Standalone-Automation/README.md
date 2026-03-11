@@ -22,8 +22,8 @@
 
 ## Estado actual
 - Base SQLite activa confirmada en `MEMORY.md`.
-- Existen scripts productivos para inspección, auditoría, reasignación de recursos y reportes semanales.
-- El proyecto ya tiene aprendizaje validado para cálculo PV/EV semanal y manejo seguro de cambios sobre XER.
+- Existen scripts productivos para inspección, auditoría, reasignación de recursos, carga segura de avances y reportes semanales.
+- El proyecto ya tiene aprendizaje validado para cálculo PV/EV semanal, manejo seguro de cambios sobre XER y carga robusta de avances directo a DB.
 - Hay fixtures externos disponibles en `001_Prueba Externa/` para pruebas iniciales.
 
 ## Estructura útil
@@ -38,4 +38,4 @@
 - `docs/XER_DB_VALIDATION_FLOW.md` → flujo recomendado para pruebas conjuntas XER + DB.
 
 ## Próximo paso recomendado
-Formalizar un comparador reusable `XER vs DB` por parámetros, usando un caso externo como fixture estable de validación.
+Ejecutar pruebas controladas del cargador seguro `Excel -> DB` sobre casos acotados y luego cerrar la segunda pieza reusable pendiente: comparador `XER vs DB` totalmente parametrizable.

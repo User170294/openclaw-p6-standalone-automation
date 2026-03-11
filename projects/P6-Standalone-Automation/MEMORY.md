@@ -56,7 +56,13 @@
 - Formalizar en script reusable un modo dual: `logic` vs `p6_visual` con validación automática contra export de Usage.
 - Construir comparador reusable `XER vs DB` por parámetros, evitando rutas hardcodeadas y salidas ad-hoc.
 - Diseñar job piloto y criterios de éxito.
-- Formalizar un cargador seguro de avances desde Excel para DB P6 que valide `% type`, calendario, horas de jornada, sincronización `TASKRSRC`→`TASK` y costos antes de commit.
+- Endurecer el cargador seguro `scripts/load_progress_excel_to_p6db.py` con validación horaria por calendario P6 real (`CALENDAR.CLNDR_DATA`) y manejo más rico de parciales/ambigüedades.
+
+## Implementación consolidada (2026-03-11 tarde)
+- Se formaliza `scripts/load_progress_excel_to_p6db.py` como primer cargador seguro reusable de avances Excel -> DB SQLite P6.
+- El script trabaja en `dry-run` por defecto, genera preview/errores, exige respaldo antes de `--apply`, sincroniza `TASKRSRC` y resumen `TASK`, alinea `COMPLETE_PCT_TYPE` con el proyecto y corrige fechas mismo día sin hora heredando horas planificadas o usando jornada por defecto.
+- Se amplía `scripts/pilot_audit.py` con checks post-carga para detectar: desfase `TASK` vs suma labor `TASKRSRC`, actividades completas con `ACT_WORK_QTY=0` y actividades completas con `REMAIN_COST>0`.
+- Validación dry-run inicial sobre OT-1844 W012 (`PROJ_ID=26432`): 33 filas candidatas, 19 listas para preview y 14 rechazadas por ambigüedad/missing fechas; la auditoría post-carga del estado actual del programa devuelve 0 hallazgos en los checks nuevos.
 
 ## Estado de preparación para pruebas externas (2026-03-10)
 - Se define `001_Prueba Externa/` como carpeta de fixtures XER para validación cruzada.

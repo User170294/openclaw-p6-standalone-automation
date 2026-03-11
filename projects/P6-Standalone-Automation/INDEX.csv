@@ -10,3 +10,5 @@ dir,001_Prueba Externa,Fixtures XER externos para pruebas comparativas,activo,20
 dir,data,Salidas snapshots y reportes de corridas,activo,2026-03-10
 dir,scripts,Scripts productivos y temporales del proyecto,activo,2026-03-10
 script,scripts/compare_xer_db_weekly.py,Comparador reusable XER vs DB a partir de curvas semanales en CSV,activo,2026-03-11
+script,scripts/load_progress_excel_to_p6db.py,Cargador seguro de avances Excel hacia DB SQLite P6 con dry-run respaldo y sincronizacion TASKRSRC->TASK,activo,2026-03-11
+script,scripts/pilot_audit.py,Auditoria SQLite extendida con checks post-carga TASK vs TASKRSRC y costos residuales,activo,2026-03-11

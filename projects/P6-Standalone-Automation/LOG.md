@@ -107,3 +107,11 @@
 - Validación ejecutada con fixture 15682/LB vs DB (`compare_xer_db_26379_reusable.csv`): 35 semanas, `MAX_ABS_DELTA_VALUE=173.5199`, `MAX_ABS_DELTA_CUM=635.4370`.
 - Se reindexa RAG del proyecto incorporando el resumen operativo; colección `p6_standalone_automation` pasa de 400 a 767 chunks.
 - Resultado: la consulta semántica de “estado actual operativo del proyecto” pasa a recuperar `OPERATING_SUMMARY_2026-03-11` como top hit.
+
+## 2026-03-11 16:21 (UTC-3)
+- Se consolida primer cargador seguro reusable `scripts/load_progress_excel_to_p6db.py` para avances Excel -> DB SQLite P6.
+- Reglas incorporadas al flujo: dry-run por defecto, respaldo previo en `--apply`, rechazo de filas ambiguas, normalización de fechas mismo día sin hora, sincronización `TASKRSRC` -> `TASK`, alineación de `COMPLETE_PCT_TYPE` y sincronización de costos laborales.
+- Se amplía `scripts/pilot_audit.py` con tres checks post-carga críticos: desfase `TASK` vs `TASKRSRC`, completas con `ACT_WORK_QTY=0`, completas con `REMAIN_COST labor > 0`.
+- Dry-run validado con Excel OT-1844 W012 v3 sobre `PROJ_ID=26432`: `CANDIDATES=33`, `PREVIEW_ROWS=19`, `ERROR_ROWS=14`, `APPLIED_ROWS=0`.
+- Reportes generados: `data/load_progress_preview_26432_20260311_162145.csv`, `data/load_progress_errors_26432_20260311_162145.csv`, `data/load_progress_summary_26432_20260311_162145.md`.
+- Auditoría extendida sobre estado actual de `PROJ_ID=26432`: `NO_PREDECESSOR=0`, `OVERDUE_MILESTONE=0`, `TASK_WORK_MISMATCH_LABOR=0`, `COMPLETE_ZERO_ACT_WORK=0`, `COMPLETE_WITH_REMAIN_COST=0`.
