@@ -1,6 +1,12 @@
 import argparse
-import sqlite3
 from pathlib import Path
+import sys
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import open_db
 
 
 def fetch_ids(cur, keep_root):
@@ -42,7 +48,7 @@ def main():
     args = ap.parse_args()
 
     db = Path(args.db)
-    con = sqlite3.connect(db)
+    con = open_db(db)
     cur = con.cursor()
 
     root_ids, del_roots, del_wbs, del_proj = fetch_ids(cur, args.keep_root)

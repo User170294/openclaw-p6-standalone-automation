@@ -122,3 +122,10 @@
 - Se archivan 38 scripts `tmp_*` en `scripts/archive_tmp/`.
 - Se mueven los scripts productivos principales a `scripts/core/`: `load_progress_excel_to_p6db.py`, `pilot_audit.py`, `compare_xer_db_weekly.py`, `xer_update.py`.
 - Se verifican rutas nuevas ejecutando `--help` en `scripts/core/load_progress_excel_to_p6db.py` y `scripts/core/pilot_audit.py` con resultado OK.
+
+## 2026-03-11 16:56 (UTC-3)
+- Se incorpora `scripts/p6_utils.py` como capa compartida en `master` para conexión DB, NEXTKEY, timestamps, split3, clonación de recursos e inserción genérica.
+- Se agrega `tests/test_p6_utils.py` con validación ejecutable vía `unittest` (3 tests OK).
+- Se migran scripts de `mutations/` con duplicación real de helpers (`apply_wbs_crew_split.py`, `replace_resource_with_three_ops.py`, `apply_distinct_hh_resources.py`, `create_project_under_simtexx.py`) para importar desde `p6_utils`.
+- Se migran scripts de `support/` con DB hardcodeada a `argparse --db` + `open_db` (`check_resource_types.py`, `check_taskrsrc_types.py`, `check_root_154616.py`, `list_eps_level1.py`, `show_nextkeys.py`, `verify_hh_update.py`, `verify_multi_wbs_crew.py`, `verify_projects_under_root.py`, `inspect_sqlite.py`).
+- Verificaciones ejecutadas: `python -m compileall projects/P6-Standalone-Automation/scripts tests/test_p6_utils.py` OK; `python -m unittest tests.test_p6_utils -v` OK.

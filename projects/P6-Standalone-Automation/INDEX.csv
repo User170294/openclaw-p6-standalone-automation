@@ -10,6 +10,7 @@ dir,001_Prueba Externa,Fixtures XER externos para pruebas comparativas,activo,20
 dir,data,Salidas snapshots y reportes de corridas,activo,2026-03-10
 dir,scripts,Raiz de scripts ordenada por capas core support mutations prototypes y archive_tmp,activo,2026-03-11
 dir,scripts/core,Flujo productivo principal del proyecto,activo,2026-03-11
+script,scripts/p6_utils.py,Utilidades compartidas para DB NEXTKEY clonacion de recursos y helpers comunes,activo,2026-03-11
 dir,scripts/support,Utilitarios de inspeccion validacion y apoyo,activo,2026-03-11
 dir,scripts/mutations,Operaciones controladas de mutacion sobre DB,activo,2026-03-11
 dir,scripts/prototypes,Prototipos y metodos aun no consolidados,activo,2026-03-11

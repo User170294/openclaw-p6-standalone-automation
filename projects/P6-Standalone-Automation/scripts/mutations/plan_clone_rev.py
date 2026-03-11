@@ -1,8 +1,14 @@
 import argparse
-import sqlite3
 from pathlib import Path
+import sys
 from datetime import datetime
 import json
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import open_db
 
 
 def main():
@@ -17,14 +23,12 @@ def main():
     out = Path(args.out_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    con = sqlite3.connect(db)
-    con.row_factory = sqlite3.Row
+    con = open_db(db)
     cur = con.cursor()
 
     cur.execute('SELECT PROJ_ID, PROJ_SHORT_NAME, PLAN_START_DATE, PLAN_END_DATE, LAST_SCHEDULE_DATE FROM PROJECT WHERE PROJ_ID=?', (args.source_proj_id,))
     src = cur.fetchone()
-
-    cur.execute('SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT WHERE UPPER(COALESCE(PROJ_SHORT_NAME,\'\')) = UPPER(?)', (args.target_short_name,))
+    cur.execute("SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT WHERE UPPER(COALESCE(PROJ_SHORT_NAME,'')) = UPPER(?)", (args.target_short_name,))
     tgt = cur.fetchone()
 
     stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -56,10 +60,8 @@ def main():
 
     json_path = out / f'clone_plan_{stamp}.json'
     md_path = out / f'clone_plan_{stamp}.md'
-
     with json_path.open('w', encoding='utf-8') as f:
         json.dump(plan, f, ensure_ascii=False, indent=2)
-
     with md_path.open('w', encoding='utf-8') as f:
         f.write(f"# Clone Plan (modo plan) - {stamp}\n\n")
         f.write(f"- Source PROJ_ID: `{args.source_proj_id}`\n")
@@ -77,14 +79,14 @@ def main():
             for k in tgt.keys():
                 f.write(f"- {k}: `{tgt[k]}`\n")
             f.write('\n')
-
         f.write('## Pasos UI\n')
         for i, s in enumerate(plan['ui_steps'], start=1):
             f.write(f"{i}. {s}\n")
 
-    print(f"PLAN_JSON={json_path}")
-    print(f"PLAN_MD={md_path}")
+    print(f'PLAN_JSON={json_path}')
+    print(f'PLAN_MD={md_path}')
     print(f"CAN_PROCEED={plan['can_proceed']}")
+    con.close()
 
 
 if __name__ == '__main__':

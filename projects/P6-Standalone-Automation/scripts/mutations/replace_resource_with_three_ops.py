@@ -1,61 +1,16 @@
 import argparse
-import sqlite3
-from datetime import datetime
 from pathlib import Path
+import sys
 
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
 
-def now():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
-def split3(v: float):
-    a = round(v / 3.0, 4)
-    b = round(v / 3.0, 4)
-    c = round(v - a - b, 4)
-    return [a, b, c]
-
-
-def get_next(cur, key_name):
-    row = cur.execute("SELECT KEY_SEQ_NUM FROM NEXTKEY WHERE KEY_NAME=?", (key_name,)).fetchone()
-    if not row:
-        raise RuntimeError(f"NEXTKEY {key_name} no encontrado")
-    return int(row[0])
-
-
-def set_next(cur, key_name, value):
-    cur.execute(
-        "UPDATE NEXTKEY SET KEY_SEQ_NUM=?, UPDATE_DATE=?, UPDATE_USER=? WHERE KEY_NAME=?",
-        (value, now(), 'openclaw', key_name),
-    )
+from p6_utils import clone_resource_payload, get_next_id, insert_row, now_str, open_db, set_next_id, split3
 
 
 def clone_resource_row(template, new_id, short_name, name):
-    d = dict(template)
-    d['RSRC_ID'] = new_id
-    d['RSRC_SHORT_NAME'] = short_name
-    d['RSRC_NAME'] = name
-    d['RSRC_TYPE'] = 'RT_Labor'
-    d['CREATE_DATE'] = now()
-    d['CREATE_USER'] = 'openclaw'
-    d['UPDATE_DATE'] = now()
-    d['UPDATE_USER'] = 'openclaw'
-    d['DELETE_SESSION_ID'] = None
-    d['DELETE_DATE'] = None
-    d['GUID'] = None
-    d['RSRC_SEQ_NUM'] = None
-    d['EMAIL_ADDR'] = None
-    d['EMPLOYEE_CODE'] = None
-    d['OFFICE_PHONE'] = None
-    d['OTHER_PHONE'] = None
-    return d
-
-
-def insert_row(cur, table, row_dict):
-    cols = list(row_dict.keys())
-    vals = [row_dict[c] for c in cols]
-    marks = ','.join(['?'] * len(cols))
-    sql = f"INSERT INTO {table} ({','.join(cols)}) VALUES ({marks})"
-    cur.execute(sql, vals)
+    return clone_resource_payload(template, new_id, short_name, name, rsrc_type='RT_Labor')
 
 
 def main():
@@ -66,8 +21,7 @@ def main():
     ap.add_argument('--apply', action='store_true')
     args = ap.parse_args()
 
-    con = sqlite3.connect(Path(args.db))
-    con.row_factory = sqlite3.Row
+    con = open_db(Path(args.db))
     cur = con.cursor()
 
     old = cur.execute('SELECT * FROM RSRC WHERE RSRC_ID=?', (args.old_rsrc,)).fetchone()
@@ -95,8 +49,8 @@ def main():
         (args.proj_id, args.old_rsrc),
     ).fetchone()
 
-    next_rsrc = get_next(cur, 'rsrc_rsrc_id')
-    next_taskrsrc = get_next(cur, 'taskrsrc_taskrsrc_id')
+    next_rsrc = get_next_id(cur, 'rsrc_rsrc_id')
+    next_taskrsrc = get_next_id(cur, 'taskrsrc_taskrsrc_id')
 
     print(f"PROJ_ID={args.proj_id}")
     print(f"OLD_RSRC={args.old_rsrc}")
@@ -164,7 +118,7 @@ def main():
                     round(rq_s[0] * 1.0, 4),
                     round(ar_s[0] * 1.0, 4),
                     round(ao_s[0] * 1.0, 4),
-                    now(), 'openclaw', row['TASKRSRC_ID']
+                    now_str(), 'openclaw', row['TASKRSRC_ID']
                 )
             )
             updated_original_assignments += 1
@@ -186,9 +140,9 @@ def main():
                 new_row['ACT_OT_COST'] = round(ao_s[idx] * 1.0, 4)
                 new_row['RSRC_TYPE'] = 'RT_Labor'
                 new_row['GUID'] = None
-                new_row['CREATE_DATE'] = now()
+                new_row['CREATE_DATE'] = now_str()
                 new_row['CREATE_USER'] = 'openclaw'
-                new_row['UPDATE_DATE'] = now()
+                new_row['UPDATE_DATE'] = now_str()
                 new_row['UPDATE_USER'] = 'openclaw'
                 new_row['DELETE_SESSION_ID'] = None
                 new_row['DELETE_DATE'] = None
@@ -198,13 +152,13 @@ def main():
         # Update TASK master pointer where it used old resource
         cur.execute(
             "UPDATE TASK SET RSRC_ID=?, UPDATE_DATE=?, UPDATE_USER=? WHERE PROJ_ID=? AND RSRC_ID=?",
-            (op1, now(), 'openclaw', args.proj_id, args.old_rsrc)
+            (op1, now_str(), 'openclaw', args.proj_id, args.old_rsrc)
         )
         updated_tasks = cur.rowcount
 
         # Update NEXTKEY
-        set_next(cur, 'rsrc_rsrc_id', next_rsrc + 3)
-        set_next(cur, 'taskrsrc_taskrsrc_id', next_taskrsrc)
+        set_next_id(cur, 'rsrc_rsrc_id', next_rsrc + 3)
+        set_next_id(cur, 'taskrsrc_taskrsrc_id', next_taskrsrc)
 
         # Delete old RSRC if no more references in TASKRSRC/TASK
         refs_taskrsrc = cur.execute('SELECT COUNT(*) FROM TASKRSRC WHERE RSRC_ID=?', (args.old_rsrc,)).fetchone()[0]

@@ -1,66 +1,12 @@
 import argparse
-import sqlite3
 from pathlib import Path
-from datetime import datetime
+import sys
 
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
 
-def now_str():
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
-def get_next_id(cur, key_name):
-    row = cur.execute("SELECT KEY_SEQ_NUM FROM NEXTKEY WHERE KEY_NAME=?", (key_name,)).fetchone()
-    if not row:
-        raise RuntimeError(f"NEXTKEY {key_name} not found")
-    return int(row[0])
-
-
-def set_next_id(cur, key_name, value):
-    cur.execute(
-        "UPDATE NEXTKEY SET KEY_SEQ_NUM=?, UPDATE_DATE=?, UPDATE_USER=? WHERE KEY_NAME=?",
-        (value, now_str(), 'openclaw', key_name),
-    )
-
-
-def clone_resource_payload(template, rsrc_id, short_name, name):
-    return {
-        "RSRC_ID": rsrc_id,
-        "PARENT_RSRC_ID": template["PARENT_RSRC_ID"],
-        "CLNDR_ID": template["CLNDR_ID"],
-        "ROLE_ID": template["ROLE_ID"],
-        "SHIFT_ID": template["SHIFT_ID"],
-        "USER_ID": None,
-        "POBS_ID": template["POBS_ID"],
-        "GUID": None,
-        "RSRC_SEQ_NUM": None,
-        "EMAIL_ADDR": None,
-        "EMPLOYEE_CODE": None,
-        "OFFICE_PHONE": None,
-        "OTHER_PHONE": None,
-        "RSRC_NAME": name,
-        "RSRC_SHORT_NAME": short_name,
-        "RSRC_TITLE_NAME": "CUADRILLA",
-        "DEF_QTY_PER_HR": template["DEF_QTY_PER_HR"],
-        "COST_QTY_TYPE": template["COST_QTY_TYPE"],
-        "OT_FACTOR": template["OT_FACTOR"],
-        "ACTIVE_FLAG": "Y",
-        "AUTO_COMPUTE_ACT_FLAG": template["AUTO_COMPUTE_ACT_FLAG"],
-        "DEF_COST_QTY_LINK_FLAG": template["DEF_COST_QTY_LINK_FLAG"],
-        "OT_FLAG": template["OT_FLAG"],
-        "CURR_ID": template["CURR_ID"],
-        "UNIT_ID": template["UNIT_ID"],
-        "RSRC_TYPE": template["RSRC_TYPE"],
-        "LOCATION_ID": template["LOCATION_ID"],
-        "RSRC_NOTES": None,
-        "TS_APPROVE_USER_ID": None,
-        "TIMESHEET_FLAG": template["TIMESHEET_FLAG"],
-        "CREATE_DATE": now_str(),
-        "CREATE_USER": "openclaw",
-        "UPDATE_DATE": now_str(),
-        "UPDATE_USER": "openclaw",
-        "DELETE_SESSION_ID": None,
-        "DELETE_DATE": None,
-    }
+from p6_utils import clone_resource_payload, get_next_id, now_str, open_db, set_next_id
 
 
 def main():
@@ -71,8 +17,7 @@ def main():
     ap.add_argument('--apply', action='store_true')
     args = ap.parse_args()
 
-    con = sqlite3.connect(Path(args.db))
-    con.row_factory = sqlite3.Row
+    con = open_db(Path(args.db))
     cur = con.cursor()
 
     tasks = cur.execute(
@@ -146,7 +91,7 @@ def main():
             next_rsrc += 1
             short = f"W{args.wbs_id}-{code}"
             name = f"Cuadrilla WBS {args.wbs_id} - {label}"
-            payload = clone_resource_payload(template, rid, short, name)
+            payload = clone_resource_payload(template, rid, short, name, title='CUADRILLA', rsrc_type=template['RSRC_TYPE'])
             cols = list(payload.keys())
             cur.execute(
                 f"INSERT INTO RSRC ({','.join(cols)}) VALUES ({','.join(['?']*len(cols))})",

@@ -1,5 +1,4 @@
 import argparse
-import sqlite3
 from datetime import datetime
 
 
@@ -18,8 +17,7 @@ op_ids = [int(x.strip()) for x in args.op_ids.split(',') if x.strip()]
 if not op_ids:
     raise SystemExit('op-ids vacío')
 
-con = sqlite3.connect(args.db)
-con.row_factory = sqlite3.Row
+con = open_db(args.db)
 cur = con.cursor()
 
 marks = ','.join(['?'] * len(op_ids))

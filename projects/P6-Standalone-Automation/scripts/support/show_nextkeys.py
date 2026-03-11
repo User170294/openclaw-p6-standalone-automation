@@ -1,11 +1,27 @@
-import sqlite3
+import argparse
 from pathlib import Path
+import sys
 
-DB = Path(r"C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B - copia_WORK_20260226_145427.db")
-con = sqlite3.connect(DB)
-con.row_factory = sqlite3.Row
-cur = con.cursor()
-rows = cur.execute("SELECT KEY_NAME, KEY_SEQ_NUM FROM NEXTKEY ORDER BY KEY_NAME").fetchall()
-print(f"COUNT={len(rows)}")
-for r in rows:
-    print(f"{r['KEY_NAME']}|{r['KEY_SEQ_NUM']}")
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import open_db
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--db', required=True)
+    args = ap.parse_args()
+
+    con = open_db(args.db)
+    cur = con.cursor()
+    rows = cur.execute('SELECT KEY_NAME, KEY_SEQ_NUM FROM NEXTKEY ORDER BY KEY_NAME').fetchall()
+    print(f'COUNT={len(rows)}')
+    for r in rows:
+        print(f"{r['KEY_NAME']}|{r['KEY_SEQ_NUM']}")
+    con.close()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,12 @@
 import argparse
-import sqlite3
 from pathlib import Path
+import sys
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import open_db
 
 
 def descendants_by_root(cur, root_wbs_id):
@@ -27,7 +33,7 @@ def main():
 
     keep_proj = {int(x.strip()) for x in args.keep_proj.split(",") if x.strip()}
 
-    con = sqlite3.connect(Path(args.db))
+    con = open_db(Path(args.db))
     cur = con.cursor()
 
     rows = descendants_by_root(cur, args.root)
