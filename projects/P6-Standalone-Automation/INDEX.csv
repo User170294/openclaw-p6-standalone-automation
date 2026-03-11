@@ -18,3 +18,4 @@ dir,scripts/archive_tmp,Archivo historico de scripts temporales tmp_*,activo,202
 script,scripts/core/compare_xer_db_weekly.py,Comparador reusable XER vs DB a partir de curvas semanales en CSV,activo,2026-03-11
 script,scripts/core/load_progress_excel_to_p6db.py,Cargador seguro de avances Excel hacia DB SQLite P6 con dry-run respaldo y sincronizacion TASKRSRC->TASK,activo,2026-03-11
 script,scripts/core/pilot_audit.py,Auditoria SQLite extendida con checks post-carga TASK vs TASKRSRC y costos residuales,activo,2026-03-11
+script,scripts/core/pv_engine.py,Motor dual unico logic p6_visual con load compute compare export y salida estable semanal,activo,2026-03-11

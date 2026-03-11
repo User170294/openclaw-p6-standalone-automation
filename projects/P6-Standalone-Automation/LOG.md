@@ -129,3 +129,12 @@
 - Se migran scripts de `mutations/` con duplicación real de helpers (`apply_wbs_crew_split.py`, `replace_resource_with_three_ops.py`, `apply_distinct_hh_resources.py`, `create_project_under_simtexx.py`) para importar desde `p6_utils`.
 - Se migran scripts de `support/` con DB hardcodeada a `argparse --db` + `open_db` (`check_resource_types.py`, `check_taskrsrc_types.py`, `check_root_154616.py`, `list_eps_level1.py`, `show_nextkeys.py`, `verify_hh_update.py`, `verify_multi_wbs_crew.py`, `verify_projects_under_root.py`, `inspect_sqlite.py`).
 - Verificaciones ejecutadas: `python -m compileall projects/P6-Standalone-Automation/scripts tests/test_p6_utils.py` OK; `python -m unittest tests.test_p6_utils -v` OK.
+
+## 2026-03-11 17:19 (UTC-3)
+- Se crea `scripts/core/pv_engine.py` como motor dual único con interfaz estable: `--base-xer`, `--upd-xer`, `--db`, `--proj-id`, `--cutoff`, `--mode`, `--out-dir`, `--format`.
+- Se rescatan del prototipo `weekly_control_report_v2.py` exactamente las piezas base: `parse_table`, `safe_float`, `safe_dt`, `spread_lv`, `week_label` y bucket semanal por lunes; no se rescatan estructura ni constantes hardcodeadas.
+- Se separa internamente en cuatro capas: `load()`, `compute()`, `compare()`, `export()`.
+- Se fija salida estable con columnas: `week`, `pv_week`, `pv_cum`, `ev_cum`, `sv`, `spi`.
+- `mode=p6_visual` queda documentado como stub intencional; `mode=logic` queda ejecutable.
+- Tests mínimos agregados en `tests/test_pv_engine.py` con `unittest` para `spread_lv` y `week_label` (OK).
+- Verificaciones ejecutadas: `python -m unittest tests.test_pv_engine -v` OK; `pv_engine.py --mode p6_visual` OK; `pv_engine.py --mode logic` OK.

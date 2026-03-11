@@ -27,7 +27,7 @@
 - Hay fixtures externos disponibles en `001_Prueba Externa/` para pruebas iniciales.
 
 ## Estructura útil
-- `scripts/core/` → flujo productivo principal (carga segura, auditoría, comparación XER/DB, mutación XER).
+- `scripts/core/` → flujo productivo principal (carga segura, auditoría, comparación XER/DB, mutación XER, motor PV dual logic/p6_visual).
 - `scripts/support/` → inspección, listados, validaciones y utilitarios de apoyo.
 - `scripts/mutations/` → mutaciones DB específicas y operaciones controladas.
 - `scripts/prototypes/` → prototipos y métodos aún no consolidados.
