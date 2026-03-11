@@ -58,11 +58,13 @@ def safe_dt(s: str | None) -> datetime | None:
     if not s or not str(s).strip():
         return None
     s = str(s).strip()
-    for fmt in ['%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d']:
-        try:
-            return datetime.strptime(s[: len(fmt)], fmt)
-        except Exception:
-            pass
+    candidates = [s, s[:19], s[:16], s[:10]]
+    for candidate in candidates:
+        for fmt in ['%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%Y-%m-%d']:
+            try:
+                return datetime.strptime(candidate, fmt)
+            except Exception:
+                pass
     return None
 
 
@@ -92,32 +94,20 @@ def load(args) -> dict[str, Any]:
         'db': Path(args.db) if args.db else None,
         'proj_id': args.proj_id,
     }
-    if payload['base_xer']:
-        payload['base_task_rows'] = parse_table(payload['base_xer'], 'TASK')
-    else:
-        payload['base_task_rows'] = []
-    if payload['upd_xer']:
-        payload['upd_taskrsrc_rows'] = parse_table(payload['upd_xer'], 'TASKRSRC')
-    else:
-        payload['upd_taskrsrc_rows'] = []
+    payload['base_taskrsrc_rows'] = parse_table(payload['base_xer'], 'TASKRSRC') if payload['base_xer'] else []
+    payload['upd_taskrsrc_rows'] = parse_table(payload['upd_xer'], 'TASKRSRC') if payload['upd_xer'] else []
     return payload
 
 
-def compute(payload: dict[str, Any]) -> dict[str, Any]:
-    if payload['mode'] == 'p6_visual':
-        return {
-            'mode': 'p6_visual',
-            'stub': True,
-            'note': 'Modo p6_visual aún no implementado; interfaz reservada y salida estable habilitada.',
-            'rows': [],
-        }
-
+def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     cutoff: datetime = payload['cutoff']
     pv_week = defaultdict(float)
     ev_week = defaultdict(float)
 
-    for row in payload['base_task_rows']:
-        hh = safe_float(row.get('target_work_qty'))
+    for row in payload['base_taskrsrc_rows']:
+        if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+            continue
+        hh = safe_float(row.get('target_qty'))
         ts = safe_dt(row.get('target_start_date'))
         te = safe_dt(row.get('target_end_date'))
         if hh <= 0 or not ts or not te:
@@ -125,6 +115,8 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
         spread_lv(ts.date(), te.date(), hh, pv_week)
 
     for row in payload['upd_taskrsrc_rows']:
+        if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+            continue
         ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
         a_s = safe_dt(row.get('act_start_date'))
         a_e = safe_dt(row.get('act_end_date'))
@@ -155,9 +147,21 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
     return {
         'mode': 'logic',
         'stub': False,
-        'note': 'Modo logic calculado desde bucket semanal por lunes.',
+        'note': 'Modo logic calculado desde TASKRSRC.target_qty filtrado por RT_Labor y bucket semanal por lunes.',
         'rows': rows,
+        'bac': round(sum(float(r['pv_week']) for r in rows), 4),
     }
+
+
+def compute(payload: dict[str, Any]) -> dict[str, Any]:
+    if payload['mode'] == 'p6_visual':
+        return {
+            'mode': 'p6_visual',
+            'stub': True,
+            'note': 'Modo p6_visual aún no implementado; interfaz reservada y salida estable habilitada.',
+            'rows': [],
+        }
+    return _compute_logic(payload)
 
 
 def compare(result: dict[str, Any]) -> dict[str, Any]:
