@@ -3,7 +3,10 @@ doc,README.md,Definicion del proyecto alcance y estado actual,activo,2026-03-10
 doc,MEMORY.md,Decisiones tecnicas criterios y pendientes,activo,2026-03-09
 log,LOG.md,Bitacora operativa del proyecto,activo,2026-03-09
 doc,docs/XER_DB_VALIDATION_FLOW.md,Flujo unico de validacion cruzada entre XER y DB SQLite,activo,2026-03-10
+doc,docs/SCRIPT_AUDIT_2026-03-11.md,Auditoria de scripts productivos prototipos y deuda tecnica del proyecto,activo,2026-03-11
+doc,docs/OPERATING_SUMMARY_2026-03-11.md,Resumen operativo vivo del proyecto para consulta y RAG,activo,2026-03-11
 doc,docs/summaries/PRACTICE STANDARD FOR SCHEDULING 3ra.md,Resumen del estandar de scheduling indexado para consulta,activo,2026-02-28
 dir,001_Prueba Externa,Fixtures XER externos para pruebas comparativas,activo,2026-03-10
 dir,data,Salidas snapshots y reportes de corridas,activo,2026-03-10
 dir,scripts,Scripts productivos y temporales del proyecto,activo,2026-03-10
+script,scripts/compare_xer_db_weekly.py,Comparador reusable XER vs DB a partir de curvas semanales en CSV,activo,2026-03-11

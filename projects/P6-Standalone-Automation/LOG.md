@@ -98,3 +98,12 @@
   - La carga debe respetar `COMPLETE_PCT_TYPE` del proyecto/actividad (`CP_Drtn` en este caso) y no asumir Units % Complete como regla universal.
   - Las pruebas parciales deben excluir filas ambiguas (sin inicio o sin término) y tratar por separado cierres 100% vs avances parciales.
 - Resultado: se consolida un patrón operativo reutilizable para el agente en `P6-Standalone-Automation`, pendiente de formalización en script reusable de carga segura desde Excel hacia DB.
+
+## 2026-03-11 16:00 (UTC-3)
+- Se ejecuta auditoría de scripts del proyecto y se clasifica el estado real de la carpeta `scripts/`.
+- Nuevo documento: `docs/SCRIPT_AUDIT_2026-03-11.md` con separación entre scripts productivos, prototipos y temporales.
+- Nuevo resumen operativo vivo: `docs/OPERATING_SUMMARY_2026-03-11.md`.
+- Se agrega comparador reusable inicial: `scripts/compare_xer_db_weekly.py` para contraste semanal XER vs DB a partir de CSV normalizados.
+- Validación ejecutada con fixture 15682/LB vs DB (`compare_xer_db_26379_reusable.csv`): 35 semanas, `MAX_ABS_DELTA_VALUE=173.5199`, `MAX_ABS_DELTA_CUM=635.4370`.
+- Se reindexa RAG del proyecto incorporando el resumen operativo; colección `p6_standalone_automation` pasa de 400 a 767 chunks.
+- Resultado: la consulta semántica de “estado actual operativo del proyecto” pasa a recuperar `OPERATING_SUMMARY_2026-03-11` como top hit.
