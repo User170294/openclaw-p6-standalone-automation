@@ -1,0 +1,75 @@
+# Local workspace / OpenClaw noise
+.openclaw/
+logs/
+downloads/
+exports/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Build outputs
+bin/
+obj/
+
+# Secrets / env
+.env
+.env.*
+*.token
+*token_cache*.json
+
+# Large/generated local data
+*.zip
+*.bak
+*.tmp
+
+# Chroma / retrieval local persistence
+data/chroma/
+data/bm25_cache/
+data/ingest_tmp/
+data/pdf_extract*/
+
+# Generic tmp scratch
+tmp/
+tmp_*
+%s
+
+# Graph mail local working files
+graph-mail/.env
+graph-mail/token_cache.json
+graph-mail/inbox_review.json
+graph-mail/inbox_promo_candidates.json
+
+# Keep repo focused on P6 project content by default
+# Other projects, memory, backups, and workspace docs stay local unless explicitly re-added
+.learnings/
+artifacts/
+backups/
+data/
+docs/
+graph-mail/
+integrations/
+memory/
+projects/Bodega-Simtexx/
+projects/OT-1844/
+projects/finanzas/
+projects/solid_to_steel/
+scripts/
+skills/
+workspace_export.md
+ot1844_emails_index.csv
+ot1844_emails_index.md
+projects/P6-Standalone-Automation/001_Prueba Externa/
+AGENTS.md
+BOOTSTRAP.md
+HEARTBEAT.md
+IDENTITY.md
+MEMORY.md
+MEMORY_BRIEF.md
+PROJECTS.md
+SHIELD.md
+SOUL.md
+TOOLS.md
+USER.md
+as_plugin/
