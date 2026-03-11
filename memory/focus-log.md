@@ -126,3 +126,18 @@
 - RAG: sí + 400 chunks + top score 0.000 (rerank top -11.1390)
 - Brechas: INDEX.csv inconsistente; búsqueda RAG de estado devuelve chunks débiles del PDF estándar, falta documentación/resúmenes más orientados a estado operativo actual.
 - Propuesta: crear resumen operativo indexado del proyecto y/o tags más específicos para mejorar retrieval de estado.
+## 2026-03-11 09:41 UTC-3
+- Trigger: foco en P6-Standalone-Automation
+- Archivos leídos:
+  - projects/P6-Standalone-Automation/README.md
+  - projects/P6-Standalone-Automation/MEMORY.md
+  - projects/P6-Standalone-Automation/LOG.md (100 líneas)
+  - projects/P6-Standalone-Automation/INDEX.csv (50 líneas)
+  - projects/P6-Standalone-Automation/data/ (verificado)
+  - data/chroma/p6_standalone_automation/ (verificado)
+- RAG: no; 0 chunks; top score: N/A
+- Brechas:
+  - Colección RAG no encontrada en data/chroma/p6_standalone_automation
+  - No existe data/chroma/p6_standalone_automation dentro de la carpeta del proyecto
+- Propuesta:
+  - Reindexar la colección RAG del proyecto y luego validar con búsqueda semántica top 3
