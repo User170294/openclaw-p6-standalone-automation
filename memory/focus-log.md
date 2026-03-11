@@ -72,72 +72,84 @@
 - RAG ejecutada: no â†’ colecciÃ³n no encontrada (`data/chroma/ot_1844`)
 - Brechas: no existe carpeta explÃ­cita por nombre de colecciÃ³n en `data/chroma`; validaciÃ³n de estado actual no ejecutada por protocolo
 - Propuesta: indexar/revincular colecciÃ³n `ot_1844` y luego correr `search_project.py --ask "estado actual" --top 3`
-## [2026-03-06 18:30 UTC-3] — Foco en OT-1844
+## [2026-03-06 18:30 UTC-3] ï¿½ Foco en OT-1844
 - Trigger: "OT-1844"
-- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/* (filtro 1844); data/chroma/* (filtro ot_1844)
-- RAG ejecutada: no ? colección no encontrada (`data/chroma/ot_1844`)
+- Archivos leï¿½dos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 lï¿½neas); projects/OT-1844/INDEX.csv (50 lï¿½neas); data/* (filtro 1844); data/chroma/* (filtro ot_1844)
+- RAG ejecutada: no ? colecciï¿½n no encontrada (`data/chroma/ot_1844`)
 - Brechas: `data/chroma/` usa UUIDs y no expone carpeta nominal `ot_1844`; protocolo actual no permite validar estado sin esa ruta
-- Propuesta: ¿indexar/revincular colección `ot_1844` y ejecutar búsqueda "estado actual" ahora?
-## [2026-03-06 18:32 UTC-3] — Foco en OT-1844 (reindex + RAG)
+- Propuesta: ï¿½indexar/revincular colecciï¿½n `ot_1844` y ejecutar bï¿½squeda "estado actual" ahora?
+## [2026-03-06 18:32 UTC-3] ï¿½ Foco en OT-1844 (reindex + RAG)
 - Trigger: "hazlo" (sobre foco OT-1844)
-- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/*; data/chroma/*
-- RAG ejecutada: sí ? 2160 chunks, top rerank 0.7512
-- Brechas: consulta "estado actual" quedó sesgada a compras (score vector 0.000; rerank alto)
+- Archivos leï¿½dos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 lï¿½neas); projects/OT-1844/INDEX.csv (50 lï¿½neas); data/*; data/chroma/*
+- RAG ejecutada: sï¿½ ? 2160 chunks, top rerank 0.7512
+- Brechas: consulta "estado actual" quedï¿½ sesgada a compras (score vector 0.000; rerank alto)
 - Propuesta: usar consulta compuesta con tags (cronograma+hitos+riesgos+compras) para panorama integral
-## [2026-03-07 12:20 UTC-3] — Foco en SOLID_TO_STEEL
+## [2026-03-07 12:20 UTC-3] ï¿½ Foco en SOLID_TO_STEEL
 - Trigger: "activalo :D"
-- Archivos leídos: projects/solid_to_steel/README.md; projects/solid_to_steel/MEMORY.md; projects/solid_to_steel/LOG.md (100 líneas); projects/solid_to_steel/INDEX.csv (50 líneas); data/* (filtro solid_to_steel); data/chroma/* (filtro solid_to_steel)
-- RAG ejecutada: no ? colección no encontrada (data/chroma/solid_to_steel)
-- Brechas: sin chunks del proyecto detectados en data/; sin colección ChromaDB nominal para solid_to_steel; MEMORY.md y LOG.md aún con cabecera histórica "ADVANCE STEEL"
-- Propuesta: crear chunks iniciales del proyecto y ejecutar indexación para habilitar RAG; normalizar nombres internos a SOLID_TO_STEEL
-## [2026-03-07 14:11 UTC-3] — Foco en SOLID_TO_STEEL
+- Archivos leï¿½dos: projects/solid_to_steel/README.md; projects/solid_to_steel/MEMORY.md; projects/solid_to_steel/LOG.md (100 lï¿½neas); projects/solid_to_steel/INDEX.csv (50 lï¿½neas); data/* (filtro solid_to_steel); data/chroma/* (filtro solid_to_steel)
+- RAG ejecutada: no ? colecciï¿½n no encontrada (data/chroma/solid_to_steel)
+- Brechas: sin chunks del proyecto detectados en data/; sin colecciï¿½n ChromaDB nominal para solid_to_steel; MEMORY.md y LOG.md aï¿½n con cabecera histï¿½rica "ADVANCE STEEL"
+- Propuesta: crear chunks iniciales del proyecto y ejecutar indexaciï¿½n para habilitar RAG; normalizar nombres internos a SOLID_TO_STEEL
+## [2026-03-07 14:11 UTC-3] ï¿½ Foco en SOLID_TO_STEEL
 - Trigger: "ok vamos con las pruebas, primero hagamos fioco en el proyecto"
-- Archivos leídos: projects/solid_to_steel/README.md; projects/solid_to_steel/MEMORY.md; projects/solid_to_steel/LOG.md; projects/solid_to_steel/INDEX.csv
-- RAG ejecutada: no ? colección no encontrada
-- Brechas: falta colección ChromaDB data/chroma/solid_to_steel; endpoint /status inestable
-- Propuesta: indexar chunks data/solid_to_steel_chunks.jsonl en Chroma y luego correr búsqueda "estado actual"
-## [2026-03-09 12:22 UTC-3] — Foco en selección de proyecto
+- Archivos leï¿½dos: projects/solid_to_steel/README.md; projects/solid_to_steel/MEMORY.md; projects/solid_to_steel/LOG.md; projects/solid_to_steel/INDEX.csv
+- RAG ejecutada: no ? colecciï¿½n no encontrada
+- Brechas: falta colecciï¿½n ChromaDB data/chroma/solid_to_steel; endpoint /status inestable
+- Propuesta: indexar chunks data/solid_to_steel_chunks.jsonl en Chroma y luego correr bï¿½squeda "estado actual"
+## [2026-03-09 12:22 UTC-3] ï¿½ Foco en selecciï¿½n de proyecto
 - Trigger: "hagamos foco en un proyecto, dime cuales tengo disponible"
-- Archivos leídos: projects/*/README.md; projects/*/MEMORY.md; projects/*/LOG.md (hasta 100); projects/*/INDEX.csv (hasta 50); data/* (filtro por proyecto); data/chroma/* (verificación)
-- RAG ejecutada: sí (OT-1844: 2160 chunks, top rerank 0.7512; FINANZAS: 19 chunks; P6-STANDALONE-AUTOMATION: 400 chunks; SOLID_TO_STEEL: 4 chunks); no para Bodega-Simtexx (colección no encontrada)
-- Brechas: Bodega-Simtexx sin chunks/colección; para todos los proyectos la carpeta nominal data/chroma/<proyecto_normalizado> no aparece (backend usa UUID)
-- Propuesta: seleccionar proyecto objetivo y continuar foco detallado con consolidación completa
-## [2026-03-09 12:28 UTC-3] — Foco en OT-1844
+- Archivos leï¿½dos: projects/*/README.md; projects/*/MEMORY.md; projects/*/LOG.md (hasta 100); projects/*/INDEX.csv (hasta 50); data/* (filtro por proyecto); data/chroma/* (verificaciï¿½n)
+- RAG ejecutada: sï¿½ (OT-1844: 2160 chunks, top rerank 0.7512; FINANZAS: 19 chunks; P6-STANDALONE-AUTOMATION: 400 chunks; SOLID_TO_STEEL: 4 chunks); no para Bodega-Simtexx (colecciï¿½n no encontrada)
+- Brechas: Bodega-Simtexx sin chunks/colecciï¿½n; para todos los proyectos la carpeta nominal data/chroma/<proyecto_normalizado> no aparece (backend usa UUID)
+- Propuesta: seleccionar proyecto objetivo y continuar foco detallado con consolidaciï¿½n completa
+## [2026-03-09 12:28 UTC-3] ï¿½ Foco en OT-1844
 - Trigger: "OT-1844"
-- Archivos leídos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 líneas); projects/OT-1844/INDEX.csv (50 líneas); data/ot-1844_chunks.jsonl; data/ot-1844_chunks.bak.jsonl; data/ot-1844_docs.jsonl
-- RAG ejecutada: sí ? 2160 chunks, top score rerank=1.2362 (query: "estado actual del proyecto: avance, hitos, riesgos")
-- Brechas: consulta de estado devuelve evidencia técnica parcial/no centrada en cronograma (hitos/avance no priorizados en top 3)
-- Propuesta: correr segunda búsqueda con tags `cronograma,P6,hitos` y consolidar estado semanal W## con foco en entregas y float crítico
-## [2026-03-09 16:33 UTC-3] — Foco en P6-Standalone-Automation
+- Archivos leï¿½dos: projects/OT-1844/README.md; projects/OT-1844/MEMORY.md; projects/OT-1844/LOG.md (100 lï¿½neas); projects/OT-1844/INDEX.csv (50 lï¿½neas); data/ot-1844_chunks.jsonl; data/ot-1844_chunks.bak.jsonl; data/ot-1844_docs.jsonl
+- RAG ejecutada: sï¿½ ? 2160 chunks, top score rerank=1.2362 (query: "estado actual del proyecto: avance, hitos, riesgos")
+- Brechas: consulta de estado devuelve evidencia tï¿½cnica parcial/no centrada en cronograma (hitos/avance no priorizados en top 3)
+- Propuesta: correr segunda bï¿½squeda con tags `cronograma,P6,hitos` y consolidar estado semanal W## con foco en entregas y float crï¿½tico
+## [2026-03-09 16:33 UTC-3] ï¿½ Foco en P6-Standalone-Automation
 - Trigger: "cambiemos foco al proyecto P6-Standalone-Automation"
-- Archivos leídos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100 líneas); INDEX.csv (50 líneas); data/p6-standalone-automation_chunks.jsonl; data/p6-standalone-automation_docs.jsonl
-- RAG ejecutada: sí ? colección `p6_standalone_automation` con 400 chunks; top rerank=-10.8523 (query: "estado actual del proyecto")
-- Brechas: consulta de estado actual con baja señal semántica (top 3 genéricos/glosario); falta documentación específica de flujo GitHub para el proyecto
+- Archivos leï¿½dos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100 lï¿½neas); INDEX.csv (50 lï¿½neas); data/p6-standalone-automation_chunks.jsonl; data/p6-standalone-automation_docs.jsonl
+- RAG ejecutada: sï¿½ ? colecciï¿½n `p6_standalone_automation` con 400 chunks; top rerank=-10.8523 (query: "estado actual del proyecto")
+- Brechas: consulta de estado actual con baja seï¿½al semï¿½ntica (top 3 genï¿½ricos/glosario); falta documentaciï¿½n especï¿½fica de flujo GitHub para el proyecto
 - Propuesta: definir e implementar baseline GitHub (repo, ramas, PR template, changelog y release de reportes) en este proyecto
 - Fecha/hora UTC-3: 2026-03-10 08:03
 - Trigger: foco en P6-Standalone-Automation
-- Archivos leídos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100); INDEX.csv (50)
-- RAG: sí + 400 chunks + top score rerank=-11.1359
-- Brechas: índice CSV inconsistente; colección no detectable por carpeta canónica data/chroma/p6_standalone_automation (se resuelve vía metadatos internos); resultados RAG poco específicos al estado operativo
-- Propuesta: limpiar INDEX.csv, documentar ruta/estado real de colección Chroma y crear resumen operativo propio en docs para mejorar retrieval
+- Archivos leï¿½dos: projects/P6-Standalone-Automation/README.md; MEMORY.md; LOG.md (100); INDEX.csv (50)
+- RAG: sï¿½ + 400 chunks + top score rerank=-11.1359
+- Brechas: ï¿½ndice CSV inconsistente; colecciï¿½n no detectable por carpeta canï¿½nica data/chroma/p6_standalone_automation (se resuelve vï¿½a metadatos internos); resultados RAG poco especï¿½ficos al estado operativo
+- Propuesta: limpiar INDEX.csv, documentar ruta/estado real de colecciï¿½n Chroma y crear resumen operativo propio en docs para mejorar retrieval
 ## 2026-03-10 16:01 UTC-3
 - Trigger: foco en P6-Standalone-Automation
-- Archivos leídos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
-- RAG: sí + 400 chunks + top score 0.000 (rerank top -11.1390)
-- Brechas: INDEX.csv inconsistente; búsqueda RAG de estado devuelve chunks débiles del PDF estándar, falta documentación/resúmenes más orientados a estado operativo actual.
-- Propuesta: crear resumen operativo indexado del proyecto y/o tags más específicos para mejorar retrieval de estado.
+- Archivos leï¿½dos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md; projects/P6-Standalone-Automation/INDEX.csv
+- RAG: sï¿½ + 400 chunks + top score 0.000 (rerank top -11.1390)
+- Brechas: INDEX.csv inconsistente; bï¿½squeda RAG de estado devuelve chunks dï¿½biles del PDF estï¿½ndar, falta documentaciï¿½n/resï¿½menes mï¿½s orientados a estado operativo actual.
+- Propuesta: crear resumen operativo indexado del proyecto y/o tags mï¿½s especï¿½ficos para mejorar retrieval de estado.
 ## 2026-03-11 09:41 UTC-3
 - Trigger: foco en P6-Standalone-Automation
-- Archivos leídos:
+- Archivos leï¿½dos:
   - projects/P6-Standalone-Automation/README.md
   - projects/P6-Standalone-Automation/MEMORY.md
-  - projects/P6-Standalone-Automation/LOG.md (100 líneas)
-  - projects/P6-Standalone-Automation/INDEX.csv (50 líneas)
+  - projects/P6-Standalone-Automation/LOG.md (100 lï¿½neas)
+  - projects/P6-Standalone-Automation/INDEX.csv (50 lï¿½neas)
   - projects/P6-Standalone-Automation/data/ (verificado)
   - data/chroma/p6_standalone_automation/ (verificado)
 - RAG: no; 0 chunks; top score: N/A
 - Brechas:
-  - Colección RAG no encontrada en data/chroma/p6_standalone_automation
+  - Colecciï¿½n RAG no encontrada en data/chroma/p6_standalone_automation
   - No existe data/chroma/p6_standalone_automation dentro de la carpeta del proyecto
 - Propuesta:
-  - Reindexar la colección RAG del proyecto y luego validar con búsqueda semántica top 3
+  - Reindexar la colecciï¿½n RAG del proyecto y luego validar con bï¿½squeda semï¿½ntica top 3
+- Fecha/hora UTC-3: 2026-03-11 12:27
+- Trigger: OT-1844
+- Archivos leï¿½dos: README.md; MEMORY.md; LOG.md; INDEX.csv
+- RAG: sï¿½ + 2160 chunks + top score 0.602 (consulta tags cronograma/P6/hitos)
+- Brechas: colecciï¿½n no visible en data/chroma/ot_1844; storage aparece con directorios UUID, posible desalineaciï¿½n con ruta canï¿½nica documentada
+- Propuesta: usar colecciï¿½n actual para consultas y normalizar/verificar persistencia Chroma canï¿½nica antes de prï¿½xima reindexaciï¿½n
+## 2026-03-11 15:56 UTC-3
+- Trigger: foco en P6-Standalone-Automation
+- Archivos leÃ­dos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 lÃ­neas + continuaciÃ³n); projects/P6-Standalone-Automation/INDEX.csv (50 lÃ­neas); projects/P6-Standalone-Automation/data/ (verificado); data/chroma/* (verificado)
+- RAG: sÃ­ + 400 chunks + top score 0.000 (rerank top -11.1720)
+- Brechas: la colecciÃ³n `p6_standalone_automation` existe y responde, pero no aparece como carpeta nominal `data/chroma/p6_standalone_automation` porque Chroma persiste con directorios UUID; la query de estado actual devuelve chunks dÃ©biles/genÃ©ricos del PDF estÃ¡ndar, no del estado operativo vivo
+- Propuesta: crear/indexar un resumen operativo propio del proyecto y usar queries temÃ¡ticas mÃ¡s especÃ­ficas (carga DB, XER vs DB, PV/EV semanal) para retrieval Ãºtil
