@@ -27,10 +27,14 @@
 - Hay fixtures externos disponibles en `001_Prueba Externa/` para pruebas iniciales.
 
 ## Estructura útil
-- `scripts/` → automatizaciones, validaciones y utilitarios del proyecto.
+- `scripts/core/` → flujo productivo principal (carga segura, auditoría, comparación XER/DB, mutación XER).
+- `scripts/support/` → inspección, listados, validaciones y utilitarios de apoyo.
+- `scripts/mutations/` → mutaciones DB específicas y operaciones controladas.
+- `scripts/prototypes/` → prototipos y métodos aún no consolidados.
+- `scripts/archive_tmp/` → experimentos históricos `tmp_*` archivados para referencia.
 - `data/` → salidas, snapshots y reportes de corridas.
 - `docs/` → resúmenes y documentación operativa.
-- `001_Prueba Externa/` → XER externos para pruebas comparativas.
+- `001_Prueba Externa/` → XER externos para pruebas comparativas (local, fuera de Git por ahora).
 
 ## Documentos clave
 - `MEMORY.md` → decisiones, criterios y aprendizajes vigentes.

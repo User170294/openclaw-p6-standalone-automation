@@ -115,3 +115,10 @@
 - Dry-run validado con Excel OT-1844 W012 v3 sobre `PROJ_ID=26432`: `CANDIDATES=33`, `PREVIEW_ROWS=19`, `ERROR_ROWS=14`, `APPLIED_ROWS=0`.
 - Reportes generados: `data/load_progress_preview_26432_20260311_162145.csv`, `data/load_progress_errors_26432_20260311_162145.csv`, `data/load_progress_summary_26432_20260311_162145.md`.
 - Auditoría extendida sobre estado actual de `PROJ_ID=26432`: `NO_PREDECESSOR=0`, `OVERDUE_MILESTONE=0`, `TASK_WORK_MISMATCH_LABOR=0`, `COMPLETE_ZERO_ACT_WORK=0`, `COMPLETE_WITH_REMAIN_COST=0`.
+
+## 2026-03-11 16:41 (UTC-3)
+- Se reordena internamente la carpeta `scripts/` por capas operativas para bajar ruido y separar código productivo de experimental.
+- Nueva estructura: `scripts/core`, `scripts/support`, `scripts/mutations`, `scripts/prototypes`, `scripts/archive_tmp`.
+- Se archivan 38 scripts `tmp_*` en `scripts/archive_tmp/`.
+- Se mueven los scripts productivos principales a `scripts/core/`: `load_progress_excel_to_p6db.py`, `pilot_audit.py`, `compare_xer_db_weekly.py`, `xer_update.py`.
+- Se verifican rutas nuevas ejecutando `--help` en `scripts/core/load_progress_excel_to_p6db.py` y `scripts/core/pilot_audit.py` con resultado OK.

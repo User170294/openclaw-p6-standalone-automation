@@ -56,6 +56,8 @@ projects/OT-1844/
 projects/finanzas/
 projects/solid_to_steel/
 scripts/
+!projects/P6-Standalone-Automation/scripts/
+!projects/P6-Standalone-Automation/scripts/**
 skills/
 workspace_export.md
 ot1844_emails_index.csv
