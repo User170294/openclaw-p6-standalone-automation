@@ -7,6 +7,13 @@ from collections import defaultdict
 from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Any
+import sys
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import open_db
 
 
 DEFAULT_WEEK0 = date(2026, 2, 16)  # ancla vigente OT-1844 para labels W##
@@ -94,7 +101,23 @@ def load(args) -> dict[str, Any]:
         'db': Path(args.db) if args.db else None,
         'proj_id': args.proj_id,
     }
-    payload['base_taskrsrc_rows'] = parse_table(payload['base_xer'], 'TASKRSRC') if payload['base_xer'] else []
+
+    if payload['base_xer']:
+        payload['base_taskrsrc_rows'] = parse_table(payload['base_xer'], 'TASKRSRC')
+    elif payload['db'] and payload['proj_id'] is not None:
+        con = open_db(payload['db'])
+        try:
+            cur = con.cursor()
+            rows = cur.execute(
+                "SELECT * FROM TASKRSRC WHERE PROJ_ID=? AND RSRC_TYPE='RT_Labor'",
+                (payload['proj_id'],),
+            ).fetchall()
+            payload['base_taskrsrc_rows'] = [dict(r) for r in rows]
+        finally:
+            con.close()
+    else:
+        payload['base_taskrsrc_rows'] = []
+
     payload['upd_taskrsrc_rows'] = parse_table(payload['upd_xer'], 'TASKRSRC') if payload['upd_xer'] else []
     return payload
 

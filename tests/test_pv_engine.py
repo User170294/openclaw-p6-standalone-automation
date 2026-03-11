@@ -53,6 +53,26 @@ class TestPvEngine(unittest.TestCase):
             self.assertEqual(pv_total, 100.0)
             self.assertEqual(result['bac'], 100.0)
 
+    def test_load_reads_base_taskrsrc_rows_from_db_when_proj_id_present(self):
+        with TemporaryDirectory() as tmp:
+            db = Path(tmp) / 'p6.db'
+            import sqlite3
+            con = sqlite3.connect(db)
+            cur = con.cursor()
+            cur.execute(
+                'CREATE TABLE TASKRSRC (PROJ_ID INTEGER, RSRC_TYPE TEXT, TARGET_QTY REAL, TARGET_START_DATE TEXT, TARGET_END_DATE TEXT)'
+            )
+            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 'RT_Labor', 100, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 'RT_Mat', 999, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            cur.execute("INSERT INTO TASKRSRC VALUES (99999, 'RT_Labor', 50, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            con.commit()
+            con.close()
+
+            payload = load(Args(db=str(db), proj_id=26432, cutoff='2026-02-22', mode='logic'))
+            self.assertEqual(len(payload['base_taskrsrc_rows']), 1)
+            self.assertEqual(payload['base_taskrsrc_rows'][0]['RSRC_TYPE'], 'RT_Labor')
+            self.assertEqual(float(payload['base_taskrsrc_rows'][0]['TARGET_QTY']), 100.0)
+
 
 if __name__ == '__main__':
     unittest.main()
