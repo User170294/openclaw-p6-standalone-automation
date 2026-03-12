@@ -248,6 +248,7 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     cutoff: datetime = payload['cutoff']
     pv_week = defaultdict(float)
     ev_week = defaultdict(float)
+    re_week = defaultdict(float)
 
     calendars = payload.get('calendars', {})
 
@@ -266,25 +267,45 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
         else:
             spread_lv(ts.date(), te.date(), hh, pv_week)
 
-    for row in payload['upd_taskrsrc_rows']:
+    source_rows = payload['base_taskrsrc_rows'] if payload.get('base_source') == 'db' else payload['upd_taskrsrc_rows']
+    for row in source_rows:
         if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
             continue
+        clndr_id = row.get('task_clndr_id')
+        calendar = calendars.get(int(clndr_id)) if (payload.get('base_source') == 'db' and clndr_id not in (None, '')) else None
+
         ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
         a_s = safe_dt(row.get('act_start_date'))
         a_e = safe_dt(row.get('act_end_date'))
-        if ev <= 0 or not a_s or a_s > cutoff:
-            continue
-        end = a_e if (a_e and a_e <= cutoff) else cutoff
-        spread_lv(a_s.date(), end.date(), ev, ev_week)
+        if ev > 0 and a_s and a_s <= cutoff:
+            end = a_e if (a_e and a_e <= cutoff) else cutoff
+            if end >= a_s:
+                if payload.get('base_source') == 'db':
+                    spread_calendar(a_s, end, ev, calendar, ev_week)
+                else:
+                    spread_lv(a_s.date(), end.date(), ev, ev_week)
 
-    weeks = sorted(set(pv_week) | set(ev_week))
+        remain = safe_float(row.get('remain_qty'))
+        remain_end = safe_dt(row.get('remain_early_end_date')) or safe_dt(row.get('target_end_date'))
+        if remain > 0 and remain_end and remain_end > cutoff:
+            start = cutoff + timedelta(seconds=1)
+            if payload.get('base_source') == 'db':
+                spread_calendar(start, remain_end, remain, calendar, re_week)
+            else:
+                spread_lv(start.date(), remain_end.date(), remain, re_week)
+
+    weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
     rows: list[dict[str, Any]] = []
     pv_cum = 0.0
     ev_cum = 0.0
+    re_cum = 0.0
     for mon in weeks:
         pvw = round(float(pv_week.get(mon, 0.0)), 4)
+        evw = round(float(ev_week.get(mon, 0.0)), 4)
+        rew = round(float(re_week.get(mon, 0.0)), 4)
         pv_cum = round(pv_cum + pvw, 4)
-        ev_cum = round(ev_cum + float(ev_week.get(mon, 0.0)), 4)
+        ev_cum = round(ev_cum + evw, 4)
+        re_cum = round(re_cum + rew, 4)
         sv = round(ev_cum - pv_cum, 4)
         spi = round((ev_cum / pv_cum), 6) if pv_cum else None
         rows.append({
@@ -294,13 +315,17 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             'ev_cum': ev_cum,
             'sv': sv,
             'spi': spi,
+            'ev_week': evw,
+            're_week': rew,
+            're_cum': re_cum,
+            'forecast_cum': round(ev_cum + re_cum, 4),
         })
 
     source_note = 'DB SQLite primaria con calendario real CLNDR_DATA' if payload.get('base_source') == 'db' else 'XER fallback L-V simple'
     return {
         'mode': 'logic',
         'stub': False,
-        'note': f"Modo logic calculado desde TASKRSRC.target_qty filtrado por RT_Labor y bucket semanal por lunes. Fuente base: {source_note}.",
+        'note': f"Modo logic calculado con un solo motor temporal para PV, EV y Remaining Early. Fuente base: {source_note}.",
         'rows': rows,
         'bac': round(sum(float(r['pv_week']) for r in rows), 4),
     }
