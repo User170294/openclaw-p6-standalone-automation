@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from collections import defaultdict
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, time
 from pathlib import Path
 from typing import Any
 import sys
@@ -92,6 +93,112 @@ def spread_lv(start_d: date | None, end_d: date | None, qty: float, bucket: dict
         bucket[mon] = bucket.get(mon, 0.0) + per
 
 
+def excel_serial_to_date(serial: int) -> date:
+    return (datetime(1899, 12, 30) + timedelta(days=int(serial))).date()
+
+
+def parse_clock(value: str) -> time:
+    return datetime.strptime(value, '%H:%M').time()
+
+
+def combine_dt(day: date, clock: time) -> datetime:
+    return datetime(day.year, day.month, day.day, clock.hour, clock.minute, clock.second)
+
+
+def parse_calendar_text(raw: Any) -> dict[str, Any]:
+    text = '' if raw is None else str(raw)
+    if text.startswith("b'") and text.endswith("'"):
+        text = text[2:-1].encode('latin-1', errors='ignore').decode('unicode_escape', errors='ignore')
+    else:
+        text = text.encode('latin-1', errors='ignore').decode('latin-1', errors='ignore')
+
+    weekday_windows: dict[int, list[tuple[time, time]]] = defaultdict(list)
+    exceptions: set[date] = set()
+
+    days_start = text.find('DaysOfWeek()(')
+    view_start = text.find('(0||VIEW', days_start if days_start >= 0 else 0)
+    days_text = text[days_start:view_start] if days_start >= 0 and view_start > days_start else text
+
+    markers = list(re.finditer(r'\(0\|\|([1-7])\(\)', days_text))
+    for idx, match in enumerate(markers):
+        p6_day = int(match.group(1))
+        body_start = match.end()
+        body_end = markers[idx + 1].start() if idx + 1 < len(markers) else len(days_text)
+        body = days_text[body_start:body_end]
+        py_weekday = (p6_day + 5) % 7  # P6: 1=Sun .. 7=Sat  -> Python: Mon=0 .. Sun=6
+        for s_txt, f_txt in re.findall(r's\|(\d{2}:\d{2})\|f\|(\d{2}:\d{2})', body):
+            weekday_windows[py_weekday].append((parse_clock(s_txt), parse_clock(f_txt)))
+
+    for serial_txt in re.findall(r'd\|(\d+)', text):
+        exceptions.add(excel_serial_to_date(int(serial_txt)))
+
+    for wd in list(weekday_windows):
+        weekday_windows[wd] = sorted(weekday_windows[wd], key=lambda x: x[0])
+
+    return {
+        'weekday_windows': dict(weekday_windows),
+        'exceptions': exceptions,
+    }
+
+
+def load_calendars(con, proj_id: int) -> dict[int, dict[str, Any]]:
+    cur = con.cursor()
+    rows = cur.execute(
+        '''
+        SELECT DISTINCT c.CLNDR_ID, c.CLNDR_DATA
+        FROM TASK t
+        JOIN CALENDAR c ON c.CLNDR_ID = t.CLNDR_ID
+        WHERE t.PROJ_ID = ?
+          AND t.CLNDR_ID IS NOT NULL
+        ''',
+        (proj_id,),
+    ).fetchall()
+    calendars: dict[int, dict[str, Any]] = {}
+    for row in rows:
+        calendars[int(row['CLNDR_ID'])] = parse_calendar_text(row['CLNDR_DATA'])
+    return calendars
+
+
+def _overlap_hours(a_start: datetime, a_end: datetime, b_start: datetime, b_end: datetime) -> float:
+    start = max(a_start, b_start)
+    end = min(a_end, b_end)
+    if end <= start:
+        return 0.0
+    return (end - start).total_seconds() / 3600.0
+
+
+def spread_calendar(start_dt: datetime | None, end_dt: datetime | None, qty: float, calendar: dict[str, Any] | None, bucket: dict[date, float]) -> None:
+    if not start_dt or not end_dt or end_dt < start_dt or qty <= 0:
+        return
+    if not calendar:
+        spread_lv(start_dt.date(), end_dt.date(), qty, bucket)
+        return
+
+    weekday_windows = calendar.get('weekday_windows') or {}
+    exceptions = calendar.get('exceptions') or set()
+    hours_by_day: dict[date, float] = {}
+
+    d = start_dt.date()
+    while d <= end_dt.date():
+        if d not in exceptions:
+            windows = weekday_windows.get(d.weekday(), [])
+            hours = 0.0
+            for win_start, win_end in windows:
+                hours += _overlap_hours(start_dt, end_dt, combine_dt(d, win_start), combine_dt(d, win_end))
+            if hours > 0:
+                hours_by_day[d] = hours
+        d += timedelta(days=1)
+
+    total_hours = sum(hours_by_day.values())
+    if total_hours <= 0:
+        spread_lv(start_dt.date(), end_dt.date(), qty, bucket)
+        return
+
+    for day, hours in sorted(hours_by_day.items()):
+        mon = day - timedelta(days=day.weekday())
+        bucket[mon] = bucket.get(mon, 0.0) + (qty * hours / total_hours)
+
+
 def load(args) -> dict[str, Any]:
     payload: dict[str, Any] = {
         'mode': args.mode,
@@ -108,13 +215,21 @@ def load(args) -> dict[str, Any]:
         try:
             cur = con.cursor()
             rows = cur.execute(
-                "SELECT * FROM TASKRSRC WHERE PROJ_ID=? AND RSRC_TYPE='RT_Labor'",
+                '''
+                SELECT tr.*, t.CLNDR_ID AS TASK_CLNDR_ID
+                FROM TASKRSRC tr
+                LEFT JOIN TASK t
+                  ON t.PROJ_ID = tr.PROJ_ID
+                 AND t.TASK_ID = tr.TASK_ID
+                WHERE tr.PROJ_ID=? AND tr.RSRC_TYPE='RT_Labor'
+                ''',
                 (payload['proj_id'],),
             ).fetchall()
             payload['base_taskrsrc_rows'] = [
                 {k.lower(): v for k, v in dict(r).items()}
                 for r in rows
             ]
+            payload['calendars'] = load_calendars(con, payload['proj_id'])
             payload['base_source'] = 'db'
         finally:
             con.close()
@@ -133,6 +248,8 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     pv_week = defaultdict(float)
     ev_week = defaultdict(float)
 
+    calendars = payload.get('calendars', {})
+
     for row in payload['base_taskrsrc_rows']:
         if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
             continue
@@ -141,7 +258,12 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
         te = safe_dt(row.get('target_end_date'))
         if hh <= 0 or not ts or not te:
             continue
-        spread_lv(ts.date(), te.date(), hh, pv_week)
+        if payload.get('base_source') == 'db':
+            clndr_id = row.get('task_clndr_id')
+            calendar = calendars.get(int(clndr_id)) if clndr_id not in (None, '') else None
+            spread_calendar(ts, te, hh, calendar, pv_week)
+        else:
+            spread_lv(ts.date(), te.date(), hh, pv_week)
 
     for row in payload['upd_taskrsrc_rows']:
         if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
@@ -173,7 +295,7 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             'spi': spi,
         })
 
-    source_note = 'DB SQLite primaria' if payload.get('base_source') == 'db' else 'XER fallback'
+    source_note = 'DB SQLite primaria con calendario real CLNDR_DATA' if payload.get('base_source') == 'db' else 'XER fallback L-V simple'
     return {
         'mode': 'logic',
         'stub': False,
