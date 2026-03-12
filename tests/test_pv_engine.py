@@ -60,11 +60,17 @@ class TestPvEngine(unittest.TestCase):
             con = sqlite3.connect(db)
             cur = con.cursor()
             cur.execute(
-                'CREATE TABLE TASKRSRC (PROJ_ID INTEGER, RSRC_TYPE TEXT, TARGET_QTY REAL, TARGET_START_DATE TEXT, TARGET_END_DATE TEXT)'
+                'CREATE TABLE TASKRSRC (PROJ_ID INTEGER, TASK_ID INTEGER, RSRC_TYPE TEXT, TARGET_QTY REAL, TARGET_START_DATE TEXT, TARGET_END_DATE TEXT)'
             )
-            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 'RT_Labor', 100, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
-            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 'RT_Mat', 999, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
-            cur.execute("INSERT INTO TASKRSRC VALUES (99999, 'RT_Labor', 50, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            cur.execute(
+                'CREATE TABLE TASK (PROJ_ID INTEGER, TASK_ID INTEGER, CLNDR_ID INTEGER)'
+            )
+            cur.execute(
+                'CREATE TABLE CALENDAR (CLNDR_ID INTEGER, CLNDR_DATA TEXT)'
+            )
+            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 1, 'RT_Labor', 100, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            cur.execute("INSERT INTO TASKRSRC VALUES (26432, 2, 'RT_Mat', 999, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
+            cur.execute("INSERT INTO TASKRSRC VALUES (99999, 3, 'RT_Labor', 50, '2026-02-16 08:00:00', '2026-02-20 18:00:00')")
             con.commit()
             con.close()
 
