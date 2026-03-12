@@ -100,11 +100,10 @@ def load(args) -> dict[str, Any]:
         'upd_xer': Path(args.upd_xer) if args.upd_xer else None,
         'db': Path(args.db) if args.db else None,
         'proj_id': args.proj_id,
+        'base_source': None,
     }
 
-    if payload['base_xer']:
-        payload['base_taskrsrc_rows'] = parse_table(payload['base_xer'], 'TASKRSRC')
-    elif payload['db'] and payload['proj_id'] is not None:
+    if payload['db'] and payload['proj_id'] is not None:
         con = open_db(payload['db'])
         try:
             cur = con.cursor()
@@ -116,8 +115,12 @@ def load(args) -> dict[str, Any]:
                 {k.lower(): v for k, v in dict(r).items()}
                 for r in rows
             ]
+            payload['base_source'] = 'db'
         finally:
             con.close()
+    elif payload['base_xer']:
+        payload['base_taskrsrc_rows'] = parse_table(payload['base_xer'], 'TASKRSRC')
+        payload['base_source'] = 'base_xer'
     else:
         payload['base_taskrsrc_rows'] = []
 
@@ -170,10 +173,11 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             'spi': spi,
         })
 
+    source_note = 'DB SQLite primaria' if payload.get('base_source') == 'db' else 'XER fallback'
     return {
         'mode': 'logic',
         'stub': False,
-        'note': 'Modo logic calculado desde TASKRSRC.target_qty filtrado por RT_Labor y bucket semanal por lunes.',
+        'note': f"Modo logic calculado desde TASKRSRC.target_qty filtrado por RT_Labor y bucket semanal por lunes. Fuente base: {source_note}.",
         'rows': rows,
         'bac': round(sum(float(r['pv_week']) for r in rows), 4),
     }
@@ -236,16 +240,22 @@ def export(report: dict[str, Any], args) -> Path:
 
 
 def parse_args():
-    ap = argparse.ArgumentParser(description='PV engine dual logic / p6_visual')
-    ap.add_argument('--base-xer')
-    ap.add_argument('--upd-xer')
-    ap.add_argument('--db')
-    ap.add_argument('--proj-id', type=int)
+    ap = argparse.ArgumentParser(
+        description='PV engine dual logic / p6_visual',
+        epilog='Ruta principal documentada: --db + --proj-id. --base-xer queda como fallback de interoperabilidad cuando no hay acceso a DB.',
+    )
+    ap.add_argument('--base-xer', help='Fuente baseline secundaria/fallback en XER cuando no hay acceso a DB.')
+    ap.add_argument('--upd-xer', help='XER actualizado opcional para EV u operaciones de interoperabilidad.')
+    ap.add_argument('--db', help='Fuente primaria: ruta a DB SQLite de P6.')
+    ap.add_argument('--proj-id', type=int, help='PROJ_ID en la DB SQLite primaria.')
     ap.add_argument('--cutoff', required=True, help='YYYY-MM-DD')
     ap.add_argument('--mode', choices=['logic', 'p6_visual'], required=True)
     ap.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data')
     ap.add_argument('--format', choices=['csv', 'json', 'md'], default='csv')
-    return ap.parse_args()
+    args = ap.parse_args()
+    if not ((args.db and args.proj_id is not None) or args.base_xer):
+        ap.error('Debes indicar la fuente primaria --db + --proj-id, o bien --base-xer como fallback si no hay acceso a DB.')
+    return args
 
 
 def main():

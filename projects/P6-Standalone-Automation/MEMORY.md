@@ -4,6 +4,7 @@
 - Proyecto creado para centralizar automatización de Primavera P6 Standalone.
 - Se prioriza seguridad operativa: dry-run, permisos mínimos, auditoría y backups.
 - Base SQLite activa confirmada (2026-02-27): `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`.
+- El motor `pv_engine` opera sobre DB SQLite como fuente primaria. XER se soporta como fuente secundaria para interoperabilidad únicamente.
 
 ## Aprendizajes operativos (2026-02-27)
 - En reemplazo de recurso 1→N (ej. `9398` → `OP1/OP2/OP3`) no basta con conservar `TARGET_QTY`/HH totales.
