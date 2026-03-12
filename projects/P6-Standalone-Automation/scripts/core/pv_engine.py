@@ -15,6 +15,7 @@ if str(SCRIPTS_ROOT) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_ROOT))
 
 from p6_utils import open_db
+from report_generator import generate_report
 
 
 DEFAULT_WEEK0 = date(2026, 2, 16)  # ancla vigente OT-1844 para labels W##
@@ -318,6 +319,7 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
 
 def compare(result: dict[str, Any]) -> dict[str, Any]:
     rows = result.get('rows', [])
+    last = rows[-1] if rows else {}
     return {
         'mode': result.get('mode'),
         'stub': result.get('stub', False),
@@ -325,6 +327,13 @@ def compare(result: dict[str, Any]) -> dict[str, Any]:
         'row_count': len(rows),
         'columns': FIXED_COLUMNS,
         'rows': rows,
+        'bac': result.get('bac'),
+        'pv': last.get('pv_cum', 0.0),
+        'ev': last.get('ev_cum', 0.0),
+        'sv': last.get('sv'),
+        'spi': last.get('spi'),
+        'cpi': None,
+        'eac': None,
     }
 
 
@@ -374,6 +383,7 @@ def parse_args():
     ap.add_argument('--mode', choices=['logic', 'p6_visual'], required=True)
     ap.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data')
     ap.add_argument('--format', choices=['csv', 'json', 'md'], default='csv')
+    ap.add_argument('--report', choices=['html', 'md', 'xlsx'], help='Render opcional de reporte final unificado después del export base.')
     args = ap.parse_args()
     if not ((args.db and args.proj_id is not None) or args.base_xer):
         ap.error('Debes indicar la fuente primaria --db + --proj-id, o bien --base-xer como fallback si no hay acceso a DB.')
@@ -386,10 +396,19 @@ def main():
     computed = compute(payload)
     report = compare(computed)
     out_path = export(report, args)
+    report_out = None
+    if args.report:
+        meta = {
+            'project_name': f"P6 Standalone - {args.proj_id}" if args.proj_id is not None else 'P6 Standalone Report',
+            'proj_id': args.proj_id,
+        }
+        report_out = generate_report(report, args.out_dir, args.report, meta)
     print(f"MODE={report['mode']}")
     print(f"STUB={report['stub']}")
     print(f"ROW_COUNT={report['row_count']}")
     print(f"OUT={out_path}")
+    if report_out:
+        print(f"REPORT_OUT={report_out}")
 
 
 if __name__ == '__main__':
