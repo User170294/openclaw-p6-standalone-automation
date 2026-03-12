@@ -7,8 +7,15 @@ from dataclasses import dataclass
 from datetime import datetime, time
 from pathlib import Path
 from typing import Any
+import sys
 
 from openpyxl import load_workbook
+
+SCRIPTS_ROOT = Path(__file__).resolve().parents[1]
+if str(SCRIPTS_ROOT) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_ROOT))
+
+from p6_utils import now_str, open_db
 
 DEFAULT_SHEET = 'Revision_Avance_W012'
 DEFAULT_HEADERS = {
@@ -290,7 +297,7 @@ def fetch_task_context(cur: sqlite3.Cursor, proj_id: int, task_code: str) -> Tas
 
 
 def backup_db(db_path: Path, backup_dir: Path | None) -> Path:
-    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    stamp = now_str().replace('-', '').replace(':', '').replace(' ', '_')
     if backup_dir is None:
         backup_path = db_path.with_suffix(db_path.suffix + f'.BACKUP_{stamp}')
     else:
@@ -318,13 +325,12 @@ def main():
 
     candidates, workbook_issues = load_candidates(args)
 
-    con = sqlite3.connect(db_path, timeout=30)
-    con.row_factory = sqlite3.Row
+    con = open_db(db_path)
     cur = con.cursor()
 
     default_start = parse_clock(args.default_day_start)
     default_end = parse_clock(args.default_day_end)
-    stamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    stamp = now_str().replace('-', '').replace(':', '').replace(' ', '_')
 
     preview_rows: list[dict[str, Any]] = []
     error_rows: list[dict[str, Any]] = []
@@ -440,7 +446,7 @@ def main():
                     REMAIN_COST = CASE WHEN RSRC_TYPE='RT_Labor' THEN ROUND(MAX(0, TARGET_COST - (TARGET_COST * ?)), 6) ELSE REMAIN_COST END,
                     ACT_START_DATE = ?,
                     ACT_END_DATE = ?,
-                    UPDATE_DATE = datetime('now','localtime'),
+                    UPDATE_DATE = ?,
                     UPDATE_USER = 'openclaw'
                 WHERE PROJ_ID = ? AND TASK_ID = ?
                 ''',
@@ -451,6 +457,7 @@ def main():
                     cand.pct_to_load / 100.0,
                     format_db_datetime(task_start),
                     format_db_datetime(task_end),
+                    now_str(),
                     args.proj_id,
                     ctx.task_id,
                 ),
@@ -466,7 +473,7 @@ def main():
                     TARGET_WORK_QTY = COALESCE((SELECT SUM(tr.TARGET_QTY) FROM TASKRSRC tr WHERE tr.PROJ_ID=TASK.PROJ_ID AND tr.TASK_ID=TASK.TASK_ID AND tr.RSRC_TYPE='RT_Labor'), 0),
                     ACT_WORK_QTY = COALESCE((SELECT SUM(tr.ACT_REG_QTY) FROM TASKRSRC tr WHERE tr.PROJ_ID=TASK.PROJ_ID AND tr.TASK_ID=TASK.TASK_ID AND tr.RSRC_TYPE='RT_Labor'), 0),
                     REMAIN_WORK_QTY = COALESCE((SELECT SUM(tr.REMAIN_QTY) FROM TASKRSRC tr WHERE tr.PROJ_ID=TASK.PROJ_ID AND tr.TASK_ID=TASK.TASK_ID AND tr.RSRC_TYPE='RT_Labor'), 0),
-                    UPDATE_DATE = datetime('now','localtime'),
+                    UPDATE_DATE = ?,
                     UPDATE_USER = 'openclaw'
                 WHERE PROJ_ID = ? AND TASK_ID = ?
                 ''',
@@ -475,6 +482,7 @@ def main():
                     effective_pct_type,
                     format_db_datetime(task_start),
                     format_db_datetime(task_end),
+                    now_str(),
                     args.proj_id,
                     ctx.task_id,
                 ),
