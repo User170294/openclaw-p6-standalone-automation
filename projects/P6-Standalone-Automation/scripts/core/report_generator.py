@@ -93,74 +93,220 @@ def render_html(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | N
     rows = report.get('rows', [])
     kpis = report['kpis']
     title = (meta or {}).get('project_name') or 'P6 Standalone Report'
-    chart = _build_chart_points(rows)
-    table_rows = '\n'.join(
-        '<tr>' + ''.join(f'<td>{escape(_fmt_num(row.get(col), 6) if col == "spi" else _fmt_num(row.get(col)) if col != "week" else str(row.get(col, "")))}</td>' for col in FIXED_COLUMNS) + '</tr>'
-        for row in rows
-    )
-    html = f"""<!doctype html>
-<html lang='es'>
+    proj_code = (meta or {}).get('proj_code') or ''
+    cutoff = (meta or {}).get('cutoff') or ''
+    bac = kpis['bac']
+    pv = kpis['pv']
+    ev = kpis['ev']
+    spi = kpis['spi']
+    cpi = kpis['cpi']
+    eac = kpis['eac']
+
+    pv_pct = round(pv / bac * 100, 2) if bac else 0
+    ev_pct = round(ev / bac * 100, 2) if bac else 0
+    sv = round(ev - pv, 2) if ev is not None and pv is not None else None
+    spi_class = 'neg' if (spi is not None and spi < 1) else 'pos'
+    cpi_class = 'neg' if (cpi is not None and cpi < 1) else 'pos'
+    sv_class = 'neg' if (sv is not None and sv < 0) else 'pos'
+
+    weeks_js = str([r.get('week', '') for r in rows])
+    pv_cum_js = str([float(r.get('pv_cum') or 0) for r in rows])
+    ev_cum_js = str([float(r.get('ev_cum') or 0) for r in rows])
+    pv_week_js = str([float(r.get('pv_week') or 0) for r in rows])
+
+    table_rows_html = ''
+    for r in rows:
+        w = r.get('week', '')
+        pvw = _fmt_num(r.get('pv_week'), 1)
+        pvc = _fmt_num(r.get('pv_cum'), 1)
+        evc = _fmt_num(r.get('ev_cum'), 1)
+        svv = r.get('sv')
+        spiv = r.get('spi')
+        sv_cls = 'val-neg' if (svv is not None and float(svv) < 0) else 'val-pos'
+        spi_cls = 'val-neg' if (spiv is not None and float(spiv) < 1) else ''
+        sv_str = _fmt_num(svv, 1) if svv is not None else '—'
+        spi_str = _fmt_num(spiv, 3) if spiv is not None else '—'
+        table_rows_html += f"<tr><td>{escape(w)}</td><td>{pvw}</td><td>{pvc}</td><td>{evc}</td><td class='{sv_cls}'>{sv_str}</td><td class='{spi_cls}'>{spi_str}</td></tr>\n"
+
+    stamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    html = f"""<!DOCTYPE html>
+<html lang="es">
 <head>
-<meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'>
-<title>{escape(str(title))}</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{escape(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {{ --bg:#0d0f12; --panel:#161a20; --line:#232a35; --txt:#e8edf3; --muted:#9aa4b2; --pv:#00c2ff; --ev:#00e5a0; --sv:#ff4d6a; }}
-* {{ box-sizing:border-box; }}
-body {{ margin:0; background:var(--bg); color:var(--txt); font-family:'IBM Plex Sans',Arial,sans-serif; }}
-code, table {{ font-family:'IBM Plex Mono',Consolas,monospace; }}
-.container {{ max-width:1400px; margin:0 auto; padding:24px; }}
-.grid {{ display:grid; grid-template-columns:repeat(6, minmax(0,1fr)); gap:12px; margin:18px 0 24px; }}
-.card {{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; }}
-.card h3 {{ margin:0 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; }}
-.card .value {{ font-size:26px; font-weight:700; }}
-.panel {{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:18px; margin:14px 0; }}
-.table-wrap {{ overflow:auto; }}
-table {{ width:100%; border-collapse:collapse; }}
-th, td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:right; }}
-th:first-child, td:first-child {{ text-align:left; }}
-th {{ color:var(--muted); font-size:12px; text-transform:uppercase; }}
-.header h1 {{ margin:0; font-size:32px; }}
-.header p {{ color:var(--muted); margin:8px 0 0; }}
-.legend {{ display:flex; gap:16px; color:var(--muted); font-size:13px; margin-top:10px; }}
-.legend span::before {{ content:''; display:inline-block; width:12px; height:12px; border-radius:999px; margin-right:8px; vertical-align:-1px; }}
-.legend .pv::before {{ background:var(--pv); }}
-.legend .ev::before {{ background:var(--ev); }}
-@media (max-width:1100px) {{ .grid {{ grid-template-columns:repeat(2, minmax(0,1fr)); }} }}
+:root {{
+  --bg:#0d0f12; --surface:#13161b; --border:#1e2530; --border2:#2a3340;
+  --text:#c8d0db; --muted:#5a6575; --accent:#00c2ff; --green:#00e5a0;
+  --red:#ff4d6a; --yellow:#ffc84a; --pv:#3a7bd5; --ev:#00e5a0;
+}}
+*{{margin:0;padding:0;box-sizing:border-box;}}
+body{{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.6;}}
+header{{border-bottom:1px solid var(--border);padding:24px 40px 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;}}
+.header-tag{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}}
+.header-title{{font-size:22px;font-weight:600;color:#edf2f7;letter-spacing:-0.3px;}}
+.header-sub{{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}}
+.cutoff-badge{{background:#1a2235;border:1px solid var(--border2);border-radius:4px;padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);}}
+main{{padding:28px 40px;display:flex;flex-direction:column;gap:28px;}}
+.kpi-row{{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}}
+.kpi{{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}}
+.kpi::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;}}
+.kpi.bac::before{{background:var(--muted);}}
+.kpi.pv::before{{background:var(--pv);}}
+.kpi.ev::before{{background:var(--ev);}}
+.kpi.spi::before{{background:var(--red);}}
+.kpi.cpi::before{{background:var(--green);}}
+.kpi.eac::before{{background:var(--accent);}}
+.kpi-label{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}}
+.kpi-value{{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#edf2f7;}}
+.kpi-sub{{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}}
+.badge{{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;width:fit-content;}}
+.badge.neg{{background:rgba(255,77,106,0.12);color:var(--red);}}
+.badge.pos{{background:rgba(0,229,160,0.12);color:var(--green);}}
+.badge.neu{{background:rgba(0,194,255,0.12);color:var(--accent);}}
+.panel{{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;}}
+.panel-header{{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}}
+.panel-title{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);}}
+.panel-meta{{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}}
+.panel-body{{padding:20px;}}
+.panels{{display:grid;grid-template-columns:1fr 1fr;gap:20px;}}
+.panel-full{{grid-column:1/-1;}}
+canvas{{display:block;width:100%!important;}}
+.data-table{{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;}}
+.data-table th{{padding:8px 12px;text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}}
+.data-table th:first-child{{text-align:left;}}
+.data-table td{{padding:7px 12px;text-align:right;border-bottom:1px solid var(--border);color:var(--text);}}
+.data-table td:first-child{{text-align:left;color:var(--accent);}}
+.data-table tr:last-child td{{border-bottom:none;}}
+.data-table tr:hover td{{background:rgba(255,255,255,0.02);}}
+.val-neg{{color:var(--red)!important;}}
+.val-pos{{color:var(--green)!important;}}
+.legend{{display:flex;gap:20px;flex-wrap:wrap;}}
+.legend-item{{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}}
+.legend-dot{{width:8px;height:8px;border-radius:2px;flex-shrink:0;}}
+footer{{border-top:1px solid var(--border);padding:16px 40px;display:flex;justify-content:space-between;}}
+.footer-text{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}}
 </style>
 </head>
 <body>
-<div class='container'>
-  <div class='header panel'>
-    <h1>{escape(str(title))}</h1>
-    <p>{escape(str(report.get('note','')))}</p>
+<header>
+  <div>
+    <div class="header-tag">P6 Standalone — Control Semanal</div>
+    <div class="header-title">{escape(title)}</div>
+    <div class="header-sub">{escape(proj_code)}</div>
   </div>
-  <div class='grid'>
-    <div class='card'><h3>BAC</h3><div class='value'>{_fmt_num(kpis['bac'])}</div></div>
-    <div class='card'><h3>PV</h3><div class='value'>{_fmt_num(kpis['pv'])}</div></div>
-    <div class='card'><h3>EV</h3><div class='value'>{_fmt_num(kpis['ev'])}</div></div>
-    <div class='card'><h3>SPI</h3><div class='value'>{_fmt_num(kpis['spi'], 6)}</div></div>
-    <div class='card'><h3>CPI</h3><div class='value'>{_fmt_num(kpis['cpi'], 6)}</div></div>
-    <div class='card'><h3>EAC</h3><div class='value'>{_fmt_num(kpis['eac'])}</div></div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+    <div class="cutoff-badge">CORTE {escape(cutoff)}</div>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">Generado: {stamp}</span>
   </div>
-  <div class='panel'>
-    <h2>Curva S</h2>
-    <svg viewBox='0 0 900 340' width='100%' height='340' role='img' aria-label='Curva S básica'>
-      <rect x='0' y='0' width='900' height='340' fill='#161a20'/>
-      <line x1='60' y1='280' x2='840' y2='280' stroke='#232a35' stroke-width='1'/>
-      <line x1='60' y1='40' x2='60' y2='280' stroke='#232a35' stroke-width='1'/>
-      {chart}
-    </svg>
-    <div class='legend'><span class='pv'>PV acumulado</span><span class='ev'>EV acumulado</span></div>
+</header>
+<main>
+  <div class="kpi-row">
+    <div class="kpi bac">
+      <span class="kpi-label">BAC</span>
+      <span class="kpi-value">{_fmt_num(bac, 0)}</span>
+      <span class="kpi-sub">HH · Línea base</span>
+      <span class="badge neu">100%</span>
+    </div>
+    <div class="kpi pv">
+      <span class="kpi-label">PV · Planificado</span>
+      <span class="kpi-value">{_fmt_num(pv, 0)}</span>
+      <span class="kpi-sub">HH acumuladas</span>
+      <span class="badge neu">{pv_pct}%</span>
+    </div>
+    <div class="kpi ev">
+      <span class="kpi-label">EV · Ganado</span>
+      <span class="kpi-value">{_fmt_num(ev, 0)}</span>
+      <span class="kpi-sub">HH ganadas</span>
+      <span class="badge {ev_pct < pv_pct and 'neg' or 'pos'}">{ev_pct}%</span>
+    </div>
+    <div class="kpi spi">
+      <span class="kpi-label">SPI</span>
+      <span class="kpi-value">{_fmt_num(spi, 3) if spi is not None else 'N/A'}</span>
+      <span class="kpi-sub">EV / PV</span>
+      <span class="badge {spi_class}">{_fmt_num(sv, 0) if sv is not None else ''} HH</span>
+    </div>
+    <div class="kpi cpi">
+      <span class="kpi-label">CPI</span>
+      <span class="kpi-value">{_fmt_num(cpi, 3) if cpi is not None else 'N/A'}</span>
+      <span class="kpi-sub">EV / AC</span>
+      <span class="badge {cpi_class}">{'En costo' if cpi is not None and cpi >= 1 else 'Sobre costo'}</span>
+    </div>
+    <div class="kpi eac">
+      <span class="kpi-label">EAC</span>
+      <span class="kpi-value">{_fmt_num(eac, 0) if eac is not None else _fmt_num(bac, 0)}</span>
+      <span class="kpi-sub">HH · Estimado final</span>
+      <span class="badge neu">Forecast</span>
+    </div>
   </div>
-  <div class='panel table-wrap'>
-    <h2>Tabla semanal PV/EV/SV/SPI</h2>
-    <table>
-      <thead><tr>{''.join(f'<th>{escape(col)}</th>' for col in FIXED_COLUMNS)}</tr></thead>
-      <tbody>{table_rows}</tbody>
-    </table>
+
+  <div class="panels">
+    <div class="panel panel-full">
+      <div class="panel-header">
+        <span class="panel-title">Curva S — Avance Acumulado HH</span>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--pv)"></div>PV Baseline</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev)"></div>EV Real</div>
+        </div>
+      </div>
+      <div class="panel-body"><canvas id="curvaS" height="220"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">PV Semanal — Distribución HH</span>
+        <span class="panel-meta">L-V · ISO</span>
+      </div>
+      <div class="panel-body"><canvas id="pvSemanal" height="220"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Schedule Variance (SV)</span>
+        <span class="panel-meta">EV − PV por semana</span>
+      </div>
+      <div class="panel-body"><canvas id="svChart" height="220"></canvas></div>
+    </div>
   </div>
-</div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Detalle Semanal PV / EV / SV / SPI</span>
+      <span class="panel-meta">Fuente: TASKRSRC · RT_Labor</span>
+    </div>
+    <div class="panel-body" style="padding:0">
+      <table class="data-table">
+        <thead><tr><th>Semana</th><th>PV Semana</th><th>PV Acum.</th><th>EV Acum.</th><th>SV (HH)</th><th>SPI</th></tr></thead>
+        <tbody>{table_rows_html}</tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<footer>
+  <span class="footer-text">P6-Standalone-Automation · OpenClaw</span>
+  <span class="footer-text">Generado: {stamp}</span>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const weeks={weeks_js};
+const pvCum={pv_cum_js};
+const evCum={ev_cum_js};
+const pvWeek={pv_week_js};
+const svData=pvCum.map((p,i)=>evCum[i]-p);
+Chart.defaults.color='#5a6575';
+Chart.defaults.borderColor='#1e2530';
+Chart.defaults.font.family="'IBM Plex Mono',monospace";
+Chart.defaults.font.size=10;
+const grid={{color:'rgba(255,255,255,0.04)',tickColor:'transparent'}};
+const ticks={{color:'#5a6575',font:{{size:9}}}};
+new Chart(document.getElementById('curvaS'),{{type:'line',data:{{labels:weeks,datasets:[
+  {{label:'PV',data:pvCum,borderColor:'#3a7bd5',backgroundColor:'rgba(58,123,213,0.08)',borderWidth:2,pointRadius:3,tension:0.3,fill:true}},
+  {{label:'EV',data:evCum,borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,0.1)',borderWidth:2.5,pointRadius:3,tension:0.3,fill:false}}
+]}},options:{{responsive:true,maintainAspectRatio:false,interaction:{{mode:'index',intersect:false}},plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
+new Chart(document.getElementById('pvSemanal'),{{type:'bar',data:{{labels:weeks,datasets:[{{label:'PV Semanal',data:pvWeek,backgroundColor:'rgba(58,123,213,0.5)',borderColor:'#3a7bd5',borderWidth:1,borderRadius:3}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
+new Chart(document.getElementById('svChart'),{{type:'bar',data:{{labels:weeks,datasets:[{{label:'SV',data:svData,backgroundColor:svData.map(v=>v<0?'rgba(255,77,106,0.5)':'rgba(0,229,160,0.5)'),borderColor:svData.map(v=>v<0?'#ff4d6a':'#00e5a0'),borderWidth:1,borderRadius:3}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
+</script>
 </body>
 </html>"""
     out_path.write_text(html, encoding='utf-8')
