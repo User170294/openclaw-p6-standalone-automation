@@ -153,26 +153,32 @@
 - RAG: s√≠ + 400 chunks + top score 0.000 (rerank top -11.1720)
 - Brechas: la colecci√≥n `p6_standalone_automation` existe y responde, pero no aparece como carpeta nominal `data/chroma/p6_standalone_automation` porque Chroma persiste con directorios UUID; la query de estado actual devuelve chunks d√©biles/gen√©ricos del PDF est√°ndar, no del estado operativo vivo
 - Propuesta: crear/indexar un resumen operativo propio del proyecto y usar queries tem√°ticas m√°s espec√≠ficas (carga DB, XER vs DB, PV/EV semanal) para retrieval √∫til
-## [2026-03-11 16:09 UTC-3] ó Foco en P6-Standalone-Automation
+## [2026-03-11 16:09 UTC-3] ÔøΩ Foco en P6-Standalone-Automation
 - Trigger: "hagamos foco en el proyecto relacionado a P6, lo reconoces?"
-- Archivos leÌdos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 lÌneas); projects/P6-Standalone-Automation/INDEX.csv (50 lÌneas); projects/P6-Standalone-Automation/data/*; data/chroma/* + verificaciÛn SQLite de colecciÛn
-- RAG ejecutada: sÌ ? 767 chunks, top rerank=3.5299
-- Brechas: verificaciÛn por carpeta `data/chroma/p6_standalone_automation` da falso negativo porque Chroma persiste por UUID + `chroma.sqlite3`; falta formalizar comparador reusable XER vs DB; falta cargador seguro reusable Excel?DB
-- Propuesta: seguir sobre `projects/P6-Standalone-Automation` como proyecto P6 canÛnico y priorizar comparador XER vs DB o cargador seguro de avances seg˙n objetivo inmediato
+- Archivos leÔøΩdos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 lÔøΩneas); projects/P6-Standalone-Automation/INDEX.csv (50 lÔøΩneas); projects/P6-Standalone-Automation/data/*; data/chroma/* + verificaciÔøΩn SQLite de colecciÔøΩn
+- RAG ejecutada: sÔøΩ ? 767 chunks, top rerank=3.5299
+- Brechas: verificaciÔøΩn por carpeta `data/chroma/p6_standalone_automation` da falso negativo porque Chroma persiste por UUID + `chroma.sqlite3`; falta formalizar comparador reusable XER vs DB; falta cargador seguro reusable Excel?DB
+- Propuesta: seguir sobre `projects/P6-Standalone-Automation` como proyecto P6 canÔøΩnico y priorizar comparador XER vs DB o cargador seguro de avances segÔøΩn objetivo inmediato
 ## 2026-03-11 21:32 UTC-3
 - Trigger: foco en P6-Standalone-Automation
-- Archivos leÌdos:
+- Archivos leÔøΩdos:
   - projects/P6-Standalone-Automation/README.md
   - projects/P6-Standalone-Automation/MEMORY.md
-  - projects/P6-Standalone-Automation/LOG.md (100 lÌneas)
-  - projects/P6-Standalone-Automation/INDEX.csv (50 lÌneas)
+  - projects/P6-Standalone-Automation/LOG.md (100 lÔøΩneas)
+  - projects/P6-Standalone-Automation/INDEX.csv (50 lÔøΩneas)
   - projects/P6-Standalone-Automation/docs/OPERATING_SUMMARY_2026-03-11.md
-- RAG: sÌ + 767 chunks + top score 0.593
+- RAG: sÔøΩ + 767 chunks + top score 0.593
 - Brechas:
-  - comparador reusable XER vs DB a˙n por consolidar
-  - recuperaciÛn sem·ntica del estado operativo todavÌa imperfecta
+  - comparador reusable XER vs DB aÔøΩn por consolidar
+  - recuperaciÔøΩn semÔøΩntica del estado operativo todavÔøΩa imperfecta
   - ruido alto en scripts/ por temporales
-  - formalizar cargador seguro Excel -> DB como herramienta ˙nica
+  - formalizar cargador seguro Excel -> DB como herramienta ÔøΩnica
 - Propuesta:
-  - consolidar compare_xer_db_weekly.py + pv_engine.py como ruta ˙nica
-  - mejorar indexaciÛn/prioridad del operating summary
+  - consolidar compare_xer_db_weekly.py + pv_engine.py como ruta ÔøΩnica
+  - mejorar indexaciÔøΩn/prioridad del operating summary
+## 2026-03-12 09:59 UTC-3
+- Trigger: "P6-Standalone-Automation, hoy actualizaremos un programa para control de produccion"
+- Archivos le√≠dos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 l√≠neas); projects/P6-Standalone-Automation/INDEX.csv (50 l√≠neas); projects/P6-Standalone-Automation/data/ (verificado)
+- RAG: s√≠ + 767 chunks + top rerank 3.1270 (query: "estado actual del proyecto")
+- Brechas: validaci√≥n por carpeta `data/chroma/p6_standalone_automation` da falso negativo; la colecci√≥n existe y responde v√≠a `search_project.py`; sigue pendiente consolidar comparador reusable XER vs DB y endurecer el cargador seguro Excel -> DB para casos ambiguos/parciales
+- Propuesta: usar `load_progress_excel_to_p6db.py` + `pilot_audit.py` como ruta principal para la actualizaci√≥n del programa de control de producci√≥n, con respaldo previo y dry-run
