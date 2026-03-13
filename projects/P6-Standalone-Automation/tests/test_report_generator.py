@@ -38,9 +38,9 @@ def test_render_html_generates_non_empty_file(tmp_path):
     text = out.read_text(encoding='utf-8')
     assert out.exists()
     assert out.stat().st_size > 0
-    assert '<table>' in text
-    assert 'pv_week' in text
-    assert 'Curva S' in text
+    assert '<canvas' in text
+    assert 'Chart.js' in text
+    assert 'curvaS' in text
 
 
 def test_render_md_generates_non_empty_file(tmp_path):
