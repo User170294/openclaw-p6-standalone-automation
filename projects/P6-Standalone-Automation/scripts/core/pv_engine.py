@@ -24,10 +24,8 @@ FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'sv'
 
 def week_label(mon: date, anchor: date = DEFAULT_WEEK0) -> str:
     delta = (mon - anchor).days
-    if delta < 0:
-        iy, iw, _ = mon.isocalendar()
-        return f'ISO{iy}-W{iw:02d}'
-    return f'W{8 + delta // 7:02d}'
+    week_num = 8 + delta // 7
+    return f'W{week_num:02d}'
 
 
 def parse_table(path: str | Path, table_name: str) -> list[dict[str, str]]:
