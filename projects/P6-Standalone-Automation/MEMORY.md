@@ -6,6 +6,12 @@
 - Base SQLite activa confirmada (2026-02-27): `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`.
 - El motor `pv_engine` opera sobre DB SQLite como fuente primaria. XER se soporta como fuente secundaria para interoperabilidad √∫nicamente.
 
+## Valores espec√≠ficos OT-1844 movidos desde SKILL.md (2026-03-13)
+- `proj_id` baseline: `26258`
+- `proj_id` actualizado: `26432`
+- BAC de referencia: `8100 HH`
+- Valor de referencia EV acumulado W11: `4114.80 HH`
+
 ## Aprendizajes operativos (2026-03-12) ‚Äî Early Remaining Labor Units
 - **CR√çTICO**: Para distribuir Early Remaining Labor Units por semana, usar `RESTART_DATE` ‚Üí `REEND_DATE`, **NO** cutoff ‚Üí fin.
 - El campo `REMAIN_EARLY_END_DATE` no existe en TASKRSRC de esta DB; los campos correctos son:
@@ -79,10 +85,10 @@
 - Flujo operativo documentado en `docs/XER_DB_VALIDATION_FLOW.md`.
 - `INDEX.csv` normalizado para reflejar artefactos vigentes del proyecto.
 
-## Aprendizaje operativo (2026-03-13) ó Remaining Early W12 debe respetar Early Start + calendario real
-- Se detectÛ desvÌo al calcular recovery W12 usando una aproximaciÛn simplificada del remaining.
+## Aprendizaje operativo (2026-03-13) ÔøΩ Remaining Early W12 debe respetar Early Start + calendario real
+- Se detectÔøΩ desvÔøΩo al calcular recovery W12 usando una aproximaciÔøΩn simplificada del remaining.
 - Caso testigo validado: `A3880` (`REMAIN_QTY=162`, `REMAIN_QTY_PER_HR=6`, calendario `7475`, `EARLY_START_DATE=2026-03-19 08:00`, `EARLY_END_DATE=2026-03-23 18:00`).
 - Resultado correcto por semana: **W12 = 108 HH**, **W13 = 54 HH**.
 - Regla corregida: para `Remaining Early` no basta con repartir `REMAIN_QTY` entre corte y `EARLY_END_DATE`; se debe usar `max(corte+1s, EARLY_START_DATE)` como inicio efectivo, junto con `TASK.CLNDR_ID`, `CALENDAR.CLNDR_DATA`, horas efectivas de solape y consistencia con `REMAIN_QTY_PER_HR`.
 - Mejora aplicada en `scripts/core/pv_engine.py` (modo DB): el remaining ahora usa `EARLY_START_DATE` + `EARLY_END_DATE` + calendario real para distribuir `re_week`.
-- Resultado recalculado W12: `Remaining Early = 1872.0 HH`. Archivo de respaldo analÌtico: `projects/P6-Standalone-Automation/data/recovery_W12_recalc_2026-03-13.md`.
+- Resultado recalculado W12: `Remaining Early = 1872.0 HH`. Archivo de respaldo analÔøΩtico: `projects/P6-Standalone-Automation/data/recovery_W12_recalc_2026-03-13.md`.
