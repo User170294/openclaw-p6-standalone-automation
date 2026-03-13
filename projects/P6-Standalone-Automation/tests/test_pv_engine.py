@@ -56,9 +56,20 @@ def _create_schema(cur):
     cur.execute(
         '''
         CREATE TABLE TASK (
-            PROJ_ID INTEGER,
             TASK_ID INTEGER,
-            CLNDR_ID INTEGER
+            PROJ_ID INTEGER,
+            CLNDR_ID INTEGER,
+            TASK_CODE TEXT,
+            TARGET_START_DATE TEXT,
+            TARGET_END_DATE TEXT,
+            ACT_START_DATE TEXT,
+            ACT_END_DATE TEXT,
+            EARLY_START_DATE TEXT,
+            EARLY_END_DATE TEXT,
+            TARGET_WORK_QTY REAL,
+            ACT_WORK_QTY REAL,
+            REMAIN_WORK_QTY REAL,
+            TASK_TYPE TEXT
         )
         '''
     )
@@ -80,11 +91,18 @@ def _build_fake_db(path: Path) -> None:
         _create_schema(cur)
         cur.execute('INSERT INTO CALENDAR (CLNDR_ID, CLNDR_NAME, CLNDR_DATA) VALUES (?,?,?)', (100, 'Weekdays', CALENDAR_WEEKDAYS))
         cur.executemany(
-            'INSERT INTO TASK (PROJ_ID, TASK_ID, CLNDR_ID) VALUES (?, ?, ?)',
+            '''
+            INSERT INTO TASK (
+                TASK_ID, PROJ_ID, CLNDR_ID, TASK_CODE,
+                TARGET_START_DATE, TARGET_END_DATE,
+                ACT_START_DATE, ACT_END_DATE, EARLY_START_DATE, EARLY_END_DATE,
+                TARGET_WORK_QTY, ACT_WORK_QTY, REMAIN_WORK_QTY, TASK_TYPE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
             [
-                (26432, 1, 100),
-                (26432, 2, 100),
-                (99999, 3, 100),
+                (1, 26432, 100, 'A1000', '2026-02-16 08:00:00', '2026-02-20 18:00:00', None, None, '2026-02-16 08:00:00', '2026-02-20 18:00:00', 80.0, 0.0, 0.0, 'TT_Task'),
+                (2, 26432, 100, 'A1001', '2026-02-16 08:00:00', '2026-02-20 18:00:00', None, None, '2026-02-16 08:00:00', '2026-02-20 18:00:00', 999.0, 0.0, 0.0, 'TT_Mile'),
+                (3, 99999, 100, 'A9999', '2026-02-16 08:00:00', '2026-02-20 18:00:00', None, None, '2026-02-16 08:00:00', '2026-02-20 18:00:00', 500.0, 0.0, 0.0, 'TT_Task'),
             ],
         )
         cur.executemany(
@@ -105,7 +123,7 @@ def _build_fake_db(path: Path) -> None:
         con.close()
 
 
-def test_logic_uses_taskrsrc_rt_labor_for_pv_bac(tmp_path):
+def test_logic_uses_task_target_work_qty_for_bac_when_db_source(tmp_path):
     db_path = tmp_path / 'pv_engine_fake.db'
     _build_fake_db(db_path)
 
@@ -123,13 +141,56 @@ def test_logic_uses_taskrsrc_rt_labor_for_pv_bac(tmp_path):
 
     assert payload['base_source'] == 'db'
     assert len(payload['base_taskrsrc_rows']) == 1
+    assert len(payload['task_rows']) == 1
     assert 100 in payload['calendars']
     assert result['mode'] == 'logic'
     assert result['stub'] is False
     assert result['bac'] == 80.0
     assert result['rows'][0]['week'] == 'W08'
     assert result['rows'][0]['pv_week'] == 80.0
+    assert result['rows'][0]['pv_pct'] == 100.0
     assert 'DB SQLite primaria' in result['note']
+
+
+def test_remaining_early_uses_early_start_and_calendar_hours(tmp_path):
+    db_path = tmp_path / 'pv_engine_remaining_early.db'
+    con = sqlite3.connect(db_path)
+    try:
+        cur = con.cursor()
+        _create_schema(cur)
+        cur.execute('INSERT INTO CALENDAR (CLNDR_ID, CLNDR_NAME, CLNDR_DATA) VALUES (?,?,?)', (7475, 'Maestranza #', CALENDAR_WEEKDAYS))
+        cur.execute(
+            '''
+            INSERT INTO TASK (
+                TASK_ID, PROJ_ID, CLNDR_ID, TASK_CODE,
+                TARGET_START_DATE, TARGET_END_DATE,
+                ACT_START_DATE, ACT_END_DATE, EARLY_START_DATE, EARLY_END_DATE,
+                TARGET_WORK_QTY, ACT_WORK_QTY, REMAIN_WORK_QTY, TASK_TYPE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (10, 26485, 7475, 'A3880', '2026-03-19 08:00:00', '2026-03-23 18:00:00', None, None, '2026-03-19 08:00:00', '2026-03-23 18:00:00', 162.0, 0.0, 162.0, 'TT_Task'),
+        )
+        cur.execute(
+            '''
+            INSERT INTO TASKRSRC (
+                PROJ_ID, TASK_ID, RSRC_TYPE, TARGET_QTY, TARGET_START_DATE, TARGET_END_DATE,
+                ACT_REG_QTY, ACT_OT_QTY, ACT_START_DATE, ACT_END_DATE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (26485, 10, 'RT_Labor', 162.0, '2026-03-19 08:00:00', '2026-03-23 18:00:00', 0.0, 0.0, None, None),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    args = SimpleNamespace(mode='logic', cutoff='2026-03-15', base_xer=None, upd_xer=None, db=str(db_path), proj_id=26485)
+    payload = pv_engine.load(args)
+    result = pv_engine.compute(payload)
+    row_w12 = next(r for r in result['rows'] if r['week'] == 'W12')
+    row_w13 = next(r for r in result['rows'] if r['week'] == 'W13')
+
+    assert round(row_w12['re_week'], 4) == 108.0
+    assert round(row_w13['re_week'], 4) == 54.0
 
 
 def test_a1060_reference_uses_hour_weight_not_flat_days():
