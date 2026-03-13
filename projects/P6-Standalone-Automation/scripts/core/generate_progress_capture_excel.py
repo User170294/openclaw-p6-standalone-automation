@@ -18,23 +18,17 @@ from p6_utils import open_db
 
 SHEET_NAME = 'Revision_Avance_W012'
 HEADERS = [
+    'Entrega',
+    'Despacho/Tag',
+    'WBS',
     'Actividad ID',
     'Actividad',
     'Estado P6',
-    'Entrega',
-    'Paquete',
-    'Ruta WBS',
-    '% Complete Type',
-    'Calendar ID',
-    'Inicio plan',
-    'TÃƒÂ©rmino plan',
     'BAC HH',
     'EV HH',
-    'ETC HH',
-    '% avance a cargar',
-    'Fecha inicio real a cargar',
-    'Fecha tÃƒÂ©rmino si 100%',
-    'Notas usuario',
+    'Avance %',
+    'Marcar avance',
+    'Observaciones',
 ]
 
 HEADER_FILL = PatternFill('solid', fgColor='1F4E78')
@@ -42,13 +36,11 @@ HEADER_FONT = Font(color='FFFFFF', bold=True)
 HEADER_ALIGN = Alignment(horizontal='center', vertical='center', wrap_text=True)
 WRAP_ALIGN = Alignment(vertical='top', wrap_text=True)
 
-DELIVERY_FILLS = [
-    PatternFill('solid', fgColor='FDE9D9'),
-    PatternFill('solid', fgColor='EAF2D3'),
-    PatternFill('solid', fgColor='DDEBF7'),
-    PatternFill('solid', fgColor='EADCF8'),
-    PatternFill('solid', fgColor='FFF2CC'),
-]
+STATUS_FILLS = {
+    'TK_Complete': PatternFill('solid', fgColor='E2F0D9'),
+    'TK_Active': PatternFill('solid', fgColor='FFF2CC'),
+    'TK_NotStart': PatternFill('solid', fgColor='FCE4D6'),
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -98,13 +90,13 @@ def auto_fit(ws) -> None:
     for row in ws.iter_rows(values_only=True):
         for idx, value in enumerate(row, start=1):
             size = len(str(value)) if value is not None else 0
-            widths[idx] = max(widths.get(idx, 0), min(size + 2, 90))
+            widths[idx] = max(widths.get(idx, 0), min(size + 2, 80))
     for idx, width in widths.items():
         ws.column_dimensions[get_column_letter(idx)].width = width
 
 
 def style_header(ws, headers: list[str]) -> None:
-    ws.row_dimensions[1].height = 32
+    ws.row_dimensions[1].height = 30
     for col_idx, _ in enumerate(headers, start=1):
         cell = ws.cell(row=1, column=col_idx)
         cell.fill = HEADER_FILL
@@ -120,7 +112,7 @@ def clean_label(short_name: str | None, name: str | None) -> str:
     return name or short
 
 
-def build_wbs_maps(cur: sqlite3.Cursor, proj_id: int) -> tuple[dict[int, sqlite3.Row], dict[int, list[str]]]:
+def build_wbs_map(cur: sqlite3.Cursor, proj_id: int) -> dict[int, list[str]]:
     rows = cur.execute(
         '''
         SELECT WBS_ID, PARENT_WBS_ID, WBS_SHORT_NAME, WBS_NAME
@@ -152,40 +144,43 @@ def build_wbs_maps(cur: sqlite3.Cursor, proj_id: int) -> tuple[dict[int, sqlite3
 
     for wbs_id in by_id:
         compose(wbs_id)
-    return by_id, chain_map
+    return chain_map
 
 
 def derive_structure(parts: list[str]) -> tuple[str, str, str]:
-    # Esperado OT-1844 W12:
-    # 0 programa, 1 macro (FabricaciÃƒÂ³n 10 sistemas...), 2 entrega TAG..., 3 paquete (Bastidor, etc)
-    entrega = parts[2] if len(parts) >= 3 else (parts[-1] if parts else '')
-    paquete = parts[3] if len(parts) >= 4 else ''
-    ruta = ' > '.join(parts)
-    return entrega, paquete, ruta
-
-
-def apply_delivery_fill(ws, row_idx: int, entrega: str, delivery_palette: dict[str, PatternFill]) -> None:
-    if not entrega:
-        return
-    fill = delivery_palette.get(entrega)
-    if not fill:
-        return
-    for col_idx in range(1, len(HEADERS) + 1):
-        ws.cell(row=row_idx, column=col_idx).fill = fill
+    # Programa > Macro FabricaciÃ³n > Entrega/Tag > WBS paquete
+    entrega = ''
+    despacho_tag = ''
+    wbs = ''
+    if len(parts) >= 3:
+        despacho_tag = parts[2]
+        tail = despacho_tag.split('|', 1)[0].strip()
+        if tail.endswith('-1'):
+            entrega = 'Entrega 1'
+        elif tail.endswith('-2'):
+            entrega = 'Entrega 2'
+        elif tail.endswith('-3'):
+            entrega = 'Entrega 3'
+        elif tail.endswith('-4'):
+            entrega = 'Entrega 4'
+        elif tail.endswith('-5'):
+            entrega = 'Entrega 5'
+        else:
+            entrega = despacho_tag
+    if len(parts) >= 4:
+        wbs = parts[3]
+    return entrega, despacho_tag, wbs
 
 
 def build_instructions_sheet(wb: Workbook) -> None:
     ws = wb.create_sheet('Instrucciones')
     rows = [
-        ('Objetivo', 'Esta hoja sirve para capturar el avance real de W11 con una vista clara por entrega y paquete.'),
-        ('CÃƒÂ³mo leer la estructura', 'La columna Entrega separa las 5 entregas. La columna Paquete indica el subconjunto dentro de cada entrega (Bastidor, Bandeja, Barandas, etc). Ruta WBS muestra la jerarquÃƒÂ­a completa.'),
-        ('QuÃƒÂ© columnas editar', 'Solo editar: % avance a cargar, Fecha inicio real a cargar, Fecha tÃƒÂ©rmino si 100%, Notas usuario.'),
-        ('QuÃƒÂ© no tocar', 'No modificar Actividad ID, Actividad, Estado P6, Entrega, Paquete, Ruta WBS, % Complete Type, Calendar ID, Inicio/TÃƒÂ©rmino plan, BAC HH, EV HH, ETC HH.'),
-        ('Avance parcial', 'Si la actividad trabajÃƒÂ³ pero no terminÃƒÂ³: ingresar % avance a cargar y Fecha inicio real a cargar. Dejar vacÃƒÂ­a Fecha tÃƒÂ©rmino si 100%.'),
-        ('Cierre 100%', 'Si la actividad terminÃƒÂ³: ingresar 100 en % avance a cargar, Fecha inicio real a cargar y Fecha tÃƒÂ©rmino si 100%.'),
-        ('Uso recomendado', 'Filtra primero por Entrega y luego por Paquete. AsÃƒÂ­ ves con claridad a quÃƒÂ© parte del programa le estÃƒÂ¡s cargando avance.'),
-        ('Colores', 'Los colores suaves ahora distinguen Entrega 1 a 5. Ya no se usan para el estado P6.'),
-        ('Control previo a carga', 'Antes de cargar, revisar que cada fila intervenida tenga sentido en Entrega, Paquete y fechas reales.'),
+        ('Objetivo', 'Capturar avance real W11 con la misma lÃ³gica de la planilla operativa validada anteriormente.'),
+        ('QuÃ© revisar primero', 'Ubicar la actividad por Entrega, Despacho/Tag y WBS antes de marcar avance.'),
+        ('Color por estado', 'Verde = TK_Complete, Amarillo = TK_Active, Rojo = TK_NotStart.'),
+        ('QuÃ© editar', 'Solo editar Marcar avance y Observaciones.'),
+        ('Lectura de avance', 'Avance % se calcula como EV HH / BAC HH y sirve de referencia del estado actual de la DB.'),
+        ('Uso recomendado', 'Filtrar primero por Entrega o por Despacho/Tag para trabajar una entrega a la vez.'),
     ]
     ws.append(['Campo', 'Detalle'])
     style_header(ws, ['Campo', 'Detalle'])
@@ -195,28 +190,8 @@ def build_instructions_sheet(wb: Workbook) -> None:
         for cell in row:
             cell.alignment = WRAP_ALIGN
     ws.freeze_panes = 'A2'
-    ws.column_dimensions['A'].width = 26
+    ws.column_dimensions['A'].width = 24
     ws.column_dimensions['B'].width = 110
-
-
-def build_meta_sheet(wb: Workbook, proj: sqlite3.Row, args, week_start: date, week_end: date, count_rows: int) -> None:
-    ws = wb.create_sheet('Meta')
-    ws.append(['Campo', 'Valor'])
-    style_header(ws, ['Campo', 'Valor'])
-    ws.append(['PROJ_ID', proj['PROJ_ID']])
-    ws.append(['Programa', proj['PROJ_SHORT_NAME'] or ''])
-    ws.append(['Semana ISO solicitada', args.iso_week])
-    ws.append(['Desde', str(week_start)])
-    ws.append(['Hasta', str(week_end)])
-    ws.append(['LAST_SCHEDULE_DATE', proj['LAST_SCHEDULE_DATE'] or ''])
-    ws.append(['Filas generadas', count_rows])
-    ws.append(['Criterio', 'Actividades task con HH labor y solape de fechas plan/labor con la semana ISO'])
-    for row in ws.iter_rows(min_row=2):
-        for cell in row:
-            cell.alignment = WRAP_ALIGN
-    ws.freeze_panes = 'A2'
-    ws.column_dimensions['A'].width = 28
-    ws.column_dimensions['B'].width = 90
 
 
 def main() -> None:
@@ -231,7 +206,7 @@ def main() -> None:
 
     proj = cur.execute(
         '''
-        SELECT PROJ_ID, PROJ_SHORT_NAME, LAST_SCHEDULE_DATE, DEF_COMPLETE_PCT_TYPE
+        SELECT PROJ_ID, PROJ_SHORT_NAME, LAST_SCHEDULE_DATE
         FROM PROJECT
         WHERE PROJ_ID = ?
         ''',
@@ -240,7 +215,7 @@ def main() -> None:
     if not proj:
         raise SystemExit(f'PROJ_ID no encontrado: {args.proj_id}')
 
-    _, chain_map = build_wbs_maps(cur, args.proj_id)
+    chain_map = build_wbs_map(cur, args.proj_id)
 
     rows = cur.execute(
         '''
@@ -250,25 +225,18 @@ def main() -> None:
             t.TASK_NAME,
             t.STATUS_CODE,
             t.WBS_ID,
-            COALESCE(t.COMPLETE_PCT_TYPE, p.DEF_COMPLETE_PCT_TYPE) AS COMPLETE_PCT_TYPE,
-            t.CLNDR_ID,
             t.TARGET_START_DATE,
             t.TARGET_END_DATE,
             COALESCE(SUM(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN tr.TARGET_QTY ELSE 0 END), 0) AS BAC_HH,
             COALESCE(SUM(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN COALESCE(tr.ACT_REG_QTY,0) + COALESCE(tr.ACT_OT_QTY,0) ELSE 0 END), 0) AS EV_HH,
-            COALESCE(SUM(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN COALESCE(tr.REMAIN_QTY,0) ELSE 0 END), 0) AS ETC_HH,
             MIN(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN tr.TARGET_START_DATE END) AS LABOR_START,
             MAX(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN tr.TARGET_END_DATE END) AS LABOR_END,
             SUM(CASE WHEN tr.RSRC_TYPE='RT_Labor' THEN 1 ELSE 0 END) AS LABOR_ROWS
         FROM TASK t
-        JOIN PROJECT p ON p.PROJ_ID = t.PROJ_ID
         LEFT JOIN TASKRSRC tr ON tr.PROJ_ID = t.PROJ_ID AND tr.TASK_ID = t.TASK_ID
         WHERE t.PROJ_ID = ?
           AND COALESCE(t.TASK_TYPE, '') NOT IN ('TT_Mile', 'TT_FinMile', 'TT_LOE', 'TT_WBS')
-        GROUP BY
-            t.TASK_ID, t.TASK_CODE, t.TASK_NAME, t.STATUS_CODE, t.WBS_ID,
-            COALESCE(t.COMPLETE_PCT_TYPE, p.DEF_COMPLETE_PCT_TYPE),
-            t.CLNDR_ID, t.TARGET_START_DATE, t.TARGET_END_DATE
+        GROUP BY t.TASK_ID, t.TASK_CODE, t.TASK_NAME, t.STATUS_CODE, t.WBS_ID, t.TARGET_START_DATE, t.TARGET_END_DATE
         ORDER BY COALESCE(t.WBS_ID, 0), t.TASK_CODE
         ''',
         (args.proj_id,),
@@ -284,26 +252,23 @@ def main() -> None:
         if not overlaps(plan_start, plan_end, dt_start, dt_end):
             continue
         parts = chain_map.get(int(row['WBS_ID'])) if row['WBS_ID'] is not None else []
-        entrega, paquete, ruta = derive_structure(parts or [])
+        entrega, despacho_tag, wbs = derive_structure(parts or [])
+        bac = float(row['BAC_HH'] or 0)
+        ev = float(row['EV_HH'] or 0)
+        pct = round((ev / bac), 4) if bac else 0.0
         selected.append({
+            'entrega': entrega,
+            'despacho_tag': despacho_tag,
+            'wbs': wbs,
             'task_code': row['TASK_CODE'],
             'task_name': row['TASK_NAME'],
             'status_code': row['STATUS_CODE'] or '',
-            'entrega': entrega,
-            'paquete': paquete,
-            'ruta': ruta,
-            'pct_type': row['COMPLETE_PCT_TYPE'] or '',
-            'calendar_id': row['CLNDR_ID'] or '',
-            'plan_start': plan_start.strftime('%Y-%m-%d %H:%M:%S') if plan_start else '',
-            'plan_end': plan_end.strftime('%Y-%m-%d %H:%M:%S') if plan_end else '',
-            'bac_hh': float(row['BAC_HH'] or 0),
-            'ev_hh': float(row['EV_HH'] or 0),
-            'etc_hh': float(row['ETC_HH'] or 0),
+            'bac_hh': bac,
+            'ev_hh': ev,
+            'avance_pct': pct,
         })
 
-    selected.sort(key=lambda r: (r['entrega'], r['paquete'], r['task_code']))
-    unique_deliveries = [d for d in dict.fromkeys(r['entrega'] for r in selected if r['entrega'])]
-    delivery_palette = {delivery: DELIVERY_FILLS[idx % len(DELIVERY_FILLS)] for idx, delivery in enumerate(unique_deliveries)}
+    selected.sort(key=lambda r: (r['entrega'], r['despacho_tag'], r['wbs'], r['task_code']))
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -315,47 +280,42 @@ def main() -> None:
     style_header(ws, HEADERS)
 
     for item in selected:
-        status_label = item['status_code'].replace('TK_', '') if item['status_code'] else ''
         ws.append([
+            item['entrega'],
+            item['despacho_tag'],
+            item['wbs'],
             item['task_code'],
             item['task_name'],
-            status_label,
-            item['entrega'],
-            item['paquete'],
-            item['ruta'],
-            item['pct_type'],
-            item['calendar_id'],
-            item['plan_start'],
-            item['plan_end'],
+            item['status_code'],
             item['bac_hh'],
             item['ev_hh'],
-            item['etc_hh'],
-            '',
-            '',
+            item['avance_pct'],
             '',
             '',
         ])
         row_idx = ws.max_row
-        apply_delivery_fill(ws, row_idx, item['entrega'], delivery_palette)
+        fill = STATUS_FILLS.get(item['status_code'])
+        if fill:
+            for col_idx in range(1, len(HEADERS) + 1):
+                ws.cell(row=row_idx, column=col_idx).fill = fill
         for col_idx in range(1, len(HEADERS) + 1):
             ws.cell(row=row_idx, column=col_idx).alignment = WRAP_ALIGN
 
     ws.freeze_panes = 'A2'
     ws.auto_filter.ref = f'A1:{get_column_letter(len(HEADERS))}{ws.max_row}'
-    ws.column_dimensions['B'].width = 48
-    ws.column_dimensions['D'].width = 28
-    ws.column_dimensions['E'].width = 28
-    ws.column_dimensions['F'].width = 85
-    ws.column_dimensions['N'].width = 18
-    ws.column_dimensions['O'].width = 22
-    ws.column_dimensions['P'].width = 22
-    ws.column_dimensions['Q'].width = 28
+    ws.column_dimensions['A'].width = 14
+    ws.column_dimensions['B'].width = 28
+    ws.column_dimensions['C'].width = 28
+    ws.column_dimensions['D'].width = 14
+    ws.column_dimensions['E'].width = 48
+    ws.column_dimensions['F'].width = 14
+    ws.column_dimensions['J'].width = 16
+    ws.column_dimensions['K'].width = 28
     auto_fit(ws)
 
     build_instructions_sheet(wb)
-    build_meta_sheet(wb, proj, args, week_start, week_end, len(selected))
-
     wb.save(out_path)
+
     print(f'OUT_XLSX={out_path}')
     print(f'ROWS={len(selected)}')
     print(f'PROJ_ID={proj["PROJ_ID"]}')
