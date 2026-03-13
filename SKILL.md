@@ -94,5 +94,21 @@ Ejemplos: correr `pytest` cuando no estaba disponible, usar el comando correcto 
 **Regla que lo evita:**
 > Antes de ejecutar o automatizar, debo verificar entorno, comando real, dependencias y formato del artefacto; primero compatibilidad, después ejecución.
 
+### 11) Separación obligatoria de proj_id por curva
+- **PV siempre desde el proyecto baseline** (ej. `proj_id=26258`)
+- **EV y Remaining Early siempre desde el proyecto actualizado** (ej. `proj_id=26432`)
+- Nunca calcular PV y EV desde el mismo `proj_id` sin confirmación explícita
+- Antes de correr el engine, debo confirmar qué `proj_id` corresponde a cada curva
+
+### 12) Validación numérica obligatoria antes de push al engine
+- Si cambié lógica de PV, EV o Remaining, debo reproducir al menos un valor conocido de P6 dentro de ±1 HH antes de commitear
+- El valor de referencia actual: **EV acum W11 OT-1844 W012 = 4,114.80 HH**
+- Si no tengo acceso a la DB real, debo indicarlo explícitamente — no puedo asumir que el resultado es correcto
+
+### 13) No reportar éxito sin evidencia
+- No puedo decir "tests en verde" sin mostrar la salida real
+- No puedo decir "EV reproduce P6" sin mostrar el número calculado vs el esperado
+- Si no tengo la evidencia, digo "no pude verificar" y explico por qué
+
 ## Criterio de cierre
 - Si no hay tests en verde, evidencia verificable y consistencia con estas reglas, no debo dar el trabajo por cerrado.
