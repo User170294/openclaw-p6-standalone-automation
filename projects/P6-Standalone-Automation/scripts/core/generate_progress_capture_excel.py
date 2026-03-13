@@ -147,28 +147,46 @@ def build_wbs_map(cur: sqlite3.Cursor, proj_id: int) -> dict[int, list[str]]:
     return chain_map
 
 
+def normalize_tag(raw: str) -> str:
+    raw = raw.strip()
+    if '|' in raw:
+        _, cleaned = raw.split('|', 1)
+        return cleaned.strip()
+    return raw
+
+
+def normalize_wbs(raw: str) -> str:
+    raw = raw.strip()
+    if '|' in raw:
+        short_name, name = raw.split('|', 1)
+        short_name = short_name.strip()
+        name = name.strip()
+        if short_name.isdigit():
+            return name
+    return raw
+
+
 def derive_structure(parts: list[str]) -> tuple[str, str, str]:
     # Programa > Macro FabricaciÃ³n > Entrega/Tag > WBS paquete
     entrega = ''
     despacho_tag = ''
     wbs = ''
     if len(parts) >= 3:
-        despacho_tag = parts[2]
-        tail = despacho_tag.split('|', 1)[0].strip()
-        if tail.endswith('-1'):
+        despacho_tag = normalize_tag(parts[2])
+        if despacho_tag.endswith('-1'):
             entrega = 'Entrega 1'
-        elif tail.endswith('-2'):
+        elif despacho_tag.endswith('-2'):
             entrega = 'Entrega 2'
-        elif tail.endswith('-3'):
+        elif despacho_tag.endswith('-3'):
             entrega = 'Entrega 3'
-        elif tail.endswith('-4'):
+        elif despacho_tag.endswith('-4'):
             entrega = 'Entrega 4'
-        elif tail.endswith('-5'):
+        elif despacho_tag.endswith('-5'):
             entrega = 'Entrega 5'
         else:
             entrega = despacho_tag
     if len(parts) >= 4:
-        wbs = parts[3]
+        wbs = normalize_wbs(parts[3])
     return entrega, despacho_tag, wbs
 
 
