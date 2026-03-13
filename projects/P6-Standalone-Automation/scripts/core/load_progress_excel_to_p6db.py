@@ -29,7 +29,7 @@ DEFAULT_HEADERS = {
     'etc_hh': 'ETC HH',
     'pct_to_load': '% avance a cargar',
     'actual_start': 'Fecha inicio real a cargar',
-    'actual_end_if_100': 'Fecha término si 100%',
+    'actual_end_if_100': 'Fecha tÃ©rmino si 100%',
 }
 
 
@@ -66,14 +66,14 @@ class TaskContext:
 def parse_args():
     p = argparse.ArgumentParser(description='Carga segura avances Excel -> DB SQLite Primavera P6.')
     p.add_argument('--db', required=True, help='Ruta a PPMDBSQLite .db')
-    p.add_argument('--xlsx', required=True, help='Excel de revisión/carga')
+    p.add_argument('--xlsx', required=True, help='Excel de revisiÃ³n/carga')
     p.add_argument('--proj-id', type=int, required=True, help='PROJ_ID objetivo')
     p.add_argument('--sheet', default=DEFAULT_SHEET, help='Nombre de hoja Excel')
     p.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data', help='Carpeta para reportes')
     p.add_argument('--apply', action='store_true', help='Aplica cambios. Sin esto, solo dry-run.')
     p.add_argument('--backup-dir', default='', help='Carpeta opcional para respaldos .db')
     p.add_argument('--default-day-start', default='08:00', help='Hora inicio por defecto para fechas sin hora')
-    p.add_argument('--default-day-end', default='18:00', help='Hora término por defecto para fechas sin hora')
+    p.add_argument('--default-day-end', default='18:00', help='Hora tÃ©rmino por defecto para fechas sin hora')
     p.add_argument('--task-code-col', default=DEFAULT_HEADERS['task_code'])
     p.add_argument('--task-name-col', default=DEFAULT_HEADERS['task_name'])
     p.add_argument('--status-col', default=DEFAULT_HEADERS['status'])
@@ -231,8 +231,6 @@ def load_candidates(args) -> tuple[list[CandidateRow], list[str]]:
         elif pct < 0 or pct > 100:
             issues.append('pct_out_of_range')
 
-        if pct is not None and pct > 0 and actual_start is None:
-            issues.append('missing_actual_start_for_progress')
         if pct == 100 and actual_end is None:
             issues.append('missing_actual_end_for_100pct')
         if pct is not None and 0 < pct < 100 and actual_end is not None:
@@ -374,10 +372,12 @@ def main():
 
             if actual_start and actual_end and actual_end < actual_start:
                 issues.append('actual_end_before_actual_start')
-            if cand.pct_to_load > 0 and actual_start is None:
+            if cand.pct_to_load > 0 and actual_start is None and ctx.act_start_date is None:
                 issues.append('actual_start_missing_after_normalization')
             if cand.pct_to_load == 100 and actual_end is None:
                 issues.append('actual_end_missing_after_normalization')
+            if cand.pct_to_load > 0 and actual_start is None and ctx.act_start_date is not None:
+                notes.append('actual_start_reused_from_db')
 
             tr = cur.execute(
                 '''
