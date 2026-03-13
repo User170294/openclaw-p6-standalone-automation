@@ -29,7 +29,7 @@ HEADERS = [
     'Avance %',
     'Marcar avance',
     'Fecha inicio real (si estaba TK_NotStart)',
-    'Fecha tÃ©rmino real (si queda 100%)',
+    'Fecha termino real (si queda 100%)',
     'Observaciones',
 ]
 
@@ -45,14 +45,14 @@ STATUS_FILLS = {
 }
 
 INSTRUCTIONS = [
-    ('Objetivo', 'Capturar avance real W11 con la misma lÃ³gica de la planilla operativa validada anteriormente.'),
-    ('QuÃ© revisar primero', 'Ubicar la actividad por Entrega, Despacho/Tag y WBS antes de marcar avance.'),
+    ('Objetivo', 'Capturar avance real W11 con la misma logica de la planilla operativa validada anteriormente.'),
+    ('Que revisar primero', 'Ubicar la actividad por Entrega, Despacho/Tag y WBS antes de marcar avance.'),
     ('Color por estado', 'Verde = TK_Complete, Amarillo = TK_Active, Rojo = TK_NotStart.'),
-    ('QuÃ© editar', 'Editar solo: Marcar avance, Fecha inicio real (si estaba TK_NotStart), Fecha tÃ©rmino real (si queda 100%), Observaciones.'),
+    ('Que editar', 'Editar solo: Marcar avance, Fecha inicio real (si estaba TK_NotStart), Fecha termino real (si queda 100%), Observaciones.'),
     ('Regla TK_NotStart', 'Si una actividad estaba TK_NotStart y la comienzas, debes informar Fecha inicio real.'),
-    ('Regla cierre 100%', 'Si una actividad queda al 100%, debes informar Fecha tÃ©rmino real. Si ademÃ¡s estaba TK_NotStart, informar tambiÃ©n Fecha inicio real.'),
+    ('Regla cierre 100%', 'Si una actividad queda al 100%, debes informar Fecha termino real. Si ademas estaba TK_NotStart, informar tambien Fecha inicio real.'),
     ('Regla TK_Active', 'Si la actividad ya estaba iniciada y solo agregas avance al corte, no modificar fechas; solo Marcar avance y, si aplica, Observaciones.'),
-    ('Mismo dÃ­a inicio y tÃ©rmino', 'Si una actividad inicia y termina el mismo dÃ­a, se interpreta como jornada completa: inicio al comienzo de la jornada y tÃ©rmino al final de la jornada.'),
+    ('Mismo dia inicio y termino', 'Si una actividad inicia y termina el mismo dia, se interpreta como jornada completa: inicio al comienzo de la jornada y termino al final de la jornada.'),
     ('Lectura de avance', 'Avance % se calcula como EV HH / BAC HH y sirve de referencia del estado actual de la DB.'),
     ('Uso recomendado', 'Filtrar primero por Entrega o por Despacho/Tag para trabajar una entrega a la vez.'),
 ]
@@ -66,10 +66,6 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument('--sheet', default=SHEET_NAME)
     ap.add_argument('--out', required=True, help='Ruta xlsx de salida')
     return ap.parse_args()
-
-
-def safe_text(text: str) -> str:
-    return text.encode('unicode_escape').decode('ascii')
 
 
 def iso_week_bounds(iso_week: str) -> tuple[date, date]:
@@ -354,7 +350,7 @@ def main() -> None:
     print(f'PROG={proj["PROJ_SHORT_NAME"]}')
     print(f'WEEK_START={week_start}')
     print(f'WEEK_END={week_end}')
-    print('FORMAT_PROFILE=OT1844_DB_LOAD_CAPTURE_V1')
+    print('FORMAT_PROFILE=OT1844_DB_LOAD_CAPTURE_V1_ASCII_SAFE')
 
 
 if __name__ == '__main__':
