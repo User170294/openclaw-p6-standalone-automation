@@ -78,3 +78,11 @@
 - Se define `001_Prueba Externa/` como carpeta de fixtures XER para validaciÃ³n cruzada.
 - Flujo operativo documentado en `docs/XER_DB_VALIDATION_FLOW.md`.
 - `INDEX.csv` normalizado para reflejar artefactos vigentes del proyecto.
+
+## Aprendizaje operativo (2026-03-13) — Remaining Early W12 debe respetar Early Start + calendario real
+- Se detectó desvío al calcular recovery W12 usando una aproximación simplificada del remaining.
+- Caso testigo validado: `A3880` (`REMAIN_QTY=162`, `REMAIN_QTY_PER_HR=6`, calendario `7475`, `EARLY_START_DATE=2026-03-19 08:00`, `EARLY_END_DATE=2026-03-23 18:00`).
+- Resultado correcto por semana: **W12 = 108 HH**, **W13 = 54 HH**.
+- Regla corregida: para `Remaining Early` no basta con repartir `REMAIN_QTY` entre corte y `EARLY_END_DATE`; se debe usar `max(corte+1s, EARLY_START_DATE)` como inicio efectivo, junto con `TASK.CLNDR_ID`, `CALENDAR.CLNDR_DATA`, horas efectivas de solape y consistencia con `REMAIN_QTY_PER_HR`.
+- Mejora aplicada en `scripts/core/pv_engine.py` (modo DB): el remaining ahora usa `EARLY_START_DATE` + `EARLY_END_DATE` + calendario real para distribuir `re_week`.
+- Resultado recalculado W12: `Remaining Early = 1872.0 HH`. Archivo de respaldo analítico: `projects/P6-Standalone-Automation/data/recovery_W12_recalc_2026-03-13.md`.

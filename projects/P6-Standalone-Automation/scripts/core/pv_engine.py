@@ -19,14 +19,15 @@ from report_generator import generate_report
 
 
 DEFAULT_WEEK0 = date(2026, 2, 16)  # ancla vigente OT-1844 para labels W##
-FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'ev_cum', 'sv', 'spi']
+FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
 
 
 def week_label(mon: date, anchor: date = DEFAULT_WEEK0) -> str:
-    """Genera etiqueta W## relativa al ancla. W08 = ancla."""
     delta = (mon - anchor).days
-    week_num = 8 + delta // 7
-    return f'W{week_num:02d}'
+    if delta < 0:
+        iy, iw, _ = mon.isocalendar()
+        return f'ISO{iy}-W{iw:02d}'
+    return f'W{8 + delta // 7:02d}'
 
 
 def parse_table(path: str | Path, table_name: str) -> list[dict[str, str]]:
@@ -229,6 +230,37 @@ def load(args) -> dict[str, Any]:
                 {k.lower(): v for k, v in dict(r).items()}
                 for r in rows
             ]
+            task_cols = {str(r['name']).upper() for r in cur.execute('PRAGMA table_info(TASK)').fetchall()}
+            if {'TARGET_WORK_QTY', 'ACT_WORK_QTY', 'REMAIN_WORK_QTY', 'CLNDR_ID'}.issubset(task_cols):
+                if {'TASK_CODE', 'EARLY_START_DATE', 'EARLY_END_DATE', 'TASK_TYPE'}.issubset(task_cols):
+                    task_sql = '''
+                    SELECT TASK_ID, TASK_CODE, CLNDR_ID,
+                           TARGET_START_DATE, TARGET_END_DATE,
+                           ACT_START_DATE, ACT_END_DATE,
+                           EARLY_START_DATE, EARLY_END_DATE,
+                           TARGET_WORK_QTY, ACT_WORK_QTY, REMAIN_WORK_QTY,
+                           TASK_TYPE
+                    FROM TASK
+                    WHERE PROJ_ID=? AND TASK_TYPE != 'TT_Mile'
+                    '''
+                else:
+                    task_sql = '''
+                    SELECT TASK_ID, NULL AS TASK_CODE, CLNDR_ID,
+                           TARGET_START_DATE, TARGET_END_DATE,
+                           ACT_START_DATE, ACT_END_DATE,
+                           NULL AS EARLY_START_DATE, NULL AS EARLY_END_DATE,
+                           TARGET_WORK_QTY, ACT_WORK_QTY, REMAIN_WORK_QTY,
+                           'TT_Task' AS TASK_TYPE
+                    FROM TASK
+                    WHERE PROJ_ID=?
+                    '''
+                task_rows = cur.execute(task_sql, (payload['proj_id'],)).fetchall()
+                payload['task_rows'] = [
+                    {k.lower(): v for k, v in dict(r).items()}
+                    for r in task_rows
+                ]
+            else:
+                payload['task_rows'] = []
             payload['calendars'] = load_calendars(con, payload['proj_id'])
             payload['base_source'] = 'db'
         finally:
@@ -251,51 +283,66 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
 
     calendars = payload.get('calendars', {})
 
-    for row in payload['base_taskrsrc_rows']:
-        if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
-            continue
-        hh = safe_float(row.get('target_qty'))
-        ts = safe_dt(row.get('target_start_date'))
-        te = safe_dt(row.get('target_end_date'))
-        if hh <= 0 or not ts or not te:
-            continue
-        if payload.get('base_source') == 'db':
-            clndr_id = row.get('task_clndr_id')
+    if payload.get('base_source') == 'db':
+        task_rows = payload.get('task_rows', [])
+        for row in task_rows:
+            clndr_id = row.get('clndr_id')
             calendar = calendars.get(int(clndr_id)) if clndr_id not in (None, '') else None
-            spread_calendar(ts, te, hh, calendar, pv_week)
-        else:
+
+            pv = safe_float(row.get('target_work_qty'))
+            pv_start = safe_dt(row.get('target_start_date'))
+            pv_end = safe_dt(row.get('target_end_date'))
+            if pv > 0 and pv_start and pv_end:
+                spread_calendar(pv_start, pv_end, pv, calendar, pv_week)
+
+            ev = safe_float(row.get('act_work_qty'))
+            ev_start = safe_dt(row.get('act_start_date'))
+            ev_end_raw = safe_dt(row.get('act_end_date'))
+            if ev > 0 and ev_start and ev_start <= cutoff:
+                ev_end = ev_end_raw if (ev_end_raw and ev_end_raw <= cutoff) else cutoff
+                if ev_end >= ev_start:
+                    spread_calendar(ev_start, ev_end, ev, calendar, ev_week)
+
+            remain = safe_float(row.get('remain_work_qty'))
+            if remain > 0 and row.get('act_end_date') is None:
+                remain_start = cutoff + timedelta(seconds=1)
+                early_start = safe_dt(row.get('early_start_date'))
+                if early_start and early_start > remain_start:
+                    remain_start = early_start
+                remain_end = safe_dt(row.get('early_end_date'))
+                if remain_end and remain_end > cutoff and remain_end >= remain_start:
+                    spread_calendar(remain_start, remain_end, remain, calendar, re_week)
+    else:
+        for row in payload['base_taskrsrc_rows']:
+            if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+                continue
+            hh = safe_float(row.get('target_qty'))
+            ts = safe_dt(row.get('target_start_date'))
+            te = safe_dt(row.get('target_end_date'))
+            if hh <= 0 or not ts or not te:
+                continue
             spread_lv(ts.date(), te.date(), hh, pv_week)
 
-    source_rows = payload['base_taskrsrc_rows'] if payload.get('base_source') == 'db' else payload['upd_taskrsrc_rows']
-    for row in source_rows:
-        if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
-            continue
-        clndr_id = row.get('task_clndr_id')
-        calendar = calendars.get(int(clndr_id)) if (payload.get('base_source') == 'db' and clndr_id not in (None, '')) else None
-
-        ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
-        a_s = safe_dt(row.get('act_start_date'))
-        a_e = safe_dt(row.get('act_end_date'))
-        if ev > 0 and a_s and a_s <= cutoff:
-            end = a_e if (a_e and a_e <= cutoff) else cutoff
-            if end >= a_s:
-                if payload.get('base_source') == 'db':
-                    spread_calendar(a_s, end, ev, calendar, ev_week)
-                else:
-                    spread_lv(a_s.date(), end.date(), ev, ev_week)
-
-        # Early Remaining: usar RESTART_DATE → REEND_DATE (no cutoff → fin)
-        # Esto replica el comportamiento real de P6 para Early Remaining Labor Units
-        remain = safe_float(row.get('remain_qty'))
-        remain_start = safe_dt(row.get('restart_date'))
-        remain_end = safe_dt(row.get('reend_date')) or safe_dt(row.get('target_end_date'))
-        if remain > 0 and remain_start and remain_end and remain_end >= remain_start:
-            if payload.get('base_source') == 'db':
-                spread_calendar(remain_start, remain_end, remain, calendar, re_week)
-            else:
-                spread_lv(remain_start.date(), remain_end.date(), remain, re_week)
+        for row in payload['upd_taskrsrc_rows']:
+            if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+                continue
+            ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
+            a_s = safe_dt(row.get('act_start_date'))
+            a_e = safe_dt(row.get('act_end_date'))
+            if ev > 0 and a_s and a_s <= cutoff:
+                end = a_e if (a_e and a_e <= cutoff) else cutoff
+                spread_lv(a_s.date(), end.date(), ev, ev_week)
+            remain = safe_float(row.get('remain_qty'))
+            remain_end = safe_dt(row.get('remain_early_end_date')) or safe_dt(row.get('target_end_date'))
+            if remain > 0 and remain_end and remain_end > cutoff:
+                start = cutoff + timedelta(seconds=1)
+                spread_lv(start.date(), remain_end.date(), remain, re_week)
 
     weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
+    if payload.get('base_source') == 'db':
+        bac_total = round(sum(safe_float(r.get('target_work_qty')) for r in payload.get('task_rows', [])), 4)
+    else:
+        bac_total = round(sum(safe_float(r.get('target_qty')) for r in payload['base_taskrsrc_rows'] if (r.get('rsrc_type') or '').strip() == 'RT_Labor'), 4)
     rows: list[dict[str, Any]] = []
     pv_cum = 0.0
     ev_cum = 0.0
@@ -309,17 +356,21 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
         re_cum = round(re_cum + rew, 4)
         sv = round(ev_cum - pv_cum, 4)
         spi = round((ev_cum / pv_cum), 6) if pv_cum else None
+        forecast_cum = round(ev_cum + re_cum, 4)
         rows.append({
             'week': week_label(mon),
             'pv_week': pvw,
             'pv_cum': pv_cum,
+            'pv_pct': round(pv_cum / bac_total * 100, 2) if bac_total else None,
             'ev_cum': ev_cum,
+            'ev_pct': round(ev_cum / bac_total * 100, 2) if bac_total else None,
             'sv': sv,
             'spi': spi,
+            'forecast_cum': forecast_cum,
+            'forecast_pct': round(forecast_cum / bac_total * 100, 2) if bac_total else None,
             'ev_week': evw,
             're_week': rew,
             're_cum': re_cum,
-            'forecast_cum': round(ev_cum + re_cum, 4),
         })
 
     source_note = 'DB SQLite primaria con calendario real CLNDR_DATA' if payload.get('base_source') == 'db' else 'XER fallback L-V simple'
@@ -337,7 +388,7 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
         return {
             'mode': 'p6_visual',
             'stub': True,
-            'note': 'Modo p6_visual aún no implementado; interfaz reservada y salida estable habilitada.',
+            'note': 'Modo p6_visual aÃºn no implementado; interfaz reservada y salida estable habilitada.',
             'rows': [],
         }
     return _compute_logic(payload)
@@ -409,7 +460,7 @@ def parse_args():
     ap.add_argument('--mode', choices=['logic', 'p6_visual'], required=True)
     ap.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data')
     ap.add_argument('--format', choices=['csv', 'json', 'md'], default='csv')
-    ap.add_argument('--report', choices=['html', 'md', 'xlsx'], help='Render opcional de reporte final unificado después del export base.')
+    ap.add_argument('--report', choices=['html', 'md', 'xlsx'], help='Render opcional de reporte final unificado despuÃ©s del export base.')
     args = ap.parse_args()
     if not ((args.db and args.proj_id is not None) or args.base_xer):
         ap.error('Debes indicar la fuente primaria --db + --proj-id, o bien --base-xer como fallback si no hay acceso a DB.')
