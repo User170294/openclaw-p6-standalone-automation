@@ -88,7 +88,7 @@ def _build_chart_points(rows: list[dict[str, Any]]) -> str:
     return ''.join(points) + x_labels
 
 
-def render_html(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | None = None) -> Path:
+def render_html(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | None = None) -> Path:  # noqa: C901
     report = enrich_report(report)
     rows = report.get('rows', [])
     kpis = report['kpis']
@@ -107,28 +107,64 @@ def render_html(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | N
     sv = round(ev - pv, 2) if ev is not None and pv is not None else None
     spi_class = 'neg' if (spi is not None and spi < 1) else 'pos'
     cpi_class = 'neg' if (cpi is not None and cpi < 1) else 'pos'
-    sv_class = 'neg' if (sv is not None and sv < 0) else 'pos'
+    spi_val = _fmt_num(spi, 3) if spi is not None else 'N/A'
+    cpi_val = _fmt_num(cpi, 3) if cpi is not None else 'N/A'
+    eac_val = _fmt_num(eac, 0) if eac is not None else _fmt_num(bac, 0)
 
+    # Curvas JS
     weeks_js = str([r.get('week', '') for r in rows])
     pv_cum_js = str([float(r.get('pv_cum') or 0) for r in rows])
     ev_cum_js = str([float(r.get('ev_cum') or 0) for r in rows])
     pv_week_js = str([float(r.get('pv_week') or 0) for r in rows])
+    re_week_js = str([float(r.get('re_week') or 0) for r in rows])
+    fc_cum_js = str([round(float(r.get('ev_cum') or 0) + float(r.get('re_cum') or 0), 4) for r in rows])
 
+    # Tabla detalle
     table_rows_html = ''
     for r in rows:
-        w = r.get('week', '')
-        pvw = _fmt_num(r.get('pv_week'), 1)
+        w = escape(r.get('week', ''))
         pvc = _fmt_num(r.get('pv_cum'), 1)
         evc = _fmt_num(r.get('ev_cum'), 1)
+        rec = _fmt_num(r.get('re_cum'), 1)
+        fcc = _fmt_num(float(r.get('ev_cum') or 0) + float(r.get('re_cum') or 0), 1)
         svv = r.get('sv')
         spiv = r.get('spi')
         sv_cls = 'val-neg' if (svv is not None and float(svv) < 0) else 'val-pos'
         spi_cls = 'val-neg' if (spiv is not None and float(spiv) < 1) else ''
         sv_str = _fmt_num(svv, 1) if svv is not None else '—'
         spi_str = _fmt_num(spiv, 3) if spiv is not None else '—'
-        table_rows_html += f"<tr><td>{escape(w)}</td><td>{pvw}</td><td>{pvc}</td><td>{evc}</td><td class='{sv_cls}'>{sv_str}</td><td class='{spi_cls}'>{spi_str}</td></tr>\n"
+        table_rows_html += (
+            f"<tr><td>{w}</td><td>{pvc}</td><td>{evc}</td>"
+            f"<td class='re-col'>{rec}</td><td class='fc-col'>{fcc}</td>"
+            f"<td class='{sv_cls}'>{sv_str}</td><td class='{spi_cls}'>{spi_str}</td></tr>\n"
+        )
 
     stamp = datetime.now().strftime('%Y-%m-%d %H:%M')
+
+    js_charts = (
+        "Chart.defaults.color='#4a5568';"
+        "Chart.defaults.borderColor='#1e2530';"
+        "Chart.defaults.font.family=\"'IBM Plex Mono',monospace\";"
+        "Chart.defaults.font.size=10;"
+        "const grid={color:'#1e2530',drawBorder:false};"
+        "const ticks={color:'#4a5568',font:{family:\"'IBM Plex Mono',monospace\",size:9}};"
+        "const tooltipCfg={backgroundColor:'#111418',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10};"
+        f"const weeks={weeks_js};"
+        f"const pvCum={pv_cum_js};"
+        f"const evCum={ev_cum_js};"
+        f"const remSem={re_week_js};"
+        f"const fcCum={fc_cum_js};"
+        "new Chart(document.getElementById('curvaS'),{type:'line',data:{labels:weeks,datasets:["
+        "  {label:'PV',data:pvCum,borderColor:'#3a7bd5',backgroundColor:'rgba(58,123,213,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#3a7bd5',tension:0.3,fill:false},"
+        "  {label:'EV',data:evCum,borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,0.08)',borderWidth:2,pointRadius:3,pointBackgroundColor:'#00e5a0',tension:0.3,fill:false},"
+        "  {label:'Forecast',data:fcCum,borderColor:'#ff6b9d',backgroundColor:'rgba(255,107,157,0.06)',borderWidth:2,borderDash:[5,3],pointRadius:3,pointBackgroundColor:'#ff6b9d',tension:0.3,fill:false}"
+        "]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tooltipCfg},"
+        "scales:{x:{grid,ticks},y:{grid,ticks:{...ticks,callback:v=>v.toLocaleString()}}}}});"
+        "new Chart(document.getElementById('remChart'),{type:'bar',data:{labels:weeks,datasets:["
+        "{label:'Early Remaining',data:remSem,backgroundColor:'rgba(255,200,74,0.4)',borderColor:'#ffc84a',borderWidth:1,borderRadius:3}"
+        "]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:tooltipCfg},"
+        "scales:{x:{grid,ticks},y:{grid,ticks:{...ticks,callback:v=>v.toLocaleString()}}}}});"
+    )
 
     html = f"""<!DOCTYPE html>
 <html lang="es">
@@ -139,174 +175,159 @@ def render_html(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | N
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {{
-  --bg:#0d0f12; --surface:#13161b; --border:#1e2530; --border2:#2a3340;
-  --text:#c8d0db; --muted:#5a6575; --accent:#00c2ff; --green:#00e5a0;
-  --red:#ff4d6a; --yellow:#ffc84a; --pv:#3a7bd5; --ev:#00e5a0;
+  --bg:#0b0d10; --surface:#111418; --surface2:#181c22;
+  --border:#1e2530; --border2:#2a3340;
+  --text:#c8d0db; --muted:#4a5568; --accent:#00c2ff;
+  --green:#00e5a0; --red:#ff4d6a; --yellow:#ffc84a;
+  --pv:#3a7bd5; --ev:#00e5a0; --re:#ffc84a; --fc:#ff6b9d;
 }}
 *{{margin:0;padding:0;box-sizing:border-box;}}
 body{{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;line-height:1.6;}}
-header{{border-bottom:1px solid var(--border);padding:24px 40px 20px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;}}
-.header-tag{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}}
-.header-title{{font-size:22px;font-weight:600;color:#edf2f7;letter-spacing:-0.3px;}}
-.header-sub{{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}}
-.cutoff-badge{{background:#1a2235;border:1px solid var(--border2);border-radius:4px;padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);}}
-main{{padding:28px 40px;display:flex;flex-direction:column;gap:28px;}}
-.kpi-row{{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}}
-.kpi{{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:6px;position:relative;overflow:hidden;}}
-.kpi::before{{content:'';position:absolute;top:0;left:0;right:0;height:2px;}}
-.kpi.bac::before{{background:var(--muted);}}
-.kpi.pv::before{{background:var(--pv);}}
-.kpi.ev::before{{background:var(--ev);}}
-.kpi.spi::before{{background:var(--red);}}
-.kpi.cpi::before{{background:var(--green);}}
-.kpi.eac::before{{background:var(--accent);}}
-.kpi-label{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);}}
-.kpi-value{{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;color:#edf2f7;}}
-.kpi-sub{{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}}
-.badge{{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;width:fit-content;}}
+header{{border-bottom:1px solid var(--border);padding:28px 48px 24px;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;position:relative;overflow:hidden;}}
+header::before{{content:'';position:absolute;top:-60px;left:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(0,194,255,0.06) 0%,transparent 70%);pointer-events:none;}}
+.tag{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}}
+.title{{font-size:24px;font-weight:600;color:#edf2f7;letter-spacing:-0.5px;}}
+.subtitle{{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-top:4px;}}
+.badge-header{{background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);letter-spacing:1px;}}
+.kpi-strip{{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border);}}
+.kpi{{padding:20px 28px;border-right:1px solid var(--border);position:relative;}}
+.kpi:last-child{{border-right:none;}}
+.kpi-accent{{width:2px;height:100%;position:absolute;left:0;top:0;}}
+.kpi-label{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}}
+.kpi-value{{font-size:22px;font-weight:600;font-family:'IBM Plex Mono',monospace;line-height:1;color:#edf2f7;}}
+.kpi-sub{{font-size:10px;color:var(--muted);margin-top:4px;font-family:'IBM Plex Mono',monospace;}}
+.badge{{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;margin-top:4px;}}
 .badge.neg{{background:rgba(255,77,106,0.12);color:var(--red);}}
 .badge.pos{{background:rgba(0,229,160,0.12);color:var(--green);}}
 .badge.neu{{background:rgba(0,194,255,0.12);color:var(--accent);}}
+.main{{display:grid;grid-template-columns:1fr 400px;min-height:calc(100vh - 220px);}}
+.charts-col{{border-right:1px solid var(--border);padding:32px 40px;display:flex;flex-direction:column;gap:28px;}}
 .panel{{background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;}}
-.panel-header{{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}}
-.panel-title{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);}}
-.panel-meta{{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}}
+.panel-header{{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}}
+.panel-title{{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);}}
 .panel-body{{padding:20px;}}
-.panels{{display:grid;grid-template-columns:1fr 1fr;gap:20px;}}
-.panel-full{{grid-column:1/-1;}}
 canvas{{display:block;width:100%!important;}}
+.legend{{display:flex;gap:16px;flex-wrap:wrap;}}
+.legend-item{{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}}
+.legend-dot{{width:8px;height:8px;border-radius:50%;flex-shrink:0;}}
+.table-col{{padding:28px 28px;}}
+.section-label{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}}
 .data-table{{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;}}
-.data-table th{{padding:8px 12px;text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);}}
+.data-table th{{padding:7px 8px;text-align:right;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border2);font-weight:400;}}
 .data-table th:first-child{{text-align:left;}}
-.data-table td{{padding:7px 12px;text-align:right;border-bottom:1px solid var(--border);color:var(--text);}}
-.data-table td:first-child{{text-align:left;color:var(--accent);}}
-.data-table tr:last-child td{{border-bottom:none;}}
-.data-table tr:hover td{{background:rgba(255,255,255,0.02);}}
+.data-table td{{padding:8px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--text);}}
+.data-table td:first-child{{text-align:left;color:var(--muted);}}
+.data-table tr:hover{{background:var(--surface2);}}
+.re-col{{color:var(--re)!important;}}
+.fc-col{{color:var(--fc)!important;}}
 .val-neg{{color:var(--red)!important;}}
 .val-pos{{color:var(--green)!important;}}
-.legend{{display:flex;gap:20px;flex-wrap:wrap;}}
-.legend-item{{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);}}
-.legend-dot{{width:8px;height:8px;border-radius:2px;flex-shrink:0;}}
-footer{{border-top:1px solid var(--border);padding:16px 40px;display:flex;justify-content:space-between;}}
-.footer-text{{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;}}
+footer{{border-top:1px solid var(--border);padding:14px 48px;display:flex;justify-content:space-between;align-items:center;}}
+.footer-note{{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:1px;}}
 </style>
 </head>
 <body>
 <header>
   <div>
-    <div class="header-tag">P6 Standalone — Control Semanal</div>
-    <div class="header-title">{escape(title)}</div>
-    <div class="header-sub">{escape(proj_code)}</div>
+    <div class="tag">P6 Standalone · Control Semanal</div>
+    <div class="title">{escape(title)}</div>
+    <div class="subtitle">{escape(proj_code)}</div>
   </div>
-  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-    <div class="cutoff-badge">CORTE {escape(cutoff)}</div>
-    <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);">Generado: {stamp}</span>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+    <span class="badge-header">CORTE {escape(cutoff)}</span>
+    <span class="badge-header">Generado: {stamp}</span>
   </div>
 </header>
-<main>
-  <div class="kpi-row">
-    <div class="kpi bac">
-      <span class="kpi-label">BAC</span>
-      <span class="kpi-value">{_fmt_num(bac, 0)}</span>
-      <span class="kpi-sub">HH · Línea base</span>
-      <span class="badge neu">100%</span>
-    </div>
-    <div class="kpi pv">
-      <span class="kpi-label">PV · Planificado</span>
-      <span class="kpi-value">{_fmt_num(pv, 0)}</span>
-      <span class="kpi-sub">HH acumuladas</span>
-      <span class="badge neu">{pv_pct}%</span>
-    </div>
-    <div class="kpi ev">
-      <span class="kpi-label">EV · Ganado</span>
-      <span class="kpi-value">{_fmt_num(ev, 0)}</span>
-      <span class="kpi-sub">HH ganadas</span>
-      <span class="badge {ev_pct < pv_pct and 'neg' or 'pos'}">{ev_pct}%</span>
-    </div>
-    <div class="kpi spi">
-      <span class="kpi-label">SPI</span>
-      <span class="kpi-value">{_fmt_num(spi, 3) if spi is not None else 'N/A'}</span>
-      <span class="kpi-sub">EV / PV</span>
-      <span class="badge {spi_class}">{_fmt_num(sv, 0) if sv is not None else ''} HH</span>
-    </div>
-    <div class="kpi cpi">
-      <span class="kpi-label">CPI</span>
-      <span class="kpi-value">{_fmt_num(cpi, 3) if cpi is not None else 'N/A'}</span>
-      <span class="kpi-sub">EV / AC</span>
-      <span class="badge {cpi_class}">{'En costo' if cpi is not None and cpi >= 1 else 'Sobre costo'}</span>
-    </div>
-    <div class="kpi eac">
-      <span class="kpi-label">EAC</span>
-      <span class="kpi-value">{_fmt_num(eac, 0) if eac is not None else _fmt_num(bac, 0)}</span>
-      <span class="kpi-sub">HH · Estimado final</span>
-      <span class="badge neu">Forecast</span>
-    </div>
-  </div>
 
-  <div class="panels">
-    <div class="panel panel-full">
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--muted)"></div>
+    <div class="kpi-label">BAC</div>
+    <div class="kpi-value">{_fmt_num(bac, 0)}</div>
+    <div class="kpi-sub">HH · Línea base</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--pv)"></div>
+    <div class="kpi-label">PV Acum.</div>
+    <div class="kpi-value" style="color:var(--pv)">{_fmt_num(pv, 0)}</div>
+    <div class="kpi-sub">{pv_pct}%</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--ev)"></div>
+    <div class="kpi-label">EV Acum.</div>
+    <div class="kpi-value" style="color:var(--ev)">{_fmt_num(ev, 0)}</div>
+    <div class="kpi-sub">{ev_pct}%</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--{'red' if spi is not None and spi < 1 else 'green'})"></div>
+    <div class="kpi-label">SPI</div>
+    <div class="kpi-value" style="color:var(--{'red' if spi is not None and spi < 1 else 'green'})">{spi_val}</div>
+    <div class="kpi-sub"><span class="badge {spi_class}">{_fmt_num(sv, 0) if sv is not None else '—'} HH</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--{'red' if cpi is not None and cpi < 1 else 'green'})"></div>
+    <div class="kpi-label">CPI</div>
+    <div class="kpi-value" style="color:var(--{'red' if cpi is not None and cpi < 1 else 'muted'})">{cpi_val}</div>
+    <div class="kpi-sub"><span class="badge {cpi_class}">{'En costo' if cpi is not None and cpi >= 1 else 'Sin AC'}</span></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-accent" style="background:var(--fc)"></div>
+    <div class="kpi-label">EAC / Forecast</div>
+    <div class="kpi-value" style="color:var(--fc)">{eac_val}</div>
+    <div class="kpi-sub">HH · Estimado final</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="charts-col">
+    <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">Curva S — Avance Acumulado HH</span>
+        <span class="panel-title">Curva S — Acumulado HH</span>
         <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--pv)"></div>PV Baseline</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--ev)"></div>EV Real</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--pv)"></div>PV</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--ev)"></div>EV</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--fc)"></div>Forecast</div>
         </div>
       </div>
-      <div class="panel-body"><canvas id="curvaS" height="220"></canvas></div>
+      <div class="panel-body"><canvas id="curvaS" height="240"></canvas></div>
     </div>
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">PV Semanal — Distribución HH</span>
-        <span class="panel-meta">L-V · ISO</span>
+        <span class="panel-title">Early Remaining — Distribución Semanal</span>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--re)"></div>Early Remaining HH</div>
+        </div>
       </div>
-      <div class="panel-body"><canvas id="pvSemanal" height="220"></canvas></div>
-    </div>
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Schedule Variance (SV)</span>
-        <span class="panel-meta">EV − PV por semana</span>
-      </div>
-      <div class="panel-body"><canvas id="svChart" height="220"></canvas></div>
+      <div class="panel-body"><canvas id="remChart" height="180"></canvas></div>
     </div>
   </div>
 
-  <div class="panel">
-    <div class="panel-header">
-      <span class="panel-title">Detalle Semanal PV / EV / SV / SPI</span>
-      <span class="panel-meta">Fuente: TASKRSRC · RT_Labor</span>
-    </div>
-    <div class="panel-body" style="padding:0">
-      <table class="data-table">
-        <thead><tr><th>Semana</th><th>PV Semana</th><th>PV Acum.</th><th>EV Acum.</th><th>SV (HH)</th><th>SPI</th></tr></thead>
-        <tbody>{table_rows_html}</tbody>
-      </table>
-    </div>
+  <div class="table-col">
+    <div class="section-label">Detalle semanal acumulado</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Sem</th>
+          <th style="color:var(--pv)">PV</th>
+          <th style="color:var(--ev)">EV</th>
+          <th style="color:var(--re)">RE</th>
+          <th style="color:var(--fc)">FC</th>
+          <th>SV</th>
+          <th>SPI</th>
+        </tr>
+      </thead>
+      <tbody>{table_rows_html}</tbody>
+    </table>
   </div>
-</main>
+</div>
+
 <footer>
-  <span class="footer-text">P6-Standalone-Automation · OpenClaw</span>
-  <span class="footer-text">Generado: {stamp}</span>
+  <span class="footer-note">P6-Standalone-Automation · OpenClaw · github.com/User170294</span>
+  <span class="footer-note">Engine: RESTART_DATE → REEND_DATE · {stamp}</span>
 </footer>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script>
-const weeks={weeks_js};
-const pvCum={pv_cum_js};
-const evCum={ev_cum_js};
-const pvWeek={pv_week_js};
-const svData=pvCum.map((p,i)=>evCum[i]-p);
-Chart.defaults.color='#5a6575';
-Chart.defaults.borderColor='#1e2530';
-Chart.defaults.font.family="'IBM Plex Mono',monospace";
-Chart.defaults.font.size=10;
-const grid={{color:'rgba(255,255,255,0.04)',tickColor:'transparent'}};
-const ticks={{color:'#5a6575',font:{{size:9}}}};
-new Chart(document.getElementById('curvaS'),{{type:'line',data:{{labels:weeks,datasets:[
-  {{label:'PV',data:pvCum,borderColor:'#3a7bd5',backgroundColor:'rgba(58,123,213,0.08)',borderWidth:2,pointRadius:3,tension:0.3,fill:true}},
-  {{label:'EV',data:evCum,borderColor:'#00e5a0',backgroundColor:'rgba(0,229,160,0.1)',borderWidth:2.5,pointRadius:3,tension:0.3,fill:false}}
-]}},options:{{responsive:true,maintainAspectRatio:false,interaction:{{mode:'index',intersect:false}},plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
-new Chart(document.getElementById('pvSemanal'),{{type:'bar',data:{{labels:weeks,datasets:[{{label:'PV Semanal',data:pvWeek,backgroundColor:'rgba(58,123,213,0.5)',borderColor:'#3a7bd5',borderWidth:1,borderRadius:3}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
-new Chart(document.getElementById('svChart'),{{type:'bar',data:{{labels:weeks,datasets:[{{label:'SV',data:svData,backgroundColor:svData.map(v=>v<0?'rgba(255,77,106,0.5)':'rgba(0,229,160,0.5)'),borderColor:svData.map(v=>v<0?'#ff4d6a':'#00e5a0'),borderWidth:1,borderRadius:3}}]}},options:{{responsive:true,maintainAspectRatio:false,plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#13161b',borderColor:'#2a3340',borderWidth:1,titleColor:'#00c2ff',bodyColor:'#c8d0db',padding:10}}}},scales:{{x:{{grid:grid,ticks:ticks}},y:{{grid:grid,ticks:{{...ticks,callback:v=>v.toLocaleString()}}}}}}}}}}); 
-</script>
+<script>{js_charts}</script>
 </body>
 </html>"""
     out_path.write_text(html, encoding='utf-8')
