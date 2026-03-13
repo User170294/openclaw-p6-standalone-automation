@@ -1,77 +1,46 @@
-# Local workspace / OpenClaw noise
-.openclaw/
-logs/
-downloads/
-exports/
-
 # Python
 __pycache__/
 *.py[cod]
-*.pyo
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+eggs/
+*.egg
 
-# Build outputs
-bin/
-obj/
+# Virtual environments
+venv/
+.venv/
+ENV/
 
-# Secrets / env
-.env
-.env.*
-*.token
-*token_cache*.json
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
-# Large/generated local data
-*.zip
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.db
+*.db-journal
+*.xer
 *.bak
+*.backup
+
+# Temporary
 *.tmp
+*.temp
 
-# Chroma / retrieval local persistence
-data/chroma/
-data/bm25_cache/
-data/ingest_tmp/
-data/pdf_extract*/
+# Data outputs (keep structure, ignore large files)
+projects/P6-Standalone-Automation/data/*.csv
+projects/P6-Standalone-Automation/data/*.json
+projects/P6-Standalone-Automation/data/*.xlsx
+!projects/P6-Standalone-Automation/data/.gitkeep
 
-# Generic tmp scratch
-tmp/
-tmp_*
-%s
-
-# Graph mail local working files
-graph-mail/.env
-graph-mail/token_cache.json
-graph-mail/inbox_review.json
-graph-mail/inbox_promo_candidates.json
-
-# Keep repo focused on P6 project content by default
-# Other projects, memory, backups, and workspace docs stay local unless explicitly re-added
-.learnings/
-artifacts/
-backups/
-data/
-docs/
-graph-mail/
-integrations/
-memory/
-projects/Bodega-Simtexx/
-projects/OT-1844/
-projects/finanzas/
-projects/solid_to_steel/
-scripts/
-!projects/P6-Standalone-Automation/scripts/
-!projects/P6-Standalone-Automation/scripts/**
-skills/
-workspace_export.md
-ot1844_emails_index.csv
-ot1844_emails_index.md
-projects/P6-Standalone-Automation/001_Prueba Externa/
-AGENTS.md
-BOOTSTRAP.md
-HEARTBEAT.md
-IDENTITY.md
-MEMORY.md
-MEMORY_BRIEF.md
-PROJECTS.md
-SHIELD.md
-SOUL.md
-TOOLS.md
-USER.md
-as_plugin/
+# Logs
+*.log

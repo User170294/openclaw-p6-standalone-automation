@@ -36,6 +36,12 @@ class TestPvEngine(unittest.TestCase):
         self.assertEqual(week_label(date(2026, 2, 16)), 'W08')
         self.assertEqual(week_label(date(2026, 2, 23)), 'W09')
 
+    def test_week_label_before_anchor(self):
+        # Semanas anteriores al ancla deben generar W## consistente
+        self.assertEqual(week_label(date(2026, 2, 9)), 'W07')
+        self.assertEqual(week_label(date(2026, 2, 2)), 'W06')
+        self.assertEqual(week_label(date(2026, 1, 26)), 'W05')
+
     def test_logic_uses_taskrsrc_rt_labor_for_pv_bac(self):
         xer = """%T\tTASKRSRC
 %F\trsrc_type\ttarget_qty\ttarget_start_date\ttarget_end_date\tact_reg_qty\tact_ot_qty\tact_start_date\tact_end_date
