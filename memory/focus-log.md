@@ -182,3 +182,16 @@
 - RAG: sÃ­ + 767 chunks + top rerank 3.1270 (query: "estado actual del proyecto")
 - Brechas: validaciÃ³n por carpeta `data/chroma/p6_standalone_automation` da falso negativo; la colecciÃ³n existe y responde vÃ­a `search_project.py`; sigue pendiente consolidar comparador reusable XER vs DB y endurecer el cargador seguro Excel -> DB para casos ambiguos/parciales
 - Propuesta: usar `load_progress_excel_to_p6db.py` + `pilot_audit.py` como ruta principal para la actualizaciÃ³n del programa de control de producciÃ³n, con respaldo previo y dry-run
+
+## 2026-03-12 22:16 (UTC-3)
+- **Trigger**: foco en P6-Standalone-Automation
+- **Archivos leÃ­dos**: README.md, MEMORY.md, LOG.md (100), INDEX.csv (20)
+- **RAG**: sÃ­ | 767 chunks | top score 0.603
+- **Brechas**: comparador XER vs DB pendiente de formalizaciÃ³n
+- **Propuesta**: continuar con tareas pendientes del cargador o comparador
+## [2026-03-13 08:32 UTC-3] — Foco en P6-Standalone-Automation
+- Trigger: "P6-Standalone-Automation, vamos a actualizar el programa W12 de la OT 1844"
+- Archivos leídos: projects/P6-Standalone-Automation/README.md; projects/P6-Standalone-Automation/MEMORY.md; projects/P6-Standalone-Automation/LOG.md (100 líneas); projects/P6-Standalone-Automation/INDEX.csv (50 líneas); data/p6-standalone-automation_chunks.jsonl; data/p6-standalone-automation_docs.jsonl; docs/OPERATING_SUMMARY_2026-03-11.md
+- RAG ejecutada: sí ? colección `p6_standalone_automation`, 767 chunks, top rerank=-1.9200
+- Brechas: verificación por carpeta nominal `data/chroma/p6_standalone_automation` falla porque Chroma persiste por UUID; repo con cambios locales pendientes (`pv_engine.py`, `test_pv_engine.py`, `__pycache__`, `repos/`)
+- Propuesta: fijar fuente de actualización W12 OT-1844 (Excel/DB/XER), validar `PROJ_ID` objetivo y correr primero dry-run del cargador seguro antes de aplicar
