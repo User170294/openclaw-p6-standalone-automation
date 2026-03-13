@@ -284,14 +284,16 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
                 else:
                     spread_lv(a_s.date(), end.date(), ev, ev_week)
 
+        # Early Remaining: usar RESTART_DATE → REEND_DATE (no cutoff → fin)
+        # Esto replica el comportamiento real de P6 para Early Remaining Labor Units
         remain = safe_float(row.get('remain_qty'))
-        remain_end = safe_dt(row.get('remain_early_end_date')) or safe_dt(row.get('target_end_date'))
-        if remain > 0 and remain_end and remain_end > cutoff:
-            start = cutoff + timedelta(seconds=1)
+        remain_start = safe_dt(row.get('restart_date'))
+        remain_end = safe_dt(row.get('reend_date')) or safe_dt(row.get('target_end_date'))
+        if remain > 0 and remain_start and remain_end and remain_end >= remain_start:
             if payload.get('base_source') == 'db':
-                spread_calendar(start, remain_end, remain, calendar, re_week)
+                spread_calendar(remain_start, remain_end, remain, calendar, re_week)
             else:
-                spread_lv(start.date(), remain_end.date(), remain, re_week)
+                spread_lv(remain_start.date(), remain_end.date(), remain, re_week)
 
     weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
     rows: list[dict[str, Any]] = []

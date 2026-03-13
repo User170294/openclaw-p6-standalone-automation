@@ -6,6 +6,15 @@
 - Base SQLite activa confirmada (2026-02-27): `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`.
 - El motor `pv_engine` opera sobre DB SQLite como fuente primaria. XER se soporta como fuente secundaria para interoperabilidad únicamente.
 
+## Aprendizajes operativos (2026-03-12) — Early Remaining Labor Units
+- **CRÍTICO**: Para distribuir Early Remaining Labor Units por semana, usar `RESTART_DATE` → `REEND_DATE`, **NO** cutoff → fin.
+- El campo `REMAIN_EARLY_END_DATE` no existe en TASKRSRC de esta DB; los campos correctos son:
+  - `RESTART_DATE` = fecha inicio del trabajo remanente
+  - `REEND_DATE` = fecha fin del trabajo remanente (fallback a `TARGET_END_DATE` si es null)
+- Error corregido en `pv_engine.py`: antes se distribuía desde cutoff hacia fin, lo que generaba forecast incorrecto.
+- Validación obligatoria: `EV + REM = BAC` (ej. 747 + 7353 = 8100 para OT 1844_B-PRUEBA).
+- Caso de prueba validado: `26483 | OT 1844_B-PRUEBA` con baseline `26484`.
+
 ## Aprendizajes operativos (2026-02-27)
 - En reemplazo de recurso 1→N (ej. `9398` → `OP1/OP2/OP3`) no basta con conservar `TARGET_QTY`/HH totales.
 - Para mantener curva semanal y % de avance equivalentes al original, también se debe ajustar proporcionalmente `TARGET_QTY_PER_HR` y `REMAIN_QTY_PER_HR` en `TASKRSRC`.

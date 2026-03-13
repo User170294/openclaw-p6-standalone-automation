@@ -88,5 +88,52 @@ class TestPvEngine(unittest.TestCase):
             self.assertEqual(float(payload['base_taskrsrc_rows'][0]['target_qty']), 100.0)
 
 
+    def test_remaining_uses_restart_reend_dates_not_cutoff(self):
+        """
+        Early Remaining debe distribuirse desde RESTART_DATE → REEND_DATE,
+        no desde cutoff → fin. Esto replica el comportamiento real de P6.
+        """
+        with TemporaryDirectory() as tmp:
+            db = Path(tmp) / 'p6.db'
+            import sqlite3
+            con = sqlite3.connect(db)
+            cur = con.cursor()
+            cur.execute('''
+                CREATE TABLE TASKRSRC (
+                    PROJ_ID INTEGER, TASK_ID INTEGER, RSRC_TYPE TEXT,
+                    TARGET_QTY REAL, TARGET_START_DATE TEXT, TARGET_END_DATE TEXT,
+                    ACT_REG_QTY REAL, ACT_OT_QTY REAL, ACT_START_DATE TEXT, ACT_END_DATE TEXT,
+                    REMAIN_QTY REAL, RESTART_DATE TEXT, REEND_DATE TEXT
+                )
+            ''')
+            cur.execute('CREATE TABLE TASK (PROJ_ID INTEGER, TASK_ID INTEGER, CLNDR_ID INTEGER)')
+            cur.execute('CREATE TABLE CALENDAR (CLNDR_ID INTEGER, CLNDR_DATA TEXT)')
+            # Actividad con remaining: RESTART=2026-02-24, REEND=2026-02-28
+            cur.execute("""
+                INSERT INTO TASKRSRC VALUES (
+                    26432, 1, 'RT_Labor', 100,
+                    '2026-02-16 08:00:00', '2026-02-28 18:00:00',
+                    20, 0, '2026-02-16 08:00:00', '2026-02-20 18:00:00',
+                    80, '2026-02-24 08:00:00', '2026-02-28 18:00:00'
+                )
+            """)
+            con.commit()
+            con.close()
+
+            payload = load(Args(db=str(db), proj_id=26432, cutoff='2026-02-22', mode='logic'))
+            result = compute(payload)
+
+            # El remaining (80 HH) debe estar distribuido desde 2026-02-24 a 2026-02-28
+            # No desde el cutoff (2026-02-22) hacia adelante
+            re_total = round(sum(r.get('re_week', 0) for r in result['rows']), 4)
+            self.assertEqual(re_total, 80.0)
+
+            # Verificar que el remaining está en la semana correcta (W09 = 2026-02-23)
+            # ya que RESTART_DATE es 2026-02-24 que cae en W09
+            for row in result['rows']:
+                if row['week'] == 'W09':
+                    self.assertGreater(row.get('re_week', 0), 0)
+
+
 if __name__ == '__main__':
     unittest.main()
