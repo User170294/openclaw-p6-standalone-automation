@@ -28,6 +28,8 @@ HEADERS = [
     'EV HH',
     'Avance %',
     'Marcar avance',
+    'Fecha inicio real (si estaba TK_NotStart)',
+    'Fecha tÃ©rmino real (si queda 100%)',
     'Observaciones',
 ]
 
@@ -96,7 +98,7 @@ def auto_fit(ws) -> None:
 
 
 def style_header(ws, headers: list[str]) -> None:
-    ws.row_dimensions[1].height = 30
+    ws.row_dimensions[1].height = 34
     for col_idx, _ in enumerate(headers, start=1):
         cell = ws.cell(row=1, column=col_idx)
         cell.fill = HEADER_FILL
@@ -167,7 +169,6 @@ def normalize_wbs(raw: str) -> str:
 
 
 def derive_structure(parts: list[str]) -> tuple[str, str, str]:
-    # Programa > Macro FabricaciÃ³n > Entrega/Tag > WBS paquete
     entrega = ''
     despacho_tag = ''
     wbs = ''
@@ -196,7 +197,11 @@ def build_instructions_sheet(wb: Workbook) -> None:
         ('Objetivo', 'Capturar avance real W11 con la misma lÃ³gica de la planilla operativa validada anteriormente.'),
         ('QuÃ© revisar primero', 'Ubicar la actividad por Entrega, Despacho/Tag y WBS antes de marcar avance.'),
         ('Color por estado', 'Verde = TK_Complete, Amarillo = TK_Active, Rojo = TK_NotStart.'),
-        ('QuÃ© editar', 'Solo editar Marcar avance y Observaciones.'),
+        ('QuÃ© editar', 'Editar solo: Marcar avance, Fecha inicio real (si estaba TK_NotStart), Fecha tÃ©rmino real (si queda 100%), Observaciones.'),
+        ('Regla TK_NotStart', 'Si una actividad estaba TK_NotStart y la comienzas, debes informar Fecha inicio real.'),
+        ('Regla cierre 100%', 'Si una actividad queda al 100%, debes informar Fecha tÃ©rmino real. Si ademÃ¡s estaba TK_NotStart, informar tambiÃ©n Fecha inicio real.'),
+        ('Regla TK_Active', 'Si la actividad ya estaba iniciada y solo agregas avance al corte, no modificar fechas; solo Marcar avance y, si aplica, Observaciones.'),
+        ('Mismo dÃ­a inicio y tÃ©rmino', 'Si una actividad inicia y termina el mismo dÃ­a, se interpreta como jornada completa: inicio al comienzo de la jornada y tÃ©rmino al final de la jornada.'),
         ('Lectura de avance', 'Avance % se calcula como EV HH / BAC HH y sirve de referencia del estado actual de la DB.'),
         ('Uso recomendado', 'Filtrar primero por Entrega o por Despacho/Tag para trabajar una entrega a la vez.'),
     ]
@@ -208,8 +213,8 @@ def build_instructions_sheet(wb: Workbook) -> None:
         for cell in row:
             cell.alignment = WRAP_ALIGN
     ws.freeze_panes = 'A2'
-    ws.column_dimensions['A'].width = 24
-    ws.column_dimensions['B'].width = 110
+    ws.column_dimensions['A'].width = 28
+    ws.column_dimensions['B'].width = 120
 
 
 def main() -> None:
@@ -310,14 +315,16 @@ def main() -> None:
             item['avance_pct'],
             '',
             '',
+            '',
+            '',
         ])
         row_idx = ws.max_row
         fill = STATUS_FILLS.get(item['status_code'])
         if fill:
             for col_idx in range(1, len(HEADERS) + 1):
-                ws.cell(row=row_idx, column=col_idx).fill = fill
+                ws.cell(row_idx, col_idx).fill = fill
         for col_idx in range(1, len(HEADERS) + 1):
-            ws.cell(row=row_idx, column=col_idx).alignment = WRAP_ALIGN
+            ws.cell(row_idx, col_idx).alignment = WRAP_ALIGN
 
     ws.freeze_panes = 'A2'
     ws.auto_filter.ref = f'A1:{get_column_letter(len(HEADERS))}{ws.max_row}'
@@ -328,7 +335,9 @@ def main() -> None:
     ws.column_dimensions['E'].width = 48
     ws.column_dimensions['F'].width = 14
     ws.column_dimensions['J'].width = 16
-    ws.column_dimensions['K'].width = 28
+    ws.column_dimensions['K'].width = 24
+    ws.column_dimensions['L'].width = 24
+    ws.column_dimensions['M'].width = 28
     auto_fit(ws)
 
     build_instructions_sheet(wb)
