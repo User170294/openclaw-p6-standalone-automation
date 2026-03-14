@@ -37,3 +37,7 @@ projects/OT-1844/
 projects/Bodega-Simtexx/
 projects/finanzas/
 projects/solid_to_steel/
+__pycache__/
+**/__pycache__/
+*.pyc
+%s
