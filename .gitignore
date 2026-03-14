@@ -7,7 +7,7 @@ tmp*
 *.xlsx
 *.htm
 *.dwg
-*.py
+/*.py
 SOUL.md
 USER.md
 MEMORY.md
