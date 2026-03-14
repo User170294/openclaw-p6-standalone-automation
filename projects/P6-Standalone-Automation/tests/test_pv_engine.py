@@ -146,7 +146,7 @@ def test_logic_uses_task_target_work_qty_for_bac_when_db_source(tmp_path):
     assert result['mode'] == 'logic'
     assert result['stub'] is False
     assert result['bac'] == 80.0
-    assert result['rows'][0]['week'] == 'W08'
+    assert result['rows'][0]['week'] == 'Y26-W08'
     assert result['rows'][0]['pv_week'] == 80.0
     assert result['rows'][0]['pv_pct'] == 100.0
     assert 'DB SQLite primaria' in result['note']
@@ -186,8 +186,8 @@ def test_remaining_early_uses_early_start_and_calendar_hours(tmp_path):
     args = SimpleNamespace(mode='logic', cutoff='2026-03-15', base_xer=None, upd_xer=None, db=str(db_path), proj_id=26485)
     payload = pv_engine.load(args)
     result = pv_engine.compute(payload)
-    row_w12 = next(r for r in result['rows'] if r['week'] == 'W12')
-    row_w13 = next(r for r in result['rows'] if r['week'] == 'W13')
+    row_w12 = next(r for r in result['rows'] if r['week'] == 'Y26-W12')
+    row_w13 = next(r for r in result['rows'] if r['week'] == 'Y26-W13')
 
     assert round(row_w12['re_week'], 4) == 108.0
     assert round(row_w13['re_week'], 4) == 54.0

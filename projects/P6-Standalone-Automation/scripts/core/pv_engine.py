@@ -18,14 +18,12 @@ from p6_utils import open_db
 from report_generator import generate_report
 
 
-DEFAULT_WEEK0 = date(2026, 2, 16)  # ancla vigente OT-1844 para labels W##
 FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
 
 
-def week_label(mon: date, anchor: date = DEFAULT_WEEK0) -> str:
-    delta = (mon - anchor).days
-    week_num = 8 + delta // 7
-    return f'W{week_num:02d}'
+def week_label(mon: date) -> str:
+    iso = mon.isocalendar()
+    return f'Y{iso.year % 100:02d}-W{iso.week:02d}'
 
 
 def parse_table(path: str | Path, table_name: str) -> list[dict[str, str]]:
