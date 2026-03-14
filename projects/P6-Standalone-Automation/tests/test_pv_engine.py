@@ -193,6 +193,58 @@ def test_remaining_early_uses_early_start_and_calendar_hours(tmp_path):
     assert round(row_w13['re_week'], 4) == 54.0
 
 
+def test_ev_uses_task_actual_dates_when_taskrsrc_dates_are_missing(tmp_path):
+    db_path = tmp_path / 'pv_engine_ev_task_dates.db'
+    con = sqlite3.connect(db_path)
+    try:
+        cur = con.cursor()
+        _create_schema(cur)
+        cur.execute('INSERT INTO CALENDAR (CLNDR_ID, CLNDR_NAME, CLNDR_DATA) VALUES (?,?,?)', (100, 'Weekdays', CALENDAR_WEEKDAYS))
+        cur.execute(
+            '''
+            INSERT INTO TASK (
+                TASK_ID, PROJ_ID, CLNDR_ID, TASK_CODE,
+                TARGET_START_DATE, TARGET_END_DATE,
+                ACT_START_DATE, ACT_END_DATE, EARLY_START_DATE, EARLY_END_DATE,
+                TARGET_WORK_QTY, ACT_WORK_QTY, REMAIN_WORK_QTY, TASK_TYPE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                1, 26432, 100, 'A1000',
+                '2026-02-16 08:00:00', '2026-02-20 18:00:00',
+                '2026-02-16 08:00:00', '2026-02-20 18:00:00', '2026-02-16 08:00:00', '2026-02-20 18:00:00',
+                80.0, 40.0, 40.0, 'TT_Task',
+            ),
+        )
+        cur.execute(
+            '''
+            INSERT INTO TASKRSRC (
+                PROJ_ID, TASK_ID, RSRC_TYPE, TARGET_QTY, TARGET_START_DATE, TARGET_END_DATE,
+                ACT_REG_QTY, ACT_OT_QTY, ACT_START_DATE, ACT_END_DATE
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (26432, 1, 'RT_Labor', 80.0, '2026-02-16 08:00:00', '2026-02-20 18:00:00', 0.0, 0.0, None, None),
+        )
+        con.commit()
+    finally:
+        con.close()
+
+    args = SimpleNamespace(
+        mode='logic',
+        cutoff='2026-02-20',
+        base_xer=None,
+        upd_xer=None,
+        db=str(db_path),
+        proj_id=26432,
+    )
+
+    payload = pv_engine.load(args)
+    result = pv_engine.compute(payload)
+
+    assert result['rows'][0]['ev_cum'] == 40.0
+    assert result['rows'][0]['sv'] == -40.0
+
+
 def test_a1060_reference_uses_hour_weight_not_flat_days():
     calendar = {
         'weekday_windows': {

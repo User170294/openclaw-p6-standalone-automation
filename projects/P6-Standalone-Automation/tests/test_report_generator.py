@@ -33,16 +33,6 @@ SAMPLE_REPORT = {
 }
 
 
-def test_render_html_generates_non_empty_file(tmp_path):
-    out = report_generator.generate_report(SAMPLE_REPORT, tmp_path, 'html', {'project_name': 'OT-1844'})
-    text = out.read_text(encoding='utf-8')
-    assert out.exists()
-    assert out.stat().st_size > 0
-    assert '<canvas' in text
-    assert 'Chart.js' in text
-    assert 'curvaS' in text
-
-
 def test_render_md_generates_non_empty_file(tmp_path):
     out = report_generator.generate_report(SAMPLE_REPORT, tmp_path, 'md', {'project_name': 'OT-1844'})
     text = out.read_text(encoding='utf-8')
@@ -50,6 +40,15 @@ def test_render_md_generates_non_empty_file(tmp_path):
     assert out.stat().st_size > 0
     assert '# OT-1844' in text
     assert '| week | pv_week | pv_cum | ev_cum | sv | spi |' in text
+
+
+def test_render_rejects_removed_html_format(tmp_path):
+    try:
+        report_generator.generate_report(SAMPLE_REPORT, tmp_path, 'html', {'project_name': 'OT-1844'})
+    except ValueError as exc:
+        assert 'Formato de reporte no soportado' in str(exc)
+    else:
+        raise AssertionError('html should not be supported anymore')
 
 
 def test_render_xlsx_generates_expected_sheets_and_columns(tmp_path):

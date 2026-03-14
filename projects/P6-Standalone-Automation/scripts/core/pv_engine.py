@@ -216,6 +216,8 @@ def load(args) -> dict[str, Any]:
                 SELECT tr.*, t.CLNDR_ID AS TASK_CLNDR_ID,
                        t.EARLY_START_DATE AS TASK_EARLY_START_DATE,
                        t.EARLY_END_DATE AS TASK_EARLY_END_DATE,
+                       t.ACT_START_DATE AS TASK_ACT_START_DATE,
+                       t.ACT_END_DATE AS TASK_ACT_END_DATE,
                        t.REMAIN_WORK_QTY AS TASK_REMAIN_WORK_QTY,
                        t.ACT_WORK_QTY AS TASK_ACT_WORK_QTY
                 FROM TASKRSRC tr
@@ -300,8 +302,8 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
             if ev <= 0:
                 ev = safe_float(row.get('task_act_work_qty'))
-            ev_start = safe_dt(row.get('act_start_date'))
-            ev_end_raw = safe_dt(row.get('act_end_date'))
+            ev_start = safe_dt(row.get('act_start_date')) or safe_dt(row.get('task_act_start_date'))
+            ev_end_raw = safe_dt(row.get('act_end_date')) or safe_dt(row.get('task_act_end_date'))
             if ev > 0 and ev_start and ev_start <= cutoff:
                 ev_end = ev_end_raw if (ev_end_raw and ev_end_raw <= cutoff) else cutoff
                 if ev_end >= ev_start:
@@ -469,7 +471,7 @@ def parse_args():
     ap.add_argument('--mode', choices=['logic', 'p6_visual'], required=True)
     ap.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data')
     ap.add_argument('--format', choices=['csv', 'json', 'md'], default='csv')
-    ap.add_argument('--report', choices=['html', 'md', 'xlsx'], help='Render opcional de reporte final unificado despuÃ©s del export base.')
+    ap.add_argument('--report', choices=['md', 'xlsx'], help='Render opcional de reporte final unificado despues del export base.')
     args = ap.parse_args()
     if not ((args.db and args.proj_id is not None) or args.base_xer):
         ap.error('Debes indicar la fuente primaria --db + --proj-id, o bien --base-xer como fallback si no hay acceso a DB.')

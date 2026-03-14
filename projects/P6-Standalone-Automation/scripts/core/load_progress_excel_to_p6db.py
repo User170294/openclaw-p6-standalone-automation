@@ -314,6 +314,20 @@ def write_csv(path: Path, rows: list[dict[str, Any]], fieldnames: list[str]):
             writer.writerow(row)
 
 
+def derive_task_state(cand: CandidateRow, ctx: TaskContext, actual_start: datetime | None, actual_end: datetime | None) -> tuple[str, datetime | None, datetime | None]:
+    if cand.pct_to_load <= 0:
+        return (
+            ctx.status_code or 'TK_NotStart',
+            ctx.act_start_date,
+            ctx.act_end_date,
+        )
+    return (
+        'TK_Complete' if cand.pct_to_load >= 100 else 'TK_Active',
+        ctx.act_start_date or actual_start or ctx.target_start_date,
+        actual_end if cand.pct_to_load >= 100 else None,
+    )
+
+
 def main():
     args = parse_args()
     db_path = Path(args.db)
@@ -400,9 +414,7 @@ def main():
             act_cost = round(target_cost * (cand.pct_to_load / 100.0), 6)
             remain_cost = round(max(0.0, target_cost - act_cost), 6)
 
-            new_status = 'TK_Complete' if cand.pct_to_load >= 100 else 'TK_Active'
-            task_start = ctx.act_start_date or actual_start or ctx.target_start_date
-            task_end = actual_end if cand.pct_to_load >= 100 else None
+            new_status, task_start, task_end = derive_task_state(cand, ctx, actual_start, actual_end)
 
             if issues:
                 error_rows.append({
