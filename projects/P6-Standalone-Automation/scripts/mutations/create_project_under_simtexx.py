@@ -33,7 +33,8 @@ def main():
     wbs_id = get_next_id(cur, 'projwbs_wbs_id')
     seq = cur.execute('SELECT COALESCE(MAX(SEQ_NUM),0)+1 FROM PROJWBS WHERE PARENT_WBS_ID=?', (args.parent_wbs_id,)).fetchone()[0]
 
-    print(f'PLAN|PROJ_ID={proj_id}|WBS_ID={wbs_id}|SEQ={seq}|MODE={'APPLY' if args.apply else 'PLAN'}')
+    mode = 'APPLY' if args.apply else 'PLAN'
+    print(f'PLAN|PROJ_ID={proj_id}|WBS_ID={wbs_id}|SEQ={seq}|MODE={mode}')
     if not args.apply:
         con.close()
         return
