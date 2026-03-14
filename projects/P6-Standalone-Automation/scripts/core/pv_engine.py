@@ -215,7 +215,11 @@ def load(args) -> dict[str, Any]:
             cur = con.cursor()
             rows = cur.execute(
                 '''
-                SELECT tr.*, t.CLNDR_ID AS TASK_CLNDR_ID
+                SELECT tr.*, t.CLNDR_ID AS TASK_CLNDR_ID,
+                       t.EARLY_START_DATE AS TASK_EARLY_START_DATE,
+                       t.EARLY_END_DATE AS TASK_EARLY_END_DATE,
+                       t.REMAIN_WORK_QTY AS TASK_REMAIN_WORK_QTY,
+                       t.ACT_WORK_QTY AS TASK_ACT_WORK_QTY
                 FROM TASKRSRC tr
                 LEFT JOIN TASK t
                   ON t.PROJ_ID = tr.PROJ_ID
@@ -282,18 +286,22 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     calendars = payload.get('calendars', {})
 
     if payload.get('base_source') == 'db':
-        task_rows = payload.get('task_rows', [])
-        for row in task_rows:
-            clndr_id = row.get('clndr_id')
+        taskrsrc_rows = payload.get('base_taskrsrc_rows', [])
+        for row in taskrsrc_rows:
+            if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+                continue
+            clndr_id = row.get('task_clndr_id')
             calendar = calendars.get(int(clndr_id)) if clndr_id not in (None, '') else None
 
-            pv = safe_float(row.get('target_work_qty'))
+            pv = safe_float(row.get('target_qty'))
             pv_start = safe_dt(row.get('target_start_date'))
             pv_end = safe_dt(row.get('target_end_date'))
             if pv > 0 and pv_start and pv_end:
                 spread_calendar(pv_start, pv_end, pv, calendar, pv_week)
 
-            ev = safe_float(row.get('act_work_qty'))
+            ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
+            if ev <= 0:
+                ev = safe_float(row.get('task_act_work_qty'))
             ev_start = safe_dt(row.get('act_start_date'))
             ev_end_raw = safe_dt(row.get('act_end_date'))
             if ev > 0 and ev_start and ev_start <= cutoff:
@@ -301,13 +309,21 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
                 if ev_end >= ev_start:
                     spread_calendar(ev_start, ev_end, ev, calendar, ev_week)
 
-            remain = safe_float(row.get('remain_work_qty'))
-            if remain > 0 and row.get('act_end_date') is None:
+            remain = safe_float(row.get('remain_qty'))
+            if remain <= 0:
+                remain = safe_float(row.get('task_remain_work_qty'))
+            if remain > 0:
                 remain_start = cutoff + timedelta(seconds=1)
-                early_start = safe_dt(row.get('early_start_date'))
-                if early_start and early_start > remain_start:
-                    remain_start = early_start
-                remain_end = safe_dt(row.get('early_end_date'))
+                early_start = safe_dt(row.get('task_early_start_date'))
+                target_start = safe_dt(row.get('target_start_date'))
+                for candidate in (early_start, target_start):
+                    if candidate and candidate > remain_start:
+                        remain_start = candidate
+                remain_end = (
+                    safe_dt(row.get('task_early_end_date'))
+                    or safe_dt(row.get('reend_date'))
+                    or safe_dt(row.get('target_end_date'))
+                )
                 if remain_end and remain_end > cutoff and remain_end >= remain_start:
                     spread_calendar(remain_start, remain_end, remain, calendar, re_week)
     else:
@@ -337,10 +353,7 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
                 spread_lv(start.date(), remain_end.date(), remain, re_week)
 
     weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
-    if payload.get('base_source') == 'db':
-        bac_total = round(sum(safe_float(r.get('target_work_qty')) for r in payload.get('task_rows', [])), 4)
-    else:
-        bac_total = round(sum(safe_float(r.get('target_qty')) for r in payload['base_taskrsrc_rows'] if (r.get('rsrc_type') or '').strip() == 'RT_Labor'), 4)
+    bac_total = round(sum(safe_float(r.get('target_qty')) for r in payload['base_taskrsrc_rows'] if (r.get('rsrc_type') or '').strip() == 'RT_Labor'), 4)
     rows: list[dict[str, Any]] = []
     pv_cum = 0.0
     ev_cum = 0.0
