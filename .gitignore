@@ -1,46 +1,39 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-eggs/
-*.egg
-
-# Virtual environments
-venv/
-.venv/
-ENV/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-*.db
-*.db-journal
-*.xer
-*.bak
-*.backup
-
-# Temporary
-*.tmp
-*.temp
-
-# Data outputs (keep structure, ignore large files)
-projects/P6-Standalone-Automation/data/*.csv
-projects/P6-Standalone-Automation/data/*.json
-projects/P6-Standalone-Automation/data/*.xlsx
-!projects/P6-Standalone-Automation/data/.gitkeep
-
-# Logs
-*.log
+# OpenClaw workspace — solo subir projects/P6-Standalone-Automation/
+memory/
+data/
+backups/
+logs/
+tmp*
+*.xlsx
+*.htm
+*.dwg
+*.py
+SOUL.md
+USER.md
+MEMORY.md
+MEMORY_BRIEF.md
+IDENTITY.md
+HEARTBEAT.md
+BOOTSTRAP.md
+SHIELD.md
+TOOLS.md
+PROJECTS.md
+AGENTS.md
+artifacts/
+exports/
+repos/
+scripts/
+skills/
+integrations/
+downloads/
+graph-mail/
+as_plugin/
+.openclaw/
+.learnings/
+docs/
+workspace_export.md
+ot1844_emails_index.*
+projects/OT-1844/
+projects/Bodega-Simtexx/
+projects/finanzas/
+projects/solid_to_steel/
