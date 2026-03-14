@@ -18,13 +18,34 @@
 ## 🎯 Foco en Proyecto (OBLIGATORIO)
 Trigger: “hagamos foco”, “foco en X”, “partamos con X”, “activa foco en X”.
 
-### Paso 0 — Arranque rápido con contexto precargado
-1. Si existe `projects/<proyecto>/FOCUS.md`, leerlo **primero**.
-2. Tratar `FOCUS.md` como resumen canónico de arranque rápido: estado actual, datos clave, decisiones vigentes, brechas e instrucción de arranque.
-3. Aun cuando exista `FOCUS.md`, **no saltarse** la validación mínima del paso 1; usarla para confirmar delta, vigencia y contradicciones.
-4. Si `FOCUS.md` contradice archivos base o quedó desactualizado, reportarlo explícitamente y privilegiar la evidencia más reciente de `LOG.md`, `MEMORY.md`, `INDEX.csv` o artefactos verificables.
+### Flujo A — Cuando existe `projects/<proyecto>/FOCUS.md`
 
-### Paso 1 — Validación mínima obligatoria
+#### Paso 0 — Arranque rápido
+1. Leer `projects/<proyecto>/FOCUS.md` **primero**.
+2. Leer también el `SKILL.md` aplicable si existe una skill claramente específica para la tarea/proyecto según las reglas globales de skills.
+3. Tratar `FOCUS.md` como resumen canónico de arranque rápido: estado actual, datos clave, decisiones vigentes, brechas e instrucción de arranque.
+
+#### Paso 1 — Validación delta-only
+1. Revisar solo `git log --oneline -5 -- projects/<proyecto>` (o equivalente acotado al proyecto) para detectar actividad reciente.
+2. Comparar esa actividad con la vigencia declarada o inferible de `FOCUS.md`.
+3. Si **hay delta reciente** o algo no cuadra:
+   - leer solo `projects/<proyecto>/LOG.md` (últimas 20 líneas o tramo final equivalente),
+   - reportar el delta relevante,
+   - ampliar a `README.md`, `MEMORY.md` o `INDEX.csv` **solo** si sigue habiendo contradicción, hueco crítico o el usuario pide más contexto.
+4. Si **no hay delta reciente** y `FOCUS.md` cuadra con el pedido:
+   - arrancar directo desde `FOCUS.md`,
+   - no leer `README.md`, `MEMORY.md`, `INDEX.csv` ni correr flujo RAG largo por defecto.
+
+#### Paso 2 — Escalamiento solo si hace falta
+- Leer `README.md`, `MEMORY.md`, `INDEX.csv` o verificar RAG solo cuando:
+  - el usuario pida explícitamente más contexto,
+  - `FOCUS.md` esté desactualizado o incompleto,
+  - haya contradicción entre `FOCUS.md` y el delta reciente,
+  - o la consulta requiera evidencia documental/RAG que `FOCUS.md` no cubre.
+
+### Flujo B — Cuando NO existe `projects/<proyecto>/FOCUS.md`
+
+#### Paso 1 — Lectura mínima obligatoria
 1. `projects/<proyecto>/README.md`
 2. `projects/<proyecto>/MEMORY.md`
 3. `projects/<proyecto>/LOG.md` (limit 100)
@@ -34,24 +55,24 @@ Trigger: “hagamos foco”, “foco en X”, “partamos con X”, “activa fo
 
 Si falta un archivo clave, reportarlo explícitamente.
 
-### Paso 2 — Verificación RAG
+#### Paso 2 — Verificación RAG
 - Si existe colección Chroma: ejecutar búsqueda de estado actual (top 3).
 - Si no existe: reportar “Colección RAG no encontrada” y ofrecer indexar.
 
-### Paso 3 — Consolidación
+### Consolidación
 Entregar:
 - Identificación (OT/PO/ID/cliente/estado)
 - Decisiones técnicas vigentes
 - Hitos/fechas críticas
-- Top 3 hallazgos RAG con referencia
+- Top 3 hallazgos RAG con referencia **solo si se ejecutó RAG o hizo falta evidencia documental**
 - Brechas detectadas (faltantes/roturas/inconsistencias)
 
-### Paso 4 — Formato de salida
+### Formato de salida
 Usar este bloque:
 - Estado del repositorio
 - Datos clave del proyecto
 - Hitos de entrega
-- Hallazgos RAG
+- Hallazgos RAG (si aplica)
 - Brechas detectadas
 - Siguiente paso sugerido
 
@@ -60,6 +81,8 @@ Append en `memory/focus-log.md` con:
 - Fecha/hora UTC-3
 - Trigger
 - `FOCUS.md` usado (sí/no)
+- `SKILL.md` leído (sí/no + cuál si aplica)
+- Delta detectado por git (sí/no)
 - Archivos leídos
 - RAG (sí/no + n chunks + top score)
 - Brechas
