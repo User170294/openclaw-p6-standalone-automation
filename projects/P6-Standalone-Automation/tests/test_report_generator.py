@@ -27,8 +27,8 @@ SAMPLE_REPORT = {
     'cpi': None,
     'eac': None,
     'rows': [
-        {'week': 'W08', 'pv_week': 100.0, 'pv_cum': 100.0, 'ev_cum': 80.0, 'sv': -20.0, 'spi': 0.8},
-        {'week': 'W09', 'pv_week': 200.0, 'pv_cum': 300.0, 'ev_cum': 250.0, 'sv': -50.0, 'spi': 0.833333},
+        {'week': 'Y26-W08', 'pv_week': 100.0, 'pv_cum': 100.0, 'ev_cum': 80.0, 'sv': -20.0, 'spi': 0.8},
+        {'week': 'Y26-W09', 'pv_week': 200.0, 'pv_cum': 300.0, 'ev_cum': 250.0, 'sv': -50.0, 'spi': 0.833333},
     ],
 }
 
