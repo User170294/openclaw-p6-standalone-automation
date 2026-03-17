@@ -3,6 +3,8 @@ from __future__ import annotations
 import sqlite3
 import sys
 from datetime import timedelta
+
+import pytest
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -292,3 +294,61 @@ def test_a1060_reference_uses_hour_weight_not_flat_days():
     pv_engine.spread_calendar(start_dt, end_dt, qty, calendar, bucket)
     assert round(bucket[pv_engine.safe_dt('2026-09-07 08:00:00').date()], 4) == 54.0
     assert round(bucket[pv_engine.safe_dt('2026-09-14 08:00:00').date()], 4) == 162.0
+
+
+# ---------------------------------------------------------------------------
+# compare() — CPI, EAC, ETC, CV
+# ---------------------------------------------------------------------------
+
+def test_compare_computes_cpi_and_eac():
+    """CPI = EV / AC; EAC = BAC / CPI."""
+    result = {
+        'mode': 'logic',
+        'stub': False,
+        'note': '',
+        'bac': 1000.0,
+        'rows': [
+            {'week': 'Y26-W10', 'pv_week': 400, 'pv_cum': 400, 'pv_pct': 40,
+             'ev_cum': 300, 'ev_pct': 30, 'ac_cum': 350,
+             'sv': -100, 'spi': 0.75,
+             'forecast_cum': 900, 'forecast_pct': 90,
+             'ev_week': 300, 're_week': 600, 're_cum': 600},
+        ],
+    }
+    report = pv_engine.compare(result)
+    assert report['cpi'] == pytest.approx(300 / 350, rel=1e-4)
+    assert report['eac'] == pytest.approx(1000 / (300 / 350), rel=1e-4)
+    assert report['cv'] == pytest.approx(300 - 350, rel=1e-4)
+
+
+def test_compare_returns_none_cpi_when_ac_zero():
+    """Sin AC no se puede calcular CPI."""
+    result = {
+        'mode': 'logic', 'stub': False, 'note': '', 'bac': 1000.0,
+        'rows': [
+            {'week': 'Y26-W10', 'pv_week': 400, 'pv_cum': 400, 'pv_pct': 40,
+             'ev_cum': 300, 'ev_pct': 30, 'ac_cum': 0,
+             'sv': -100, 'spi': 0.75,
+             'forecast_cum': 900, 'forecast_pct': 90,
+             'ev_week': 300, 're_week': 600, 're_cum': 600},
+        ],
+    }
+    report = pv_engine.compare(result)
+    assert report['cpi'] is None
+    assert report['eac'] is None
+    assert report['etc'] is None
+
+
+def test_compare_etc_equals_eac_minus_ev():
+    result = {
+        'mode': 'logic', 'stub': False, 'note': '', 'bac': 800.0,
+        'rows': [
+            {'week': 'Y26-W11', 'pv_week': 200, 'pv_cum': 500, 'pv_pct': 62.5,
+             'ev_cum': 400, 'ev_pct': 50, 'ac_cum': 420,
+             'sv': -100, 'spi': 0.8,
+             'forecast_cum': 750, 'forecast_pct': 93.75,
+             'ev_week': 100, 're_week': 350, 're_cum': 350},
+        ],
+    }
+    report = pv_engine.compare(result)
+    assert report['etc'] == pytest.approx(report['eac'] - report['ev'], rel=1e-4)

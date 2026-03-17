@@ -18,7 +18,7 @@ from p6_utils import open_db
 from report_generator import generate_report
 
 
-FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
+FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'ac_cum', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
 
 
 def week_label(mon: date) -> str:
@@ -354,6 +354,19 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
 
     weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
     bac_total = round(sum(safe_float(r.get('target_qty')) for r in payload['base_taskrsrc_rows'] if (r.get('rsrc_type') or '').strip() == 'RT_Labor'), 4)
+
+    # AC total al corte: suma ACT_WORK_QTY de TASK (trabajo real registrado en DB)
+    # Equivalente a ACT_REG_QTY + ACT_OT_QTY en TASKRSRC para recursos labor
+    ac_total = round(sum(
+        safe_float(r.get('task_act_work_qty') or r.get('act_work_qty'))
+        for r in payload['base_taskrsrc_rows']
+        if (r.get('rsrc_type') or '').strip() == 'RT_Labor'
+    ), 4) if payload.get('base_source') == 'db' else round(sum(
+        safe_float(r.get('act_reg_qty')) + safe_float(r.get('act_ot_qty'))
+        for r in payload['base_taskrsrc_rows']
+        if (r.get('rsrc_type') or '').strip() == 'RT_Labor'
+    ), 4)
+
     rows: list[dict[str, Any]] = []
     pv_cum = 0.0
     ev_cum = 0.0
@@ -375,6 +388,7 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             'pv_pct': round(pv_cum / bac_total * 100, 2) if bac_total else None,
             'ev_cum': ev_cum,
             'ev_pct': round(ev_cum / bac_total * 100, 2) if bac_total else None,
+            'ac_cum': ac_total,  # AC constante al corte; no varía por semana
             'sv': sv,
             'spi': spi,
             'forecast_cum': forecast_cum,
@@ -408,6 +422,19 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
 def compare(result: dict[str, Any]) -> dict[str, Any]:
     rows = result.get('rows', [])
     last = rows[-1] if rows else {}
+    bac = result.get('bac') or 0.0
+    ev = last.get('ev_cum') or 0.0
+    ac = last.get('ac_cum') or 0.0  # AC en HH (ACT_WORK_QTY acumulado al corte)
+
+    # CPI = EV / AC (solo HH — proxy de costo cuando no hay costos monetarios)
+    cpi = round(ev / ac, 4) if ac and ac > 0 else None
+    # EAC = BAC / CPI (proyección de costo final basada en eficiencia actual)
+    eac = round(bac / cpi, 2) if cpi and cpi > 0 else None
+    # ETC = EAC - EV (trabajo restante proyectado)
+    etc = round(eac - ev, 2) if eac is not None else None
+    # CV = EV - AC
+    cv = round(ev - ac, 2) if ac else None
+
     return {
         'mode': result.get('mode'),
         'stub': result.get('stub', False),
@@ -415,13 +442,16 @@ def compare(result: dict[str, Any]) -> dict[str, Any]:
         'row_count': len(rows),
         'columns': FIXED_COLUMNS,
         'rows': rows,
-        'bac': result.get('bac'),
+        'bac': bac,
         'pv': last.get('pv_cum', 0.0),
-        'ev': last.get('ev_cum', 0.0),
+        'ev': ev,
+        'ac': ac,
         'sv': last.get('sv'),
+        'cv': cv,
         'spi': last.get('spi'),
-        'cpi': None,
-        'eac': None,
+        'cpi': cpi,
+        'eac': eac,
+        'etc': etc,
     }
 
 
