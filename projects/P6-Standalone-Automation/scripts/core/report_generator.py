@@ -9,7 +9,7 @@ from openpyxl import Workbook
 from openpyxl.chart import LineChart, Reference
 from openpyxl.styles import Font, PatternFill
 
-FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'ev_cum', 'sv', 'spi']
+FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'ac_cum', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
 
 
 def _safe_num(value: Any) -> float | None:
@@ -29,20 +29,26 @@ def enrich_report(report: dict[str, Any]) -> dict[str, Any]:
         bac = sum(float(row.get('pv_week') or 0.0) for row in rows)
     pv = _safe_num(last.get('pv_cum')) or 0.0
     ev = _safe_num(last.get('ev_cum')) or 0.0
+    ac = _safe_num(last.get('ac_cum')) or _safe_num(report.get('ac')) or 0.0
     sv = _safe_num(last.get('sv'))
     spi = _safe_num(last.get('spi'))
     cpi = _safe_num(report.get('cpi'))
     eac = _safe_num(report.get('eac'))
+    etc = _safe_num(report.get('etc'))
+    cv = _safe_num(report.get('cv'))
     enriched = dict(report)
     enriched['bac'] = round(bac, 4)
     enriched['kpis'] = {
         'bac': round(bac, 4),
         'pv': round(pv, 4),
         'ev': round(ev, 4),
+        'ac': round(ac, 4),
         'sv': round(sv, 4) if sv is not None else None,
+        'cv': round(cv, 4) if cv is not None else None,
         'spi': round(spi, 6) if spi is not None else None,
         'cpi': round(cpi, 6) if cpi is not None else None,
         'eac': round(eac, 4) if eac is not None else None,
+        'etc': round(etc, 4) if etc is not None else None,
     }
     return enriched
 
@@ -79,9 +85,13 @@ def render_md(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | Non
         f"- BAC: **{_fmt_num(kpis['bac'])}**",
         f"- PV: **{_fmt_num(kpis['pv'])}**",
         f"- EV: **{_fmt_num(kpis['ev'])}**",
+        f"- AC: **{_fmt_num(kpis['ac'])}**",
+        f"- SV: **{_fmt_num(kpis['sv'])}**",
+        f"- CV: **{_fmt_num(kpis['cv'])}**",
         f"- SPI: **{_fmt_num(kpis['spi'], 6)}**",
         f"- CPI: **{_fmt_num(kpis['cpi'], 6)}**",
         f"- EAC: **{_fmt_num(kpis['eac'])}**",
+        f"- ETC: **{_fmt_num(kpis['etc'])}**",
         '',
         '## Tabla semanal',
         '| ' + ' | '.join(FIXED_COLUMNS) + ' |',
@@ -112,12 +122,16 @@ def render_xlsx(report: dict[str, Any], out_path: Path, meta: dict[str, Any] | N
 
     summary = wb.create_sheet('summary_chart')
     summary['A1'] = (meta or {}).get('project_name') or 'P6 Standalone Report'
-    summary['A3'] = 'BAC'; summary['B3'] = report['kpis']['bac']
-    summary['A4'] = 'PV'; summary['B4'] = report['kpis']['pv']
-    summary['A5'] = 'EV'; summary['B5'] = report['kpis']['ev']
-    summary['A6'] = 'SPI'; summary['B6'] = report['kpis']['spi']
-    summary['A7'] = 'CPI'; summary['B7'] = report['kpis']['cpi']
-    summary['A8'] = 'EAC'; summary['B8'] = report['kpis']['eac']
+    summary['A3'] = 'BAC';  summary['B3'] = report['kpis']['bac']
+    summary['A4'] = 'PV';   summary['B4'] = report['kpis']['pv']
+    summary['A5'] = 'EV';   summary['B5'] = report['kpis']['ev']
+    summary['A6'] = 'AC';   summary['B6'] = report['kpis']['ac']
+    summary['A7'] = 'SV';   summary['B7'] = report['kpis']['sv']
+    summary['A8'] = 'CV';   summary['B8'] = report['kpis']['cv']
+    summary['A9'] = 'SPI';  summary['B9'] = report['kpis']['spi']
+    summary['A10'] = 'CPI'; summary['B10'] = report['kpis']['cpi']
+    summary['A11'] = 'EAC'; summary['B11'] = report['kpis']['eac']
+    summary['A12'] = 'ETC'; summary['B12'] = report['kpis']['etc']
 
     chart = LineChart()
     chart.title = 'Curva S'
