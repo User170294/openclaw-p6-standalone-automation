@@ -1,4 +1,64 @@
-# Proyecto: P6 Standalone Automation
+# P6 Standalone Automation
+
+## ⚡ Quick Start — primer reporte en 5 minutos
+
+### Requisitos
+- Python 3.10+
+- DB SQLite de P6 Standalone (`PPMDBSQLite_*.db`)
+- Dos programas en la DB: uno como baseline (PV) y uno actualizado (EV)
+
+### Instalación
+```bash
+pip install openpyxl pytest
+```
+
+### Reporte EVM mínimo
+```bash
+python scripts/core/run_planner_kit.py \
+    --db "ruta/a/tu/DB.db" \
+    --pv-proj-id <ID_BASELINE> \
+    --ev-proj-id <ID_ACTUALIZADO> \
+    --cutoff 2026-03-15 \
+    --out-dir data/reports \
+    --format xlsx \
+    --project-name "Mi Proyecto"
+```
+
+Si no sabes los `proj_id`, el script los lista automáticamente si pasas uno incorrecto.
+
+### Flujo completo (con captura de avances)
+```bash
+# 1. Generar Excel de captura semanal
+python scripts/core/run_planner_kit.py \
+    --db "ruta/a/tu/DB.db" \
+    --pv-proj-id <ID_BASELINE> \
+    --ev-proj-id <ID_ACTUALIZADO> \
+    --cutoff 2026-03-15 \
+    --iso-week 2026-W12 \
+    --generate-capture \
+    --out-dir data/reports
+
+# 2. Completar el Excel generado con los avances reales
+
+# 3. Cargar avances y generar reporte
+python scripts/core/run_planner_kit.py \
+    --db "ruta/a/tu/DB.db" \
+    --pv-proj-id <ID_BASELINE> \
+    --ev-proj-id <ID_ACTUALIZADO> \
+    --cutoff 2026-03-15 \
+    --capture-xlsx data/reports/<archivo_capture>.xlsx \
+    --load \
+    --out-dir data/reports \
+    --format xlsx
+```
+
+### Verificar instalación
+```bash
+python scripts/check_env.py
+python -m pytest tests/ -q
+```
+
+---
 
 ## Identificación
 - Nombre: P6-Standalone-Automation

@@ -1,5 +1,37 @@
 # MEMORY - P6-Standalone-Automation
 
+## Hoja de ruta (2026-03-16) — CANÓNICO
+
+**Fase 1 — Distribuible (prioridad inmediata):**
+1. `run_planner_kit.py` — orquestador end-to-end (captura → carga → engine → reporte)
+2. Quick Start en README — nuevo usuario operativo en < 5 min
+3. Validación de proj_id — detectar proj_id inexistente o tipo incorrecto en DB
+4. MEMORY.md actualizado — reemplazar 26432 por 26485 en todos los lugares
+5. Ramas huérfanas eliminadas — dejar solo master/main
+6. Stash descartado — temp-report-generator-before-evm-push
+
+**Fase 2 — Experiencia del planificador:**
+7. Modo guiado de primera vez — flujo de preguntas al recibir XER/DB nuevo
+8. Reportes en lenguaje natural — resumen ejecutivo interpretando KPIs
+9. Fingerprint de proyecto — diagnóstico de calidad del schedule al procesar XER
+
+**Fase 3 — Arquitectura para escala:**
+10. RAG por capas — conocimiento P6 genérico separado de datos de proyecto
+11. Memoria por proyecto — el agente recuerda decisiones anteriores por programa
+12. p6_visual mode — replicar vista Usage Spreadsheet con desplazamiento de bucket
+
+**Fase 4 — Producto a terceros:**
+13. Instalador guiado — detecta entorno, valida deps, configura RAG
+14. Documentación LATAM — estándares contractuales locales, español, minería
+15. Modelo de licencia — open source / consultoría / API key propia
+
+**Reglas no negociables:**
+- Regla de dos programas: PV = baseline, EV = programa actualizado (proj_id por CLI, nunca hardcodeado)
+- Checkpoint W10 OT-1844: BAC=8100, PV=3771 (46.56%), EV=3395 (41.9%), SPI=0.900, CPI=1.000 — validar contra esto antes de mergear cambios al motor EVM
+- Algoritmo EVM: TASKRSRC, rsrc_type=RT_Labor, distribución uniforme L-V entre target_start y target_end, semana ISO
+- Canal de bugs: GitHub Issues
+- Sin cambios al motor EVM sin validar contra checkpoint W10
+
 ## Visión del proyecto (2026-03-16) — CANÓNICO
 **Qué es:** Agente IA copiloto especializado en Primavera P6 para planificadores de construcción y minería.
 **Problema que resuelve:** (1) Planificador hereda programa que no construyó — pierde tiempo deduciéndolo. (2) EVM se calcula manual y repetitivamente.
@@ -33,7 +65,7 @@
 
 ## Valores específicos OT-1844 movidos desde SKILL.md (2026-03-13)
 - `proj_id` baseline: `26258`
-- `proj_id` actualizado: `26432`
+- `proj_id` actualizado: `26485` (26432 eliminado de DB — reemplazado por OT 1844_B-W012)
 - BAC de referencia: `8100 HH`
 - Valor de referencia EV acumulado W11: `4114.80 HH`
 
