@@ -19,9 +19,9 @@ y endurecer los bordes operativos (horarios/calendario real, contraste automáti
 - **Nombre:** Fabricación Bandejas Agua Lavado Celdas (Rev. B)
 - **BAC:** 8,100 HH
 - **proj_id baseline:** 26258 → fuente de PV
-- **proj_id actualizado W012:** 26432 → fuente de EV + Remaining
+- **proj_id actualizado W011:** 26485 (OT 1844_B-W012) → fuente de EV + Remaining (26432 ya no existe en DB)
 - **DB SQLite:** `C:\Users\josej\OneDrive\Documentos\PPMDBSQLite_20221109_BBDD_JJC_Rev B.db`
-- **Valor de referencia:** EV acum W11 = 4,114.80 HH (50.80%)
+- **Valor de referencia:** EV acum W11 = 4,669.20 HH (57.64%) — corte 15-mar-2026
 
 ## Regla crítica — NO MEZCLAR PROGRAMAS
 PV siempre de `proj_id=26258`. EV y Remaining siempre de `proj_id=26432`. Sin excepciones.

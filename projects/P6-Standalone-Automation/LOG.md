@@ -138,3 +138,13 @@
 - `mode=p6_visual` queda documentado como stub intencional; `mode=logic` queda ejecutable.
 - Tests mínimos agregados en `tests/test_pv_engine.py` con `unittest` para `spread_lv` y `week_label` (OK).
 - Verificaciones ejecutadas: `python -m unittest tests.test_pv_engine -v` OK; `pv_engine.py --mode p6_visual` OK; `pv_engine.py --mode logic` OK.
+
+## 2026-03-16 — EVM W11 corte 15-mar
+- proj_id baseline: 26258 (OT 1844_B)
+- proj_id actualización W11: 26485 (OT 1844_B-W012)
+- proj_id 26432 ya NO existe en DB — FOCUS.md desactualizado en este punto
+- EV correcto: ACT_REG_QTY directo de TASKRSRC = 4,669.20 HH (57.64%)
+- El engine pv_engine calculó 4,633.20 HH porque excluye actividades con ACT_END_DATE > corte
+- Criterio validado: usar SUM(ACT_REG_QTY) sin filtro de fecha para EV total al corte
+- Remaining: 3,430.80 HH | Forecast cierra 100% en W15
+- SPI W11: 0.884 | Atraso: 7.6 puntos
