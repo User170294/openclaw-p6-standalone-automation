@@ -20,6 +20,108 @@ from report_generator import generate_report
 
 FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'ac_cum', 'sv', 'spi', 'forecast_cum', 'forecast_pct']
 
+# ---------------------------------------------------------------------------
+# PRE-FLIGHT VALIDATION
+# ---------------------------------------------------------------------------
+
+WARN_PREFLIGHT = 'PREFLIGHT_WARNING'
+ERR_PREFLIGHT  = 'PREFLIGHT_ERROR'
+
+def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
+    """
+    Detecta inconsistencias de datos en las asignaciones del programa actualizado
+    antes de que el engine comience a calcular.
+
+    Reglas:
+      E1 - Actividad con HH reales (ACT_REG_QTY > 0) y ACT_START_DATE ausente.
+      E2 - Actividad con ACT_END_DATE > cutoff pero con HH reales registradas
+           (declarada terminada en el futuro respecto al corte).
+      E3 - Actividad con ACT_END_DATE <= cutoff pero ACT_START_DATE > ACT_END_DATE
+           (fechas invertidas).
+      W1 - Actividad activa con HH reales pero sin ACT_END_DATE
+           (en progreso al corte — informativo, no bloquea).
+
+    Retorna lista de issues: [{level, code, task_code, task_id, detail}]
+    """
+    issues = []
+    for row in ev_rows:
+        if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+            continue
+        ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
+        if ev <= 0:
+            ev = safe_float(row.get('task_act_work_qty'))
+        if ev <= 0:
+            continue  # sin HH reales: no hay nada que validar
+
+        task_id   = row.get('task_id', '?')
+        task_code = row.get('task_code') or row.get('task_id', '?')
+        act_start = safe_dt(row.get('act_start_date') or row.get('task_act_start_date'))
+        act_end   = safe_dt(row.get('act_end_date')   or row.get('task_act_end_date'))
+
+        # E1: HH reales sin fecha de inicio
+        if not act_start:
+            issues.append({
+                'level': ERR_PREFLIGHT,
+                'code': 'E1',
+                'task_code': task_code,
+                'task_id': task_id,
+                'detail': f'ACT_REG_QTY={ev:.1f} HH pero ACT_START_DATE es NULL — actividad sin inicio registrado.',
+            })
+
+        # E2: declarada terminada DESPUÉS del corte
+        if act_end and act_end > cutoff:
+            issues.append({
+                'level': ERR_PREFLIGHT,
+                'code': 'E2',
+                'task_code': task_code,
+                'task_id': task_id,
+                'detail': (
+                    f'ACT_END_DATE={act_end.strftime("%Y-%m-%d")} > corte={cutoff.strftime("%Y-%m-%d")} '
+                    f'con {ev:.1f} HH reales — actividad declarada terminada fuera del periodo.'
+                ),
+            })
+
+        # E3: fechas invertidas
+        if act_start and act_end and act_end < act_start:
+            issues.append({
+                'level': ERR_PREFLIGHT,
+                'code': 'E3',
+                'task_code': task_code,
+                'task_id': task_id,
+                'detail': (
+                    f'ACT_START_DATE={act_start.strftime("%Y-%m-%d")} > ACT_END_DATE={act_end.strftime("%Y-%m-%d")} '
+                    f'— fechas invertidas.'
+                ),
+            })
+
+        # W1: en progreso al corte (informativo)
+        if act_start and not act_end:
+            issues.append({
+                'level': WARN_PREFLIGHT,
+                'code': 'W1',
+                'task_code': task_code,
+                'task_id': task_id,
+                'detail': f'Actividad en progreso al corte: {ev:.1f} HH reales, sin ACT_END_DATE.',
+            })
+
+    return issues
+
+
+def print_preflight(issues: list[dict], cutoff: datetime) -> None:
+    if not issues:
+        print(f'[PREFLIGHT] OK - sin inconsistencias al corte {cutoff.strftime("%Y-%m-%d")}.')
+        return
+    errors   = [i for i in issues if i['level'] == ERR_PREFLIGHT]
+    warnings = [i for i in issues if i['level'] == WARN_PREFLIGHT]
+    print(f'\n{"="*72}')
+    print(f'  PREFLIGHT VALIDATION - corte {cutoff.strftime("%Y-%m-%d")}')
+    print(f'  {len(errors)} error(es)  |  {len(warnings)} aviso(s)')
+    print(f'{"="*72}')
+    for issue in issues:
+        tag = '[ERROR]' if issue['level'] == ERR_PREFLIGHT else '[AVISO]'
+        print(f'  {tag} [{issue["code"]}] {issue["task_code"]}  ->  {issue["detail"]}')
+    print(f'{"="*72}\n')
+
 
 def week_label(mon: date) -> str:
     iso = mon.isocalendar()
@@ -328,9 +430,16 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
             ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
             if ev <= 0:
                 ev = safe_float(row.get('task_act_work_qty'))
-            ev_start = safe_dt(row.get('act_start_date')) or safe_dt(row.get('task_act_start_date'))
+            ev_start = (
+                safe_dt(row.get('act_start_date'))
+                or safe_dt(row.get('task_act_start_date'))
+                or safe_dt(row.get('target_start_date'))  # fallback: tarea activa sin fecha inicio real
+            )
             ev_end_raw = safe_dt(row.get('act_end_date')) or safe_dt(row.get('task_act_end_date'))
-            if ev > 0 and ev_start and ev_start <= cutoff:
+            if ev > 0:
+                # Si no hay fecha de inicio, colocar las HH al lunes de la semana de corte
+                if not ev_start or ev_start > cutoff:
+                    ev_start = cutoff - timedelta(days=cutoff.weekday())
                 ev_end = ev_end_raw if (ev_end_raw and ev_end_raw <= cutoff) else cutoff
                 if ev_end >= ev_start:
                     spread_calendar(ev_start, ev_end, ev, calendar, ev_week)
@@ -431,6 +540,7 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
         'note': f"Modo logic calculado con un solo motor temporal para PV, EV y Remaining Early. Fuente base: {source_note}.",
         'rows': rows,
         'bac': round(sum(float(r['pv_week']) for r in rows), 4),
+        'preflight_issues': payload.get('preflight_issues', []),
     }
 
 
@@ -478,6 +588,7 @@ def compare(result: dict[str, Any]) -> dict[str, Any]:
         'cpi': cpi,
         'eac': eac,
         'etc': etc,
+        'preflight_issues': result.get('preflight_issues', []),
     }
 
 
@@ -504,6 +615,18 @@ def export(report: dict[str, Any], args) -> Path:
             f.write(f"- stub: `{report['stub']}`\n")
             f.write(f"- row_count: `{report['row_count']}`\n")
             f.write(f"- note: {report['note']}\n\n")
+            # Preflight issues (si existen)
+            issues = report.get('preflight_issues') or []
+            if issues:
+                errors   = [i for i in issues if i['level'] == ERR_PREFLIGHT]
+                warnings = [i for i in issues if i['level'] == WARN_PREFLIGHT]
+                f.write(f"## Preflight Validation — {len(errors)} error(es), {len(warnings)} aviso(s)\n\n")
+                f.write("| Nivel | Codigo | Actividad | Detalle |\n")
+                f.write("|---|---|---|---|\n")
+                for i in issues:
+                    tag = 'ERROR' if i['level'] == ERR_PREFLIGHT else 'AVISO'
+                    f.write(f"| {tag} | {i['code']} | {i['task_code']} | {i['detail']} |\n")
+                f.write("\n")
             f.write('| ' + ' | '.join(FIXED_COLUMNS) + ' |\n')
             f.write('|' + '|'.join(['---'] * len(FIXED_COLUMNS)) + '|\n')
             for row in report['rows']:
@@ -538,6 +661,15 @@ def parse_args():
 def main():
     args = parse_args()
     payload = load(args)
+
+    # --- PRE-FLIGHT ---
+    if payload.get('base_source') == 'db':
+        ev_rows = payload.get('ev_taskrsrc_rows', payload.get('base_taskrsrc_rows', []))
+        issues  = validate_preflight(ev_rows, payload['cutoff'])
+        print_preflight(issues, payload['cutoff'])
+        payload['preflight_issues'] = issues
+    # ------------------
+
     computed = compute(payload)
     report = compare(computed)
     out_path = export(report, args)
