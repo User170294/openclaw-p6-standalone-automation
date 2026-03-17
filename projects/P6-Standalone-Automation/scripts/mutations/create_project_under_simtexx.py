@@ -13,7 +13,7 @@ def main():
     ap = argparse.ArgumentParser(description='Create project under Simtexx root in P6 SQLite')
     ap.add_argument('--db', required=True)
     ap.add_argument('--parent-wbs-id', type=int, default=151785)
-    ap.add_argument('--template-proj-id', type=int, default=26196)
+    ap.add_argument('--template-proj-id', type=int, default=None)
     ap.add_argument('--new-short', required=True)
     ap.add_argument('--new-name', required=True)
     ap.add_argument('--new-start', required=True)

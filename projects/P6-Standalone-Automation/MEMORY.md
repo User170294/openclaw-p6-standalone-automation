@@ -1,5 +1,30 @@
 # MEMORY - P6-Standalone-Automation
 
+## Visión del proyecto (2026-03-16) — CANÓNICO
+**Qué es:** Agente IA copiloto especializado en Primavera P6 para planificadores de construcción y minería.
+**Problema que resuelve:** (1) Planificador hereda programa que no construyó — pierde tiempo deduciéndolo. (2) EVM se calcula manual y repetitivamente.
+**Capacidades objetivo:**
+1. Control por lenguaje natural → operación de línea base en P6
+2. Auditoría de schedules heredados → configuración, lógica, supuestos en lenguaje humano
+3. EVM automatizado → PV/EV/SPI/CPI con metodología validada (regla dos programas: PV=26258, EV=26485)
+4. Propuestas de mejora del programa
+5. Modo enseñanza → base de conocimiento P6 para usuarios nuevos
+6. Auto-setup del entorno → onboarding de nuevos usuarios
+7. Aprendizaje continuo → mejora desde casos reales de producción
+
+**A quién va dirigido:** Planificadores experimentados (velocidad/precisión) y planificadores nuevos (orientación práctica). Eventualmente terceros.
+**Lo que NO es:** Reemplaza al planificador. Herramienta genérica de IA. Debe crecer solo por problemas reales.
+**Rol de Lilit:** Mantiene contexto técnico, indexa cambios, implementa mejoras, valida metodología EVM. El código es el ground truth. Cada sprint tiene foco definido — no salir de él sin consultar.
+
+**Principio arquitectural fundamental (2026-03-16):** El agente NO está atado a un programa, planificador o tarea específica. Debe poder recibir cualquier DB SQLite de P6, descubrir sus programas, entender su estructura y operar sobre ellos sin supuestos hardcodeados. OT-1844 es el caso de prueba de desarrollo, no el caso objetivo. Todo `proj_id`, ruta o constante específica de OT-1844 en el código es deuda técnica a eliminar progresivamente.
+
+**Estrategia de evolución (2026-03-16):**
+- Fase actual: aprendizaje con casos reales (OT-1844 y otros programas de producción). Cada caso enseña algo que generaliza.
+- Fase futura (objetivo claro): agente distribuible a otros planificadores — con auto-setup, onboarding guiado, sin dependencias hardcodeadas, con documentación suficiente para que otro usuario lo adopte desde cero.
+- Regla: cada mejora que hagamos hoy debe acercarnos a ese objetivo, aunque sea incremental. No construir cosas que el futuro distribuible tendría que tirar.
+
+---
+
 ## Decisiones
 - Proyecto creado para centralizar automatización de Primavera P6 Standalone.
 - Se prioriza seguridad operativa: dry-run, permisos mínimos, auditoría y backups.
@@ -67,6 +92,9 @@
 - El `% Complete Type` de la actividad debe alinearse con el del proyecto/base cuando no exista razón explícita para diferir. En el caso validado, proyecto y actividades operan con `CP_Drtn`; por lo tanto, no aplicar ciegamente la lógica de `% unidades` como sustituto del porcentaje del proyecto.
 - Para pruebas parciales desde Excel, no cargar filas ambiguas. Si falta fecha de inicio o término, separar esos casos y no forzar cierres. Regla segura para prueba: cargar solo filas con `%`, inicio real y término real explícitos cuando el objetivo es cerrar al 100%.
 - Secuencia operativa mínima para carga robusta: respaldo DB → fijar data date → validar `% complete type` → validar calendario → aplicar HH/fechas/estado en `TASKRSRC` + `TASK` → sincronizar costos → verificar en P6/UI.
+
+## Preferencias de formato (2026-03-16)
+- **No usar HTML como formato de reporte.** Edgardo prefiere otros formatos (xlsx, md, csv) para los reportes semanales de avance. El template HTML dark de `report_generator.py` queda solo como referencia histórica; no usarlo en reportes operativos.
 
 ## Pendientes
 - Formalizar en script reusable un modo dual: `logic` vs `p6_visual` con validación automática contra export de Usage.

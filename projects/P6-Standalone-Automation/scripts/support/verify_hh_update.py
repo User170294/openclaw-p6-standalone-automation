@@ -12,7 +12,7 @@ from p6_utils import open_db
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--db', required=True)
-    ap.add_argument('--proj-id', type=int, default=26196)
+    ap.add_argument('--proj-id', type=int, default=None)
     ap.add_argument('--sample-pattern', default='HH-1844-%')
     ap.add_argument('--old-rsrc-ids', nargs='*', type=int, default=[9398, 9399])
     args = ap.parse_args()

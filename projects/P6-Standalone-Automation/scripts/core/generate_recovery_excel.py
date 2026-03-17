@@ -178,8 +178,7 @@ def load_wbs(cur: sqlite3.Cursor, proj_id: int) -> tuple[dict, dict, int | None]
             "parent": r["PARENT_WBS_ID"],
         }
 
-    # Detectar nodo "Fabricacion N sistemas" (nivel 3 tipico en OT-1844)
-    # Es el que tiene hijos que a su vez tienen hijos con entregables
+    # Detectar nodo raíz de fabricación (nivel 3 típico con múltiples entregables)
     # Heuristica: el nodo cuyo short empieza con numero y tiene >2 hijos
     fab_parent_id: int | None = None
     children_count: dict[int, int] = defaultdict(int)
@@ -335,7 +334,10 @@ def build_excel(
     bac: float,
     ev: float,
     pv_week: float,
+    project_name: str = "",
 ) -> None:
+    if not project_name:
+        project_name = f"PROJ_ID={proj_id}"
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Recovery"
@@ -376,7 +378,7 @@ def build_excel(
     ws.row_dimensions[1].height = 22
     merge_row(
         1, 1, NCOLS,
-        f"PLAN DE RECOVERY {week_label}  |  OT 1844_B  |  {week_mon.strftime('%d-%m-%Y')} a {week_sun.strftime('%d-%m-%Y')}",
+        f"PLAN DE RECOVERY {week_label}  |  {project_name}  |  {week_mon.strftime('%d-%m-%Y')} a {week_sun.strftime('%d-%m-%Y')}",
         Font(bold=True, color="FFFFFF", size=12, name="Calibri"),
         fill("1A252F"), "center",
     )
@@ -494,6 +496,7 @@ def _parse_args() -> argparse.Namespace:
     p.add_argument("--bac", type=float, default=None)
     p.add_argument("--ev", type=float, default=None)
     p.add_argument("--pv-week", type=float, default=0.0)
+    p.add_argument("--project-name", default="", help="Nombre del proyecto para encabezado del reporte (default: PROJ_ID=<id>)")
     p.add_argument("--out", default=None)
     return p.parse_args()
 
@@ -542,8 +545,8 @@ def main() -> None:
     fc = ev + re_week
     week_label = f"W{((week_mon - date(2026, 2, 16)).days // 7 + 8):02d}" if week_mon >= date(2026, 2, 16) else week_mon.strftime("%Y-%m-%d")
 
-    out_path = Path(args.out) if args.out else Path(f"OT1844_{args.proj_id}_Recovery_{week_label}.xlsx")
-    build_excel(activities, out_path, args.proj_id, week_mon, week_sun, bac, ev, args.pv_week)
+    out_path = Path(args.out) if args.out else Path(f"{args.proj_id}_Recovery_{week_label}.xlsx")
+    build_excel(activities, out_path, args.proj_id, week_mon, week_sun, bac, ev, args.pv_week, project_name=args.project_name)
 
     print(f"PROJ_ID   : {args.proj_id}")
     print(f"Cutoff    : {cutoff.date()}")

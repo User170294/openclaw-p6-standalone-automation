@@ -13,7 +13,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--db', required=True)
     ap.add_argument('--root', type=int, default=151785)
-    ap.add_argument('--targets', nargs='+', type=int, default=[26196, 26197, 26198, 26257, 26258])
+    ap.add_argument('--targets', nargs='+', type=int, default=[])
     args = ap.parse_args()
 
     con = open_db(args.db)
