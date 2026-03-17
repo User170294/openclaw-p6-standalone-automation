@@ -26,11 +26,11 @@
 15. Modelo de licencia — open source / consultoría / API key propia
 
 **Reglas no negociables:**
-- Regla de dos programas: PV = baseline, EV = programa actualizado (proj_id por CLI, nunca hardcodeado)
-- Checkpoint W10 OT-1844: BAC=8100, PV=3771 (46.56%), EV=3395 (41.9%), SPI=0.900, CPI=1.000 — validar contra esto antes de mergear cambios al motor EVM
-- Algoritmo EVM: TASKRSRC, rsrc_type=RT_Labor, distribución uniforme L-V entre target_start y target_end, semana ISO
+- Regla de dos programas: PV = programa baseline, EV = programa actualizado (proj_id siempre por CLI, nunca hardcodeado)
+- Algoritmo EVM: TASKRSRC, rsrc_type=RT_Labor, distribución uniforme en días laborales entre target_start y target_end, semana ISO
+- Antes de mergear cambios al motor EVM: validar contra un caso real con valores conocidos
 - Canal de bugs: GitHub Issues
-- Sin cambios al motor EVM sin validar contra checkpoint W10
+- OT-1844 es el caso de prueba de desarrollo — sus valores específicos van en MEMORY.md del proyecto, no aquí
 
 ## Visión del proyecto (2026-03-16) — CANÓNICO
 **Qué es:** Agente IA copiloto especializado en Primavera P6 para planificadores de construcción y minería.
