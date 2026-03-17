@@ -368,7 +368,8 @@ def build_excel(
             ws.cell(row, col).border = BORDER
 
     NCOLS = 9
-    week_label = f"W{((week_mon - date(2026, 2, 16)).days // 7 + 8):02d}" if week_mon >= date(2026, 2, 16) else week_mon.strftime("%Y-%m-%d")
+    iso = week_mon.isocalendar()
+    week_label = f"Y{iso.year % 100:02d}-W{iso.week:02d}"
     re_week = sum(a["w_hh"] for a in activities)
     fc = ev + re_week
     fc_pct = fc / bac * 100 if bac else 0
@@ -543,7 +544,8 @@ def main() -> None:
 
     re_week = sum(a["w_hh"] for a in activities)
     fc = ev + re_week
-    week_label = f"W{((week_mon - date(2026, 2, 16)).days // 7 + 8):02d}" if week_mon >= date(2026, 2, 16) else week_mon.strftime("%Y-%m-%d")
+    iso = week_mon.isocalendar()
+    week_label = f"Y{iso.year % 100:02d}-W{iso.week:02d}"
 
     out_path = Path(args.out) if args.out else Path(f"{args.proj_id}_Recovery_{week_label}.xlsx")
     build_excel(activities, out_path, args.proj_id, week_mon, week_sun, bac, ev, args.pv_week, project_name=args.project_name)
