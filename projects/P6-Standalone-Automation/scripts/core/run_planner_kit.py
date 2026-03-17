@@ -131,9 +131,15 @@ def step_run_evm(db: Path, pv_proj_id: int, ev_proj_id: int, cutoff: str, out_di
     report = json.loads(json_files[0].read_text(encoding="utf-8"))
     print(f"     ✓ EVM calculado — {report.get('row_count', 0)} semanas")
     if report.get("rows"):
-        last = report["rows"][-1]
         bac = report.get("bac", 0) or 1
-        print(f"     BAC: {bac:,.1f} HH | EV: {last.get('ev_cum', 0):,.1f} HH ({last.get('ev_pct', 0):.2f}%) | SPI: {last.get('spi', 'N/A')}")
+        # Buscar el row del corte (último con ev_cum > 0); no usar rows[-1] que es la semana final del forecast
+        cutoff_row = None
+        for r in reversed(report["rows"]):
+            if (r.get("ev_cum") or 0) > 0:
+                cutoff_row = r
+                break
+        cutoff_row = cutoff_row or report["rows"][-1]
+        print(f"     BAC: {bac:,.1f} HH | EV: {cutoff_row.get('ev_cum', 0):,.1f} HH ({cutoff_row.get('ev_pct', 0):.2f}%) | SPI al corte: {cutoff_row.get('spi', 'N/A')}")
     return report
 
 
