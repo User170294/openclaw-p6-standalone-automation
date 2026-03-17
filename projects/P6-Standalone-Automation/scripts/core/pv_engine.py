@@ -204,6 +204,7 @@ def load(args) -> dict[str, Any]:
         'upd_xer': Path(args.upd_xer) if args.upd_xer else None,
         'db': Path(args.db) if args.db else None,
         'proj_id': args.proj_id,
+        'baseline_proj_id': getattr(args, 'baseline_proj_id', None),
         'base_source': None,
     }
 
@@ -211,8 +212,13 @@ def load(args) -> dict[str, Any]:
         con = open_db(payload['db'])
         try:
             cur = con.cursor()
-            rows = cur.execute(
-                '''
+            # Regla de dos programas:
+            # Si baseline_proj_id se pasa, PV viene del baseline y EV/Remaining del proj_id actualizado.
+            # Si no, se usa un solo proj_id para todo (modo legacy/single-project).
+            pv_proj_id = payload['baseline_proj_id'] if payload['baseline_proj_id'] else payload['proj_id']
+            ev_proj_id = payload['proj_id']
+
+            taskrsrc_sql = '''
                 SELECT tr.*, t.CLNDR_ID AS TASK_CLNDR_ID,
                        t.EARLY_START_DATE AS TASK_EARLY_START_DATE,
                        t.EARLY_END_DATE AS TASK_EARLY_END_DATE,
@@ -225,13 +231,24 @@ def load(args) -> dict[str, Any]:
                   ON t.PROJ_ID = tr.PROJ_ID
                  AND t.TASK_ID = tr.TASK_ID
                 WHERE tr.PROJ_ID=? AND tr.RSRC_TYPE='RT_Labor'
-                ''',
-                (payload['proj_id'],),
-            ).fetchall()
+            '''
+
+            # PV: siempre desde el programa baseline
+            pv_rows = cur.execute(taskrsrc_sql, (pv_proj_id,)).fetchall()
             payload['base_taskrsrc_rows'] = [
                 {k.lower(): v for k, v in dict(r).items()}
-                for r in rows
+                for r in pv_rows
             ]
+
+            # EV/Remaining: desde el programa actualizado (puede ser distinto al de PV)
+            if pv_proj_id != ev_proj_id:
+                ev_rows = cur.execute(taskrsrc_sql, (ev_proj_id,)).fetchall()
+                payload['ev_taskrsrc_rows'] = [
+                    {k.lower(): v for k, v in dict(r).items()}
+                    for r in ev_rows
+                ]
+            else:
+                payload['ev_taskrsrc_rows'] = payload['base_taskrsrc_rows']
             task_cols = {str(r['name']).upper() for r in cur.execute('PRAGMA table_info(TASK)').fetchall()}
             if {'TARGET_WORK_QTY', 'ACT_WORK_QTY', 'REMAIN_WORK_QTY', 'CLNDR_ID'}.issubset(task_cols):
                 if {'TASK_CODE', 'EARLY_START_DATE', 'EARLY_END_DATE', 'TASK_TYPE'}.issubset(task_cols):
@@ -256,15 +273,18 @@ def load(args) -> dict[str, Any]:
                     FROM TASK
                     WHERE PROJ_ID=?
                     '''
-                task_rows = cur.execute(task_sql, (payload['proj_id'],)).fetchall()
+                task_rows = cur.execute(task_sql, (ev_proj_id,)).fetchall()
                 payload['task_rows'] = [
                     {k.lower(): v for k, v in dict(r).items()}
                     for r in task_rows
                 ]
             else:
                 payload['task_rows'] = []
-            payload['calendars'] = load_calendars(con, payload['proj_id'])
+            # Calendarios desde el programa actualizado (tiene la programación vigente)
+            payload['calendars'] = load_calendars(con, ev_proj_id)
             payload['base_source'] = 'db'
+            payload['pv_proj_id'] = pv_proj_id
+            payload['ev_proj_id'] = ev_proj_id
         finally:
             con.close()
     elif payload['base_xer']:
@@ -286,18 +306,24 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     calendars = payload.get('calendars', {})
 
     if payload.get('base_source') == 'db':
-        taskrsrc_rows = payload.get('base_taskrsrc_rows', [])
-        for row in taskrsrc_rows:
+        # PV: siempre desde base_taskrsrc_rows (programa baseline)
+        for row in payload.get('base_taskrsrc_rows', []):
             if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
                 continue
             clndr_id = row.get('task_clndr_id')
             calendar = calendars.get(int(clndr_id)) if clndr_id not in (None, '') else None
-
             pv = safe_float(row.get('target_qty'))
             pv_start = safe_dt(row.get('target_start_date'))
             pv_end = safe_dt(row.get('target_end_date'))
             if pv > 0 and pv_start and pv_end:
                 spread_calendar(pv_start, pv_end, pv, calendar, pv_week)
+
+        # EV y Remaining: desde ev_taskrsrc_rows (programa actualizado)
+        for row in payload.get('ev_taskrsrc_rows', payload.get('base_taskrsrc_rows', [])):
+            if (row.get('rsrc_type') or '').strip() != 'RT_Labor':
+                continue
+            clndr_id = row.get('task_clndr_id')
+            calendar = calendars.get(int(clndr_id)) if clndr_id not in (None, '') else None
 
             ev = safe_float(row.get('act_reg_qty')) + safe_float(row.get('act_ot_qty'))
             if ev <= 0:
@@ -355,15 +381,15 @@ def _compute_logic(payload: dict[str, Any]) -> dict[str, Any]:
     weeks = sorted(set(pv_week) | set(ev_week) | set(re_week))
     bac_total = round(sum(safe_float(r.get('target_qty')) for r in payload['base_taskrsrc_rows'] if (r.get('rsrc_type') or '').strip() == 'RT_Labor'), 4)
 
-    # AC total al corte: suma ACT_WORK_QTY de TASK (trabajo real registrado en DB)
-    # Equivalente a ACT_REG_QTY + ACT_OT_QTY en TASKRSRC para recursos labor
+    # AC total al corte: desde el programa actualizado (ev_taskrsrc_rows)
+    ev_rows_for_ac = payload.get('ev_taskrsrc_rows', payload.get('base_taskrsrc_rows', []))
     ac_total = round(sum(
         safe_float(r.get('task_act_work_qty') or r.get('act_work_qty'))
-        for r in payload['base_taskrsrc_rows']
+        for r in ev_rows_for_ac
         if (r.get('rsrc_type') or '').strip() == 'RT_Labor'
     ), 4) if payload.get('base_source') == 'db' else round(sum(
         safe_float(r.get('act_reg_qty')) + safe_float(r.get('act_ot_qty'))
-        for r in payload['base_taskrsrc_rows']
+        for r in payload.get('base_taskrsrc_rows', [])
         if (r.get('rsrc_type') or '').strip() == 'RT_Labor'
     ), 4)
 
@@ -496,7 +522,8 @@ def parse_args():
     ap.add_argument('--base-xer', help='Fuente baseline secundaria/fallback en XER cuando no hay acceso a DB.')
     ap.add_argument('--upd-xer', help='XER actualizado opcional para EV u operaciones de interoperabilidad.')
     ap.add_argument('--db', help='Fuente primaria: ruta a DB SQLite de P6.')
-    ap.add_argument('--proj-id', type=int, help='PROJ_ID en la DB SQLite primaria.')
+    ap.add_argument('--proj-id', type=int, help='PROJ_ID del programa actualizado (fuente de EV y Remaining).')
+    ap.add_argument('--baseline-proj-id', type=int, default=None, help='PROJ_ID del programa baseline (fuente de PV). Si se omite, se usa --proj-id para todo.')
     ap.add_argument('--cutoff', required=True, help='YYYY-MM-DD')
     ap.add_argument('--mode', choices=['logic', 'p6_visual'], required=True)
     ap.add_argument('--out-dir', default='projects/P6-Standalone-Automation/data')
