@@ -370,10 +370,10 @@ def build_excel(
     NCOLS = 9
     iso = week_mon.isocalendar()
     week_label = f"Y{iso.year % 100:02d}-W{iso.week:02d}"
-    re_week = sum(a["w_hh"] for a in activities)
-    fc = ev + re_week
+    re_week_hh = sum(a["w_hh"] for a in activities)
+    fc = ev + re_week_hh
     fc_pct = fc / bac * 100 if bac else 0
-    pv_cum_w = 0.0  # placeholder si no viene calculado
+    pv_txt = f"PV {week_label}: {pv_week:,.1f} HH   |   " if pv_week else ""
 
     # Row 1: titulo
     ws.row_dimensions[1].height = 22
@@ -389,7 +389,8 @@ def build_excel(
     kpi_txt = (
         f"BAC: {bac:,.1f} HH   |   "
         f"EV acum: {ev:,.1f} HH ({ev/bac*100:.2f}%)   |   "
-        f"RE {week_label}: {re_week:,.1f} HH   |   "
+        f"{pv_txt}"
+        f"RE {week_label}: {re_week_hh:,.1f} HH   |   "
         f"Forecast fin {week_label}: {fc:,.1f} HH ({fc_pct:.2f}%)"
     )
     merge_row(2, 1, NCOLS, kpi_txt, font(PALETTE["tag_fg"], bold=True, size=9), fill(PALETTE["kpi_bg"]), "center")
@@ -477,7 +478,7 @@ def build_excel(
     ws.cell(row_num, 1).value = f"TOTAL {week_label}   —   {len(activities)} actividades"
     ws.cell(row_num, 1).alignment = Alignment(horizontal="left", vertical="center")
     ws.cell(row_num, 8).value = round(sum(a["remain_hh"] for a in activities), 1)
-    ws.cell(row_num, 9).value = round(re_week, 1)
+    ws.cell(row_num, 9).value = round(re_week_hh, 1)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     wb.save(out_path)
@@ -542,8 +543,8 @@ def main() -> None:
     activities = load_activities(cur, args.proj_id, cutoff, week_mon, week_sun, calendars, wbs_map, tag_map, entregable_map)
     con.close()
 
-    re_week = sum(a["w_hh"] for a in activities)
-    fc = ev + re_week
+    re_week_hh = sum(a["w_hh"] for a in activities)
+    fc = ev + re_week_hh
     iso = week_mon.isocalendar()
     week_label = f"Y{iso.year % 100:02d}-W{iso.week:02d}"
 
@@ -555,7 +556,8 @@ def main() -> None:
     print(f"Semana    : {week_label}  ({week_mon} — {week_sun})")
     print(f"BAC       : {bac:,.1f} HH")
     print(f"EV acum   : {ev:,.1f} HH  ({ev/bac*100:.2f}%)" if bac else f"EV        : {ev:,.1f} HH")
-    print(f"RE {week_label}   : {re_week:,.1f} HH")
+    print(f"PV semana : {args.pv_week:,.1f} HH" if args.pv_week else "PV semana : N/A")
+    print(f"RE {week_label}   : {re_week_hh:,.1f} HH")
     print(f"Forecast  : {fc:,.1f} HH  ({fc/bac*100:.2f}%)" if bac else f"Forecast  : {fc:,.1f} HH")
     print(f"Actividades: {len(activities)}")
     print(f"OUT       : {out_path}")
