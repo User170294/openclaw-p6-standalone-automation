@@ -1,0 +1,21 @@
+# Workspace OpenClaw — ignorar todo excepto el proyecto P6
+*
+!projects/
+!projects/P6-Standalone-Automation/
+!projects/P6-Standalone-Automation/**
+!SKILL.md
+!requirements.txt
+!.gitignore
+
+# Archivos de datos operativos dentro del proyecto
+projects/P6-Standalone-Automation/data/*.csv
+projects/P6-Standalone-Automation/data/*.json
+projects/P6-Standalone-Automation/data/*.xlsx
+projects/P6-Standalone-Automation/data/*.html
+projects/P6-Standalone-Automation/data/*.md
+projects/P6-Standalone-Automation/data/ingest_tmp/
+
+# Cache Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
