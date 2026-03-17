@@ -11,7 +11,7 @@ el comparador reusable XER vs DB ya fue incorporado, y el flujo end-to-end
 Lo que sigue pendiente no es construir el flujo base, sino **cerrar la validación end-to-end real en producción**
 y endurecer los bordes operativos (horarios/calendario real, contraste automático, modo visual P6).
 
-**Tests:** 15/15 en verde verificados hoy (9 raíz + 6 proyecto)
+**Tests:** 60/60 en verde (cobertura 100% del core — actualizado 2026-03-16)
 **Último commit del proyecto:** `c4cddef` — `chore: fix gitignore - add pycache, destrackear privados`
 **Commit funcional relevante previo:** `6895ed1` — `docs: add FOCUS.md - contexto canónico de arranque rápido para Lilit`
 
@@ -65,7 +65,7 @@ La refactorización multi-proyecto queda después de estabilizar y validar el fl
 ## Instrucción para Lilit al hacer foco
 1. Leer este archivo
 2. Leer `SKILL.md` en la raíz del repo
-3. Correr tests: `python -m pytest tests/ -q` y `python -m pytest projects/P6-Standalone-Automation/tests/ -q`
-4. Verificar que estás en 15/15 antes de tocar cualquier cosa
+3. Correr tests: `python -m pytest tests/ -q` (desde raíz del proyecto)
+4. Verificar que estás en 60/60 antes de tocar cualquier cosa
 5. Revisar `git log --oneline -5 -- projects/P6-Standalone-Automation` para detectar delta reciente
 6. Solo si necesitas ampliar contexto: revisar `MEMORY.md` y `LOG.md`

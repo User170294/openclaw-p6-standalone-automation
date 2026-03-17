@@ -18,7 +18,7 @@ def parse_args():
     ap.add_argument('--source-xlsx', required=True)
     ap.add_argument('--out-xlsx', required=True)
     ap.add_argument('--proj-id', type=int, required=True)
-    ap.add_argument('--sheet', default='Revision_Avance_W012')
+    ap.add_argument('--sheet', required=True, help='Nombre de la hoja Excel a procesar (ej. Revision_Avance_2026-W12)')
     return ap.parse_args()
 
 
