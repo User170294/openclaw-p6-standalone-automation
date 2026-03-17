@@ -32,13 +32,30 @@
 - Canal de bugs: GitHub Issues
 - Los casos de prueba son programas reales de producción — sus valores específicos van en FOCUS.md del caso, no en las reglas del agente
 
+**Regla 11 — Fuentes explícitas antes de correr el engine:**
+Antes de calcular cualquier curva EVM, confirmar explícitamente qué proj_id corresponde a PV y cuál a EV/Remaining. No asumir fuentes por convención de nombres. `db_discovery.py` resuelve esto dinámicamente.
+
+**Regla 12 — Validación numérica antes de commitear cambios al engine:**
+Si se modificó lógica de PV, EV o Remaining, reproducir al menos un valor conocido del sistema de referencia antes de commitear. Si no hay acceso a DB real, indicarlo explícitamente. No confirmar corrección solo porque "el resultado se ve razonable".
+
+**Los 3 errores que más se repiten:**
+
+1. **Simplificación que rompe la lógica real** — repartir remaining desde cutoff al fin, asumir calendario fijo, ignorar fechas tempranas, ignorar horas efectivas.
+   → Siempre calcular PV/EV/Remaining con calendario real, horas efectivas y fechas correctas. Sin atajos sin validación.
+
+2. **Asumir que una tabla basta** — actualizar TASKRSRC sin sincronizar TASK, tratar XER y DB como equivalentes, dar por suficiente un agregado sin revisar reflejo en UI.
+   → Validar consistencia entre fuente primaria, tablas resumen y salida visible antes de cerrar cualquier cambio operativo.
+
+3. **Romper el flujo por no verificar entorno** — correr tests en runner incorrecto, dependencias faltantes, reconstruir formatos frágiles sin verificar compatibilidad.
+   → Antes de ejecutar: verificar entorno, comando real, dependencias y formato. Primero compatibilidad, después ejecución.
+
 ## Visión del proyecto (2026-03-16) — CANÓNICO
 **Qué es:** Agente IA copiloto especializado en Primavera P6 para planificadores de construcción y minería.
 **Problema que resuelve:** (1) Planificador hereda programa que no construyó — pierde tiempo deduciéndolo. (2) EVM se calcula manual y repetitivamente.
 **Capacidades objetivo:**
 1. Control por lenguaje natural → operación de línea base en P6
 2. Auditoría de schedules heredados → configuración, lógica, supuestos en lenguaje humano
-3. EVM automatizado → PV/EV/SPI/CPI con metodología validada (regla dos programas: PV=26258, EV=26485)
+3. EVM automatizado → PV/EV/SPI/CPI con metodología validada (regla dos programas: PV desde baseline, EV desde actualizado)
 4. Propuestas de mejora del programa
 5. Modo enseñanza → base de conocimiento P6 para usuarios nuevos
 6. Auto-setup del entorno → onboarding de nuevos usuarios
