@@ -30,7 +30,7 @@
 - Algoritmo EVM: TASKRSRC, rsrc_type=RT_Labor, distribución uniforme en días laborales entre target_start y target_end, semana ISO
 - Antes de mergear cambios al motor EVM: validar contra un caso real con valores conocidos
 - Canal de bugs: GitHub Issues
-- OT-1844 es el caso de prueba de desarrollo — sus valores específicos van en MEMORY.md del proyecto, no aquí
+- Los casos de prueba son programas reales de producción — sus valores específicos van en FOCUS.md del caso, no en las reglas del agente
 
 ## Visión del proyecto (2026-03-16) — CANÓNICO
 **Qué es:** Agente IA copiloto especializado en Primavera P6 para planificadores de construcción y minería.
@@ -48,10 +48,10 @@
 **Lo que NO es:** Reemplaza al planificador. Herramienta genérica de IA. Debe crecer solo por problemas reales.
 **Rol de Lilit:** Mantiene contexto técnico, indexa cambios, implementa mejoras, valida metodología EVM. El código es el ground truth. Cada sprint tiene foco definido — no salir de él sin consultar.
 
-**Principio arquitectural fundamental (2026-03-16):** El agente NO está atado a un programa, planificador o tarea específica. Debe poder recibir cualquier DB SQLite de P6, descubrir sus programas, entender su estructura y operar sobre ellos sin supuestos hardcodeados. OT-1844 es el caso de prueba de desarrollo, no el caso objetivo. Todo `proj_id`, ruta o constante específica de OT-1844 en el código es deuda técnica a eliminar progresivamente.
+**Principio arquitectural fundamental (2026-03-16):** El agente NO está atado a un programa, planificador o tarea específica. Debe poder recibir cualquier DB SQLite de P6, descubrir sus programas, entender su estructura y operar sobre ellos sin supuestos hardcodeados. Los casos reales de producción son el banco de pruebas — no el objetivo final. Todo `proj_id`, ruta o constante específica de un proyecto en el código es deuda técnica a eliminar progresivamente.
 
 **Estrategia de evolución (2026-03-16):**
-- Fase actual: aprendizaje con casos reales (OT-1844 y otros programas de producción). Cada caso enseña algo que generaliza.
+- Fase actual: aprendizaje con casos reales de producción. Cada caso enseña algo que generaliza.
 - Fase futura (objetivo claro): agente distribuible a otros planificadores — con auto-setup, onboarding guiado, sin dependencias hardcodeadas, con documentación suficiente para que otro usuario lo adopte desde cero.
 - Regla: cada mejora que hagamos hoy debe acercarnos a ese objetivo, aunque sea incremental. No construir cosas que el futuro distribuible tendría que tirar.
 

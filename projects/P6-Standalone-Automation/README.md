@@ -117,7 +117,7 @@ Agente IA copiloto especializado en Primavera P6 para planificadores de construc
 - `docs/XER_DB_VALIDATION_FLOW.md` → flujo recomendado para pruebas conjuntas XER + DB.
 
 ## Estrategia de evolución
-- **Fase actual:** aprendizaje con casos reales (OT-1844 y otros programas de producción). Cada caso enseña algo que se generaliza.
+- **Fase actual:** aprendizaje con casos reales de producción. Cada caso enseña algo que se generaliza.
 - **Fase futura:** agente distribuible a otros planificadores — auto-setup, onboarding guiado, sin dependencias hardcodeadas.
 - **Regla:** cada mejora debe acercar al objetivo distribuible, no alejarlo.
 
