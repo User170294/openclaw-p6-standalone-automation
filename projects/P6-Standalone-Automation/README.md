@@ -94,10 +94,12 @@ Agente IA copiloto especializado en Primavera P6 para planificadores de construc
 - No dar por equivalentes XER y DB sin validación explícita.
 
 ## Estado actual
-- Base SQLite activa confirmada en `MEMORY.md`.
-- Existen scripts productivos para inspección, auditoría, reasignación de recursos, carga segura de avances y reportes semanales.
-- El proyecto ya tiene aprendizaje validado para cálculo PV/EV semanal, manejo seguro de cambios sobre XER y carga robusta de avances directo a DB.
-- Hay fixtures externos disponibles en `001_Prueba Externa/` para pruebas iniciales.
+- **Motor EVM operativo:** PV, EV, AC, SPI, CPI, EAC, ETC, CV — modo `logic` con calendario real.
+- **Tests:** 69/69 ✅ — cobertura 100% del core.
+- **CI activo:** GitHub Actions corre los tests en cada push.
+- **Flujo end-to-end disponible:** `run_planner_kit.py` orquesta captura → carga → EVM → reporte.
+- **Formatos de reporte:** xlsx y md (HTML descartado como formato operativo).
+- **Fase 1 (distribuible) completada.** Ver `MEMORY.md` para hoja de ruta completa.
 
 ## Estructura útil
 - `scripts/core/` → flujo productivo principal (carga segura, auditoría, comparación XER/DB, mutación XER, motor PV dual logic/p6_visual).
@@ -120,4 +122,9 @@ Agente IA copiloto especializado en Primavera P6 para planificadores de construc
 - **Regla:** cada mejora debe acercar al objetivo distribuible, no alejarlo.
 
 ## Próximo paso recomendado
-Validar flujo end-to-end completo (captura Excel → carga DB → engine EVM → reporte xlsx/md) sobre un corte semanal real en producción.
+**Fase 2 — Experiencia del planificador:**
+- Modo guiado de primera vez: al recibir un XER/DB nuevo, el agente hace las preguntas correctas antes de calcular.
+- Reportes en lenguaje natural: resumen ejecutivo que interpreta los KPIs en texto plano.
+- Fingerprint de proyecto: diagnóstico de calidad del schedule (gaps lógicos, anomalías en baseline).
+
+Ver `MEMORY.md` para la hoja de ruta completa.
