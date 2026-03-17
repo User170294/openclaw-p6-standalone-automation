@@ -1,0 +1,17 @@
+# Archivos temporales y privados — no subir al repo
+scripts/archive_tmp/
+
+# Bases de datos locales
+*.db
+*.sqlite
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Datos privados / outputs locales
+data/private/
+*.xlsx
+*.xer

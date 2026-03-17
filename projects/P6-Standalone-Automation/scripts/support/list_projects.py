@@ -6,7 +6,7 @@ from pathlib import Path
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--db", required=True)
-    p.add_argument("--like", default="SIMTEXX")
+    p.add_argument("--like", default="")
     args = p.parse_args()
 
     db = Path(args.db)

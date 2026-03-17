@@ -37,12 +37,10 @@ def main():
     for col in cur.fetchall():
         print(f"{col[1]}|{col[2]}")
 
-    print('\n--- PROJWBS like SIMTEXX ---')
+    print('\n--- PROJWBS (top 30) ---')
     cur.execute("""
     SELECT WBS_ID, PROJ_ID, WBS_SHORT_NAME, WBS_NAME, PARENT_WBS_ID
     FROM PROJWBS
-    WHERE UPPER(COALESCE(WBS_SHORT_NAME,'')) LIKE '%SIMTEXX%'
-       OR UPPER(COALESCE(WBS_NAME,'')) LIKE '%SIMTEXX%'
     ORDER BY PROJ_ID, WBS_ID
     LIMIT 30
     """)
