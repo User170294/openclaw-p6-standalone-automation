@@ -24,7 +24,7 @@ y endurecer los bordes operativos (horarios/calendario real, contraste automáti
 - **Valor de referencia:** EV acum W11 = 4,669.20 HH (57.64%) — corte 15-mar-2026
 
 ## Regla crítica — NO MEZCLAR PROGRAMAS
-PV siempre de `proj_id=26258`. EV y Remaining siempre de `proj_id=26432`. Sin excepciones.
+PV siempre de `proj_id=26258`. EV y Remaining siempre de `proj_id=26485` (26432 eliminado de DB). Sin excepciones.
 
 ## Scripts core activos
 | Script | Función |

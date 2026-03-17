@@ -16,7 +16,6 @@ if str(SCRIPTS_ROOT) not in sys.path:
 
 from p6_utils import open_db
 
-SHEET_NAME = 'Revision_Avance_W012'
 HEADERS = [
     'Entrega',
     'Despacho/Tag',
@@ -63,7 +62,7 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument('--db', required=True)
     ap.add_argument('--proj-id', type=int, required=True)
     ap.add_argument('--iso-week', required=True, help='Formato ISO YYYY-W##, ej. 2026-W11')
-    ap.add_argument('--sheet', default=SHEET_NAME)
+    ap.add_argument('--sheet', default=None, help='Nombre de hoja Excel (default: Revision_Avance_<iso-week>)')
     ap.add_argument('--out', required=True, help='Ruta xlsx de salida')
     return ap.parse_args()
 
@@ -297,9 +296,10 @@ def main() -> None:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    sheet_name = args.sheet or f"Revision_Avance_{args.iso_week.replace(':', '-')}"
     wb = Workbook()
     ws = wb.active
-    ws.title = args.sheet
+    ws.title = sheet_name
     ws.append(HEADERS)
     style_header(ws, HEADERS)
 
