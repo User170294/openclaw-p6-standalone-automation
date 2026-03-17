@@ -399,7 +399,7 @@ def compute(payload: dict[str, Any]) -> dict[str, Any]:
         return {
             'mode': 'p6_visual',
             'stub': True,
-            'note': 'Modo p6_visual aÃºn no implementado; interfaz reservada y salida estable habilitada.',
+            'note': 'Modo p6_visual aun no implementado; interfaz reservada y salida estable habilitada.',
             'rows': [],
         }
     return _compute_logic(payload)
