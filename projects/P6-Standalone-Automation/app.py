@@ -82,9 +82,9 @@ with st.sidebar:
                 con = open_db(db_path)
                 cur = con.cursor()
                 rows = cur.execute(
-                    "SELECT PROJ_ID, PROJ_SHORT_NAME, PROJ_NAME FROM PROJECT ORDER BY PROJ_SHORT_NAME"
+                    "SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT ORDER BY PROJ_SHORT_NAME"
                 ).fetchall()
-                st.session_state.projects = [(r[0], r[1], r[2]) for r in rows]
+                st.session_state.projects = [(r[0], r[1]) for r in rows]
                 st.session_state.connected = True
                 con.close()
                 st.success(f"✅ Conectado | {len(st.session_state.projects)} proyecto(s)")
@@ -100,10 +100,10 @@ with st.sidebar:
         # Project selection
         if st.session_state.projects:
             st.subheader("Proyectos")
-            for proj_id, proj_short, proj_name in st.session_state.projects[:10]:
-                st.caption(f"**{proj_short}** ({proj_id}): {proj_name[:40]}")
+            for proj_id, proj_short in st.session_state.projects[:10]:
+                st.caption(f"**{proj_short}** ({proj_id})")
             if len(st.session_state.projects) > 10:
-                st.caption(f"... y {len(st.session_state.projects) - 10} más")
+                st.caption(f"... y {len(st.session_state.projects) - 10} mas")
     else:
         st.markdown("🔴 **No conectado**")
 
