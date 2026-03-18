@@ -27,6 +27,7 @@ FIXED_COLUMNS = ['week', 'pv_week', 'pv_cum', 'pv_pct', 'ev_cum', 'ev_pct', 'ac_
 WARN_PREFLIGHT = 'PREFLIGHT_WARNING'
 ERR_PREFLIGHT  = 'PREFLIGHT_ERROR'
 
+
 def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
     """
     Detecta inconsistencias de datos en las asignaciones del programa actualizado
@@ -53,12 +54,11 @@ def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
         if ev <= 0:
             continue  # sin HH reales: no hay nada que validar
 
-        task_id   = row.get('task_id', '?')
+        task_id = row.get('task_id', '?')
         task_code = row.get('task_code') or row.get('task_id', '?')
         act_start = safe_dt(row.get('act_start_date') or row.get('task_act_start_date'))
-        act_end   = safe_dt(row.get('act_end_date')   or row.get('task_act_end_date'))
+        act_end = safe_dt(row.get('act_end_date') or row.get('task_act_end_date'))
 
-        # E1: HH reales sin fecha de inicio
         if not act_start:
             issues.append({
                 'level': ERR_PREFLIGHT,
@@ -68,7 +68,6 @@ def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
                 'detail': f'ACT_REG_QTY={ev:.1f} HH pero ACT_START_DATE es NULL — actividad sin inicio registrado.',
             })
 
-        # E2: declarada terminada DESPUÉS del corte
         if act_end and act_end > cutoff:
             issues.append({
                 'level': ERR_PREFLIGHT,
@@ -81,7 +80,6 @@ def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
                 ),
             })
 
-        # E3: fechas invertidas
         if act_start and act_end and act_end < act_start:
             issues.append({
                 'level': ERR_PREFLIGHT,
@@ -94,7 +92,6 @@ def validate_preflight(ev_rows: list[dict], cutoff: datetime) -> list[dict]:
                 ),
             })
 
-        # W1: en progreso al corte (informativo)
         if act_start and not act_end:
             issues.append({
                 'level': WARN_PREFLIGHT,
@@ -111,7 +108,7 @@ def print_preflight(issues: list[dict], cutoff: datetime) -> None:
     if not issues:
         print(f'[PREFLIGHT] OK - sin inconsistencias al corte {cutoff.strftime("%Y-%m-%d")}.')
         return
-    errors   = [i for i in issues if i['level'] == ERR_PREFLIGHT]
+    errors = [i for i in issues if i['level'] == ERR_PREFLIGHT]
     warnings = [i for i in issues if i['level'] == WARN_PREFLIGHT]
     print(f'\n{"="*72}')
     print(f'  PREFLIGHT VALIDATION - corte {cutoff.strftime("%Y-%m-%d")}')
@@ -615,10 +612,9 @@ def export(report: dict[str, Any], args) -> Path:
             f.write(f"- stub: `{report['stub']}`\n")
             f.write(f"- row_count: `{report['row_count']}`\n")
             f.write(f"- note: {report['note']}\n\n")
-            # Preflight issues (si existen)
             issues = report.get('preflight_issues') or []
             if issues:
-                errors   = [i for i in issues if i['level'] == ERR_PREFLIGHT]
+                errors = [i for i in issues if i['level'] == ERR_PREFLIGHT]
                 warnings = [i for i in issues if i['level'] == WARN_PREFLIGHT]
                 f.write(f"## Preflight Validation — {len(errors)} error(es), {len(warnings)} aviso(s)\n\n")
                 f.write("| Nivel | Codigo | Actividad | Detalle |\n")
@@ -662,13 +658,11 @@ def main():
     args = parse_args()
     payload = load(args)
 
-    # --- PRE-FLIGHT ---
     if payload.get('base_source') == 'db':
         ev_rows = payload.get('ev_taskrsrc_rows', payload.get('base_taskrsrc_rows', []))
-        issues  = validate_preflight(ev_rows, payload['cutoff'])
+        issues = validate_preflight(ev_rows, payload['cutoff'])
         print_preflight(issues, payload['cutoff'])
         payload['preflight_issues'] = issues
-    # ------------------
 
     computed = compute(payload)
     report = compare(computed)
