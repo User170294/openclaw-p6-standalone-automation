@@ -52,12 +52,46 @@ if "db_path" not in st.session_state:
     st.session_state.db_path = ""
 if "connected" not in st.session_state:
     st.session_state.connected = False
-if "projects" not in st.session_state:
-    st.session_state.projects = []
+if "eps_structure" not in st.session_state:
+    st.session_state.eps_structure = {}  # {eps_id: [rama1, rama2, ...]}
+if "eps_list" not in st.session_state:
+    st.session_state.eps_list = []  # [(eps_id, eps_name), ...]
 
 
 # ============================================================================
-# Sidebar — DB Connection & Project Discovery
+# Funciones auxiliares
+# ============================================================================
+
+def load_eps_structure(db_path: str) -> tuple[list, dict]:
+    """
+    Carga la estructura EPS → Ramas desde la DB.
+    Retorna: (lista_eps, dict_ramas)
+    """
+    con = open_db(db_path)
+    cur = con.cursor()
+
+    # Obtener todas las EPS (proyectos raíz)
+    eps_rows = cur.execute(
+        "SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT WHERE ORIG_PROJ_ID IS NULL OR ORIG_PROJ_ID = PROJ_ID ORDER BY PROJ_SHORT_NAME"
+    ).fetchall()
+
+    eps_list = [(r[0], r[1]) for r in eps_rows]
+    eps_structure = {}
+
+    # Para cada EPS, obtener sus ramas (proyectos hijos)
+    for eps_id, eps_name in eps_list:
+        rama_rows = cur.execute(
+            "SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT WHERE ORIG_PROJ_ID = ? ORDER BY PROJ_SHORT_NAME",
+            (eps_id,)
+        ).fetchall()
+        eps_structure[eps_id] = [(r[0], r[1]) for r in rama_rows]
+
+    con.close()
+    return eps_list, eps_structure
+
+
+# ============================================================================
+# Sidebar — DB Connection & EPS Selection
 # ============================================================================
 
 with st.sidebar:
@@ -74,38 +108,40 @@ with st.sidebar:
     # Connect button
     if st.button("🔌 Conectar", use_container_width=True):
         if not db_path:
-            st.error("⚠️ Ingresa una ruta válida")
+            st.error("Ingresa una ruta valida")
         elif not Path(db_path).exists():
-            st.error(f"❌ Archivo no encontrado: {db_path}")
+            st.error(f"Archivo no encontrado: {db_path}")
         else:
             try:
-                con = open_db(db_path)
-                cur = con.cursor()
-                rows = cur.execute(
-                    "SELECT PROJ_ID, PROJ_SHORT_NAME FROM PROJECT ORDER BY PROJ_SHORT_NAME"
-                ).fetchall()
-                st.session_state.projects = [(r[0], r[1]) for r in rows]
+                eps_list, eps_structure = load_eps_structure(db_path)
+                st.session_state.eps_list = eps_list
+                st.session_state.eps_structure = eps_structure
                 st.session_state.connected = True
-                con.close()
-                st.success(f"✅ Conectado | {len(st.session_state.projects)} proyecto(s)")
+                st.success(f"Conectado | {len(eps_list)} EPS")
             except Exception as e:
-                st.error(f"❌ Error al conectar: {str(e)}")
+                st.error(f"Error: {str(e)}")
                 st.session_state.connected = False
 
     # Status indicator
     if st.session_state.connected:
-        st.markdown("🟢 **Conectado**")
+        st.markdown("**🟢 Conectado**")
         st.divider()
 
-        # Project selection
-        if st.session_state.projects:
-            st.subheader("Proyectos")
-            for proj_id, proj_short in st.session_state.projects[:10]:
-                st.caption(f"**{proj_short}** ({proj_id})")
-            if len(st.session_state.projects) > 10:
-                st.caption(f"... y {len(st.session_state.projects) - 10} mas")
+        # EPS Selection
+        st.subheader("EPS disponibles")
+
+        for eps_id, eps_name in st.session_state.eps_list:
+            with st.expander(f"📦 {eps_name} ({eps_id})"):
+                ramas = st.session_state.eps_structure.get(eps_id, [])
+
+                if ramas:
+                    st.write("**Ramas/Programas:**")
+                    for rama_id, rama_name in ramas:
+                        st.caption(f"  • {rama_name} ({rama_id})")
+                else:
+                    st.write("*(Sin ramas)*")
     else:
-        st.markdown("🔴 **No conectado**")
+        st.markdown("**🔴 No conectado**")
 
 
 # ============================================================================
@@ -126,36 +162,62 @@ else:
         st.header("Motor EVM")
         st.markdown("Calcula PV / EV / Remaining / Forecast")
 
-        col1, col2, col3 = st.columns(3)
+        # EPS + Rama selection
+        col1, col2 = st.columns(2)
+
         with col1:
-            pv_proj_id = st.number_input(
-                "PV proj_id (baseline)",
-                value=26258,
-                help="ID del programa baseline (Planned Value)"
-            )
+            st.subheader("Baseline (PV)")
+            eps_names_pv = [f"{name} ({eid})" for eid, name in st.session_state.eps_list]
+            selected_eps_pv = st.selectbox("EPS", eps_names_pv, key="eps_pv")
+            pv_eps_id = int(selected_eps_pv.split("(")[-1].rstrip(")"))
+
+            ramas_pv = st.session_state.eps_structure.get(pv_eps_id, [(pv_eps_id, "Raiz")])
+            rama_names_pv = [f"{name} ({rid})" for rid, name in ramas_pv] if ramas_pv else [f"Raiz ({pv_eps_id})"]
+
+            if rama_names_pv:
+                selected_rama_pv = st.selectbox("Rama/Programa", rama_names_pv, key="rama_pv")
+                pv_proj_id = int(selected_rama_pv.split("(")[-1].rstrip(")"))
+            else:
+                pv_proj_id = pv_eps_id
+                st.write("(Raiz)")
+
         with col2:
-            ev_proj_id = st.number_input(
-                "EV proj_id (actualizado)",
-                value=26485,
-                help="ID del programa actualizado (Earned Value)"
-            )
+            st.subheader("Actualizado (EV)")
+            eps_names_ev = [f"{name} ({eid})" for eid, name in st.session_state.eps_list]
+            selected_eps_ev = st.selectbox("EPS", eps_names_ev, key="eps_ev", index=0)
+            ev_eps_id = int(selected_eps_ev.split("(")[-1].rstrip(")"))
+
+            ramas_ev = st.session_state.eps_structure.get(ev_eps_id, [(ev_eps_id, "Raiz")])
+            rama_names_ev = [f"{name} ({rid})" for rid, name in ramas_ev] if ramas_ev else [f"Raiz ({ev_eps_id})"]
+
+            if rama_names_ev:
+                # Por defecto seleccionar la primera rama (generalmente la más reciente)
+                selected_rama_ev = st.selectbox("Rama/Programa", rama_names_ev, key="rama_ev", index=0)
+                ev_proj_id = int(selected_rama_ev.split("(")[-1].rstrip(")"))
+            else:
+                ev_proj_id = ev_eps_id
+                st.write("(Raiz)")
+
+        # Otros parámetros
+        col3, col4 = st.columns(2)
         with col3:
             cutoff_date = st.date_input(
                 "Corte (cutoff)",
                 value=datetime.now().date() - timedelta(days=3),
             )
-
-        mode_col, fmt_col = st.columns(2)
-        with mode_col:
+        with col4:
             mode = st.selectbox("Modo", ["logic", "p6_visual"])
-        with fmt_col:
+
+        col5, col6 = st.columns(2)
+        with col5:
             out_format = st.selectbox("Formato reporte", ["xlsx", "md"])
+        with col6:
+            project_name = st.text_input("Nombre proyecto", value="P6-Report")
 
-        project_name = st.text_input("Nombre del proyecto (para reporte)", value="OT-1844")
-
-        if st.button("🚀 Calcular EVM", key="btn_evm", use_container_width=True):
+        # Calcular button
+        if st.button("🚀 Calcular EVM", use_container_width=True, type="primary"):
             try:
-                # Simulación de args para load()
+                # Crear args para load()
                 class Args:
                     def __init__(self):
                         self.mode = mode
@@ -177,7 +239,7 @@ else:
                     report = compare(result)
 
                 # Display metrics
-                st.subheader("📈 Métricas Principales")
+                st.subheader("📈 Metricas Principales")
                 kpis = enrich_report(report)['kpis']
 
                 m1, m2, m3, m4 = st.columns(4)
@@ -187,20 +249,20 @@ else:
                     st.metric("EV (HH)", f"{kpis['ev']:,.1f}")
                 with m3:
                     spi_val = kpis['spi'] or 0
-                    st.metric("SPI", f"{spi_val:.4f}", delta="✓ On Track" if spi_val >= 0.9 else "⚠️ Behind")
+                    st.metric("SPI", f"{spi_val:.4f}", delta="On Track" if spi_val >= 0.9 else "Behind")
                 with m4:
                     forecast = report.get('forecast_week', 'N/A')
                     st.metric("Forecast", f"W{forecast}" if forecast != 'N/A' else "N/A")
 
                 # Weekly table
-                st.subheader("📊 Tabla Semanal")
+                st.subheader("Tabla Semanal")
                 rows = report.get('rows', [])
                 if rows:
                     df = pd.DataFrame(rows)
                     st.dataframe(df, use_container_width=True, height=300)
 
                 # S-curve chart
-                st.subheader("📉 Curva S (PV vs EV)")
+                st.subheader("Curva S (PV vs EV)")
                 if rows:
                     chart_data = pd.DataFrame({
                         'Week': [r['week'] for r in rows],
@@ -210,119 +272,45 @@ else:
                     st.line_chart(chart_data.set_index('Week'))
 
                 # Download report
-                st.subheader("📥 Descargar Reporte")
+                st.subheader("Descargar Reporte")
                 with tempfile.TemporaryDirectory() as tmpdir:
                     out_path = generate_report(report, tmpdir, out_format, {'project_name': project_name})
                     with open(out_path, 'rb') as f:
                         st.download_button(
-                            label=f"📄 Descargar {out_format.upper()}",
+                            label=f"Descargar {out_format.upper()}",
                             data=f.read(),
                             file_name=out_path.name,
                             mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' if out_format == 'xlsx' else 'text/markdown',
                             use_container_width=True
                         )
 
-                st.success("✅ Cálculo completado")
+                st.success("Calculo completado!")
 
             except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
-                st.write(e)
+                st.error(f"Error: {str(e)}")
+                import traceback
+                st.write(traceback.format_exc())
 
     # ========================================================================
     # Tab 2: Captura
     # ========================================================================
     with tab_capture:
         st.header("Generar Captura de Avances")
-        st.markdown("Genera un Excel con actividades listas para captura")
-
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            cap_proj_id = st.number_input(
-                "EV proj_id",
-                value=26485,
-                key="cap_proj_id",
-                help="Proyecto de donde extraer actividades"
-            )
-        with col2:
-            iso_week = st.text_input(
-                "Semana ISO (ej: 2026-W11)",
-                value="2026-W11",
-                help="Formato ISO Week: YYYY-WNN"
-            )
-        with col3:
-            cap_filename = st.text_input(
-                "Nombre archivo",
-                value="capture.xlsx",
-                help="Nombre del archivo Excel a generar"
-            )
-
-        if st.button("📸 Generar Captura", use_container_width=True):
-            st.info("ℹ️ Script de captura (`generate_progress_capture_excel.py`) no configurado aún")
-            st.info(f"Parámetros: proj_id={cap_proj_id}, week={iso_week}, out={cap_filename}")
+        st.info("Script de captura no configurado aun")
 
     # ========================================================================
     # Tab 3: Carga
     # ========================================================================
     with tab_load:
         st.header("Cargar Avances")
-        st.markdown("Carga datos desde Excel de captura → Base de datos")
-
-        col1, col2 = st.columns(2)
-        with col1:
-            load_proj_id = st.number_input(
-                "EV proj_id",
-                value=26485,
-                key="load_proj_id"
-            )
-
-        uploaded_file = st.file_uploader(
-            "Sube Excel de captura (.xlsx)",
-            type=['xlsx'],
-            help="Archivo generado en la pestaña Captura"
-        )
-
-        if uploaded_file:
-            st.info(f"📂 Archivo: {uploaded_file.name}")
-
-            with st.expander("⚙️ Opciones avanzadas"):
-                def_start_hour = st.number_input("Hora inicio por defecto", value=8, min_value=0, max_value=23)
-                def_end_hour = st.number_input("Hora fin por defecto", value=17, min_value=0, max_value=23)
-
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("👁️ Ver Preview (dry-run)", use_container_width=True):
-                    st.info("ℹ️ Script de carga (`load_progress_excel_to_p6db.py`) no configurado aún")
-                    st.info(f"Parámetros: proj_id={load_proj_id}, archivo={uploaded_file.name}")
-
-            with col2:
-                if st.button("✅ Aplicar Carga", use_container_width=True):
-                    st.error("❌ Ejecuta primero 'Ver Preview'")
+        st.info("Script de carga no configurado aun")
 
     # ========================================================================
     # Tab 4: Auditoría
     # ========================================================================
     with tab_audit:
-        st.header("Auditoría de Proyecto")
-        st.markdown("Ejecuta validaciones post-carga")
-
-        audit_proj_id_mode = st.radio(
-            "Auditar",
-            ["Proyecto específico", "Toda la BD"],
-            horizontal=True
-        )
-
-        if audit_proj_id_mode == "Proyecto específico":
-            audit_proj_id = st.number_input(
-                "proj_id",
-                value=26485,
-                key="audit_proj_id"
-            )
-        else:
-            audit_proj_id = None
-
-        if st.button("✅ Ejecutar Auditoría", use_container_width=True):
-            st.info("ℹ️ Script de auditoría (`pilot_audit.py`) no configurado aún")
-            st.info(f"Parámetros: proj_id={audit_proj_id or 'todas'}")
+        st.header("Auditoria de Proyecto")
+        st.info("Script de auditoria no configurado aun")
 
 
 # ============================================================================
@@ -332,9 +320,6 @@ else:
 st.divider()
 st.markdown(
     """
-    ---
-    **P6-Standalone-Automation** | [FOCUS.md](focus.md) | [MEMORY.md](memory.md) | [CLAUDE.md](CLAUDE.md)
-
-    Rama: `master` | Motor: pv_engine.py | Tests: 60/60 ✓
+    P6-Standalone-Automation | rama: master | tests: 60/60
     """
 )
