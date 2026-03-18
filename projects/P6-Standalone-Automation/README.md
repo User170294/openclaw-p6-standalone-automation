@@ -106,7 +106,6 @@ Agente IA copiloto especializado en Primavera P6 para planificadores de construc
 - `scripts/support/` → inspección, listados, validaciones y utilitarios de apoyo.
 - `scripts/mutations/` → mutaciones DB específicas y operaciones controladas.
 - `scripts/prototypes/` → prototipos históricos (no usar en producción, ver README interno).
-- `scripts/archive_tmp/` → experimentos históricos `tmp_*` archivados para referencia.
 - `data/` → salidas, snapshots y reportes de corridas.
 - `docs/` → resúmenes y documentación operativa.
 - `001_Prueba Externa/` → XER externos para pruebas comparativas (local, fuera de Git por ahora).
