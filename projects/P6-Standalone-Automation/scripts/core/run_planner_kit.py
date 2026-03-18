@@ -12,24 +12,24 @@ Flujo completo:
   5. Generar reporte final (xlsx o md).
 
 Uso minimo (solo EVM + reporte):
-    python run_planner_kit.py \\
-        --db <ruta.db> \\
-        --pv-proj-id <proj_id_baseline> \\
-        --ev-proj-id <proj_id_actualizado> \\
-        --cutoff <YYYY-MM-DD> \\
+    python run_planner_kit.py \
+        --db <ruta.db> \
+        --pv-proj-id <proj_id_baseline> \
+        --ev-proj-id <proj_id_actualizado> \
+        --cutoff <YYYY-MM-DD> \
         --out-dir <directorio_salida>
 
 Uso completo (con captura + carga):
-    python run_planner_kit.py \\
-        --db <ruta.db> \\
-        --pv-proj-id <proj_id_baseline> \\
-        --ev-proj-id <proj_id_actualizado> \\
-        --cutoff <YYYY-MM-DD> \\
-        --iso-week <YYYY-W##> \\
-        --capture-xlsx <ruta_captura.xlsx> \\
-        --load \\
-        --out-dir <directorio_salida> \\
-        --format xlsx \\
+    python run_planner_kit.py \
+        --db <ruta.db> \
+        --pv-proj-id <proj_id_baseline> \
+        --ev-proj-id <proj_id_actualizado> \
+        --cutoff <YYYY-MM-DD> \
+        --iso-week <YYYY-W##> \
+        --capture-xlsx <ruta_captura.xlsx> \
+        --load \
+        --out-dir <directorio_salida> \
+        --format xlsx \
         --project-name "Mi Proyecto"
 """
 from __future__ import annotations
@@ -96,19 +96,8 @@ def step_load_progress(db: Path, capture_xlsx: Path, ev_proj_id: int) -> None:
 def step_run_evm(db: Path, pv_proj_id: int, ev_proj_id: int, cutoff: str, out_dir: Path) -> dict:
     """Paso 4: calcula EVM y retorna el dict compare() del engine."""
     script = SCRIPTS_ROOT / "core" / "pv_engine.py"
-    json_out = out_dir / f"evm_{pv_proj_id}_{ev_proj_id}_{cutoff}.json"
-    cmd = [
-        sys.executable, str(script),
-        "--db", str(db),
-        "--proj-id", str(pv_proj_id),
-        "--cutoff", cutoff,
-        "--mode", "logic",
-        "--out-dir", str(out_dir),
-        "--format", "json",
-    ]
     print(f"\n[4/5] Calculando EVM — PV desde [{pv_proj_id}] / EV desde [{ev_proj_id}]")
 
-    # Regla de dos programas: --baseline-proj-id = PV, --proj-id = EV/Remaining
     cmd_ev = [
         sys.executable, str(script),
         "--db", str(db),
@@ -123,7 +112,6 @@ def step_run_evm(db: Path, pv_proj_id: int, ev_proj_id: int, cutoff: str, out_di
     if result.returncode != 0:
         raise SystemExit(f"❌ pv_engine (EV) falló:\n{result.stderr}")
 
-    # Buscar el json generado (el engine genera con timestamp)
     json_files = sorted(out_dir.glob("pv_engine_logic_*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not json_files:
         raise SystemExit("❌ pv_engine no generó archivo JSON de salida.")
@@ -132,7 +120,6 @@ def step_run_evm(db: Path, pv_proj_id: int, ev_proj_id: int, cutoff: str, out_di
     print(f"     ✓ EVM calculado — {report.get('row_count', 0)} semanas")
     if report.get("rows"):
         bac = report.get("bac", 0) or 1
-        # Buscar el row del corte (último con ev_cum > 0); no usar rows[-1] que es la semana final del forecast
         cutoff_row = None
         for r in reversed(report["rows"]):
             if (r.get("ev_cum") or 0) > 0:
@@ -157,7 +144,6 @@ def step_generate_narrative(report: dict, out_dir: Path, project_name: str, cuto
 def step_generate_report(report: dict, out_dir: Path, fmt: str, project_name: str, cutoff: str) -> Path:
     """Paso 5: genera reporte final."""
     script = SCRIPTS_ROOT / "core" / "report_generator.py"
-    # Serializar report a JSON temporal
     tmp_json = out_dir / "_tmp_evm_report.json"
     tmp_json.write_text(json.dumps(report, ensure_ascii=False, default=str), encoding="utf-8")
 
@@ -191,14 +177,11 @@ def parse_args() -> argparse.Namespace:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    # Requeridos siempre
     ap.add_argument("--db", required=True, help="Ruta a DB SQLite de P6")
     ap.add_argument("--pv-proj-id", type=int, required=True, help="PROJ_ID del programa baseline (fuente de PV)")
     ap.add_argument("--ev-proj-id", type=int, required=True, help="PROJ_ID del programa actualizado (fuente de EV)")
     ap.add_argument("--cutoff", required=True, help="Fecha de corte YYYY-MM-DD")
     ap.add_argument("--out-dir", default="data/reports", help="Directorio de salida (default: data/reports)")
-
-    # Opcionales
     ap.add_argument("--iso-week", default=None, help="Semana ISO YYYY-W## para captura (ej. 2026-W12)")
     ap.add_argument("--capture-xlsx", default=None, help="Excel de captura existente para cargar avances")
     ap.add_argument("--load", action="store_true", help="Si se indica, aplica la carga de avances a la DB")
@@ -218,7 +201,6 @@ def main() -> None:
     print("  P6 Planner Kit — Flujo semanal de control EVM")
     print("=" * 60)
 
-    # --- Paso 1: Validar proj_ids ---
     print("\n[1/5] Validando programas en DB...")
     ev_info, pv_info = validate_pair(db, args.ev_proj_id, args.pv_proj_id)
 
@@ -226,7 +208,6 @@ def main() -> None:
     print(f"     ✓ Baseline : [{pv_info.proj_id}] {pv_info.short_name}")
     print(f"     ✓ Actualiz.: [{ev_info.proj_id}] {ev_info.short_name} (recalc: {ev_info.last_recalc or 'N/D'})")
 
-    # --- Paso 2 (opcional): Generar Excel de captura ---
     if args.generate_capture:
         if not args.iso_week:
             raise SystemExit("❌ --iso-week requerido cuando se usa --generate-capture")
@@ -234,16 +215,12 @@ def main() -> None:
     else:
         print("\n[2/5] Captura Excel — omitida (usa --generate-capture para activar)")
 
-    # --- Paso 3 (opcional): Cargar avances ---
     if args.capture_xlsx and args.load:
         step_load_progress(db, Path(args.capture_xlsx), args.ev_proj_id)
     else:
         print("\n[3/5] Carga de avances — omitida (usa --capture-xlsx + --load para activar)")
 
-    # --- Paso 4: Calcular EVM ---
     report = step_run_evm(db, args.pv_proj_id, args.ev_proj_id, args.cutoff, out_dir)
-
-    # --- Paso 5: Generar reporte + narrativa ---
     out_report = step_generate_report(report, out_dir, args.format, project_name, args.cutoff)
     out_narrative = step_generate_narrative(report, out_dir, project_name, args.cutoff)
 

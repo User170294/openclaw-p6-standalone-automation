@@ -17,8 +17,6 @@ def main():
     cur.execute("PRAGMA table_info(PROJECT)")
     cols = [r[1] for r in cur.fetchall()]
 
-    text_cols = [c for c in ["PROJ_SHORT_NAME", "PROJ_NAME", "GUID", "CREATE_USER", "UPDATE_USER"] if c in cols]
-
     like = f"%{args.like.upper()}%"
 
     if "PROJ_SHORT_NAME" in cols and "PROJ_NAME" in cols:
